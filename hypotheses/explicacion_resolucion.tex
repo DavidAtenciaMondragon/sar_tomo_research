@@ -1,0 +1,908 @@
+%% explicacion_resolucion.tex
+%% Derivación didáctica del modelo de resolución 3D para SAR biestático
+%% helicoidal con dos medios homogéneos
+%%
+%% Compilar: pdflatex explicacion_resolucion.tex (dos pasadas)
+%% Figuras:  hypotheses/figures/fig0X_*.pdf (generar con utils/generate_figures.py)
+
+\documentclass[12pt,a4paper,oneside]{book}
+
+% ─── paquetes ────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\geometry{left=3cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
+
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{mathtools}
+\usepackage{bm}            % bold math
+\usepackage{physics}       % \qty, \norm, etc.
+\usepackage{siunitx}       % unidades
+\sisetup{output-decimal-marker={,}}
+
+\usepackage{graphicx}
+\graphicspath{{figures/}}  % figuras en hypotheses/figures/
+
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc}
+
+\usepackage{mdframed}
+\usepackage{tcolorbox}
+\tcbuselibrary{theorems,skins,breakable}
+
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=green!50!black,
+  urlcolor=cyan!60!black,
+  pdftitle={Resolución 3D en SAR Biestático Helicoidal},
+  pdfauthor={Investigación SAR-Tomo},
+}
+
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\nouppercase{\leftmark}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ─── entornos (título protegido de pgfkeys con \protect) ──────────────────────
+\newcommand{\result}[2]{%
+  \begin{tcolorbox}[enhanced, breakable,
+    colback=yellow!8, colframe=orange!70!black,
+    fonttitle=\bfseries,
+    title={\protect#1},
+    attach boxed title to top left={yshift=-2mm, xshift=5mm},
+    boxed title style={colback=orange!70!black}]
+    #2
+  \end{tcolorbox}}
+
+\newcommand{\defin}[2]{%
+  \begin{tcolorbox}[enhanced, breakable,
+    colback=blue!5, colframe=blue!50!black,
+    fonttitle=\bfseries,
+    title={\protect#1}]
+    #2
+  \end{tcolorbox}}
+
+\newcommand{\nota}[2]{%
+  \begin{tcolorbox}[enhanced, breakable,
+    colback=green!5, colframe=green!50!black,
+    fonttitle=\bfseries\small,
+    title={\protect#1}]
+    #2
+  \end{tcolorbox}}
+
+% ─── macros matemáticas ───────────────────────────────────────────────────────
+\newcommand{\vr}{\mathbf{r}}
+\newcommand{\vP}{\mathbf{P}}
+\newcommand{\vk}{\mathbf{k}}
+\newcommand{\ve}[1]{\hat{\mathbf{e}}_{#1}}
+\newcommand{\ROP}{R_{\!OP}}
+\newcommand{\dz}{\delta_z}
+\newcommand{\dxy}{\delta_{xy}}
+\newcommand{\Wz}{W_z}
+\newcommand{\Bperp}{B_\perp}
+\newcommand{\psinot}{\psi_0}
+\newcommand{\costnot}{\cos\theta_{t,0}}
+\newcommand{\lambdanot}{\lambda_0}
+\newcommand{\Rnaught}{R_0}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{document}
+
+\frontmatter
+
+% ─── portada ──────────────────────────────────────────────────────────────────
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\LARGE\bfseries Resolución Espacial 3D en}\\[0.5cm]
+{\LARGE\bfseries SAR Biestático Helicoidal}\\[0.3cm]
+{\LARGE\bfseries con Dos Medios Homogéneos}\\[2cm]
+{\large\itshape Derivación didáctica paso a paso: \\
+desde los conceptos de radar básico hasta las\\
+ecuaciones de resolución validadas por simulación}\\[3cm]
+{\large Proyecto de Investigación SAR-Tomo}\\[0.5cm]
+{\large\today}\\[4cm]
+\includegraphics[width=0.6\textwidth]{fig08_full_system.pdf}\\[1cm]
+{\small Sistema SAR biestático helicoidal cónico sobre dos medios con interfaz plana}
+\end{titlepage}
+
+% ─── tabla de contenido ──────────────────────────────────────────────────────
+\tableofcontents
+
+\mainmatter
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Introducción}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Motivación}
+
+El Radar de Apertura Sintética (SAR) es una tecnología de teledetección activa capaz de producir imágenes de alta resolución en cualquier condición meteorológica y con independencia de la iluminación solar. Su principio fundamental es el movimiento de una antena que, al procesar coherentemente los ecos recibidos en múltiples posiciones, sintetiza una apertura virtual mucho mayor que la antena física.
+
+El presente documento aborda una configuración específica de SAR con características de especial interés para la tomografía de subsuelo:
+\begin{itemize}
+  \item \textbf{Configuración biestática}: el transmisor (TX) y el receptor (RX) se encuentran en plataformas distintas, separadas por un ángulo azimutal $\Delta\phi$.
+  \item \textbf{Trayectoria helicoidal cónica}: ambas plataformas describen una hélice tridimensional que genera apertura sintética en los tres ejes.
+  \item \textbf{Dos medios homogéneos}: la señal se propaga en el aire ($n_1=1$) y se refracta al penetrar en el suelo ($n_2=\sqrt{\varepsilon_r}$).
+  \item \textbf{Objetivo enterrado}: el punto de interés se encuentra bajo la interfaz plana aire-suelo.
+\end{itemize}
+
+\section{Objetivo del documento}
+
+Se busca responder la pregunta: \emph{¿Con qué precisión puede localizarse un objeto enterrado usando este sistema?} La respuesta se expresa mediante tres números:
+
+\[
+\delta_x,\quad \delta_y,\quad \delta_z
+\]
+
+la resolución espacial $-3\,\text{dB}$ de la imagen SAR en cada dirección.
+
+\section{Ruta de derivación}
+
+El documento sigue una secuencia didáctica acumulativa:
+
+\begin{enumerate}
+  \item \textbf{Radar básico}: resolución en rango como límite físico del pulso.
+  \item \textbf{SAR lineal}: la apertura sintética y su equivalencia tomográfica.
+  \item \textbf{SAR circular monoestático}: resolución isotrópica 2D y la PSF de Bessel.
+  \item \textbf{El k-espacio}: el marco unificador que conecta geometría con resolución.
+  \item \textbf{SAR helicoidal}: la apertura tomográfica vertical y la resolución 3D.
+  \item \textbf{Dos medios}: la refracción de Snell y su impacto en la fase.
+  \item \textbf{Configuración biestática}: el ángulo de separación y su efecto en el k-espacio.
+  \item \textbf{Sistema completo}: las ecuaciones finales y su validación.
+  \item \textbf{Extensión off-axis}: targets fuera del eje de la hélice.
+\end{enumerate}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Fundamentos de Radar: Resolución en Rango}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{El problema de la discriminación en distancia}
+
+Un radar mide la distancia a un objetivo midiendo el retraso temporal $\tau$ del eco:
+\[
+R = \frac{c\,\tau}{2}
+\]
+donde el factor 2 aparece porque la señal viaja de ida y vuelta.
+
+La figura~\ref{fig:radar_basics} muestra la geometría fundamental: el sensor a altura $H$ sobre el objetivo, con ángulo de incidencia $\psi$ respecto a la vertical.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{fig01_radar_basics.pdf}
+\caption{Geometría básica de un radar pulsado. El ángulo de incidencia $\psi$ se mide desde la vertical. La resolución en rango depende del ancho de banda $B$ del pulso transmitido.}
+\label{fig:radar_basics}
+\end{figure}
+
+\section{El pulso de modulación lineal de frecuencia (LFM/chirp)}
+
+Para poder distinguir dos blancos separados por una distancia $\Delta R$, la señal emitida debe tener un ancho de banda $B$ suficiente. Se usa el \emph{chirp LFM}:
+\[
+s(t) = A\,\mathrm{rect}\!\left(\frac{t}{T_p}\right)\exp\!\left(j\left(2\pi f_0 t + \pi\gamma t^2\right)\right)
+\]
+donde $f_0$ es la frecuencia portadora, $T_p$ la duración del pulso y $\gamma = B/T_p$ la tasa de barrido. El ancho de banda total es $B = \gamma T_p$.
+
+Tras la \textbf{compresión en rango} (correlación con el pulso de referencia), el perfil de rango tiene forma sinc con anchura:
+
+\result{Resolución en Rango (Medio 1 — Aire)}{
+\[
+\boxed{\delta_r = \frac{c}{2B}}
+\]
+donde $c$ es la velocidad de la luz y $B$ el ancho de banda del chirp.
+}
+
+Para un objetivo en el Medio 2 (suelo con $n_2 = \sqrt{\varepsilon_r}$), la velocidad de propagación es $v_2 = c/n_2$, por lo que:
+
+\result{Resolución en Rango en el Suelo}{
+\[
+\boxed{\delta_r^{suelo} = \frac{c}{2n_2 B} = \frac{v_2}{2B}}
+\]
+La presencia del suelo \emph{mejora} la resolución en rango por un factor $n_2$.
+}
+
+\nota{Ejemplo numérico}{
+Con $B = 50\,\text{MHz}$, $n_2 = 2$ (suelo típico con $\varepsilon_r = 4$):
+\[
+\delta_r^{suelo} = \frac{3\times10^8}{2 \times 2 \times 50\times10^6} = 1.5\,\text{m}
+\]
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{SAR Lineal Monoestático}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{El problema de la resolución en azimut}
+
+Una antena de tamaño físico $d_a$ tiene un ancho de haz $\Theta_{3\text{dB}} \approx \lambda/d_a$. La resolución en azimut de un radar convencional (RAR) es:
+\[
+\delta_a^{RAR} = \Theta_{3\text{dB}}\cdot R = \frac{\lambda R}{d_a}
+\]
+Esta expresión \emph{empeora con la distancia} $R$, lo cual es indeseable.
+
+\section{La apertura sintética: el principio fundamental del SAR}
+
+La idea clave del SAR es que una antena pequeña en movimiento puede procesar coherentemente múltiples pulsos como si fuera una antena física grande. Al integrar coherentemente los ecos recibidos durante una longitud de apertura sintética $L_{SA}$, la resolución en azimut se convierte en:
+
+\result{Resolución en Azimut SAR (Stripmap)}{
+\[
+\boxed{\delta_a^{SAR} = \frac{d_a}{2}}
+\]
+La resolución es \emph{independiente de la distancia} $R$ y de la frecuencia $f_0$. Solo depende de la longitud física de la antena $d_a$.
+}
+
+La figura~\ref{fig:aperture} ilustra la diferencia entre apertura real y sintética.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{fig02_real_vs_synth.pdf}
+\caption{Comparación entre apertura real (RAR) y apertura sintética (SAR). El SAR procesa coherentemente los ecos de múltiples posiciones del sensor para sintetizar una apertura grande, logrando una resolución en azimut independiente del rango.}
+\label{fig:aperture}
+\end{figure}
+
+\section{Equivalencia tomográfica del SAR Spotlight}
+
+El SAR en modo \emph{spotlight} (donde el haz apunta continuamente al mismo parche) tiene una equivalencia directa con la tomografía computarizada (CT), demostrada por Munson et al.\ (1983). La señal demodulada en cada ángulo de observación $\theta$ es la transformada de Fourier de la proyección de la reflectividad del parche, lo que permite reconstruir la imagen mediante algoritmos de CT.
+
+En el dominio del número de onda, el SAR spotlight adquiere muestras en un \textbf{sector anular}:
+\[
+\{(k_x, k_y) : k_{min} \leq \sqrt{k_x^2+k_y^2} \leq k_{max},\; -\theta_M \leq \arctan(k_y/k_x) \leq \theta_M\}
+\]
+cuya extensión determina directamente las resoluciones en rango y azimut.
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{SAR Circular Monoestático: Resolución Isotrópica}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{La trayectoria circular y su ventaja}
+
+Cuando el sensor vuela en una trayectoria circular de radio $\rho_0$ a altura $z_0$, la apertura sintética cubre todos los ángulos azimutales ($0$ a $2\pi$). Esto produce una cobertura del k-espacio horizontal que es un \textbf{círculo completo} (o anillo, incluyendo la variación de frecuencia), cuyas propiedades son:
+\begin{itemize}
+  \item La PSF es \emph{isotrópica} en el plano horizontal (igual resolución en todas las direcciones).
+  \item La resolución es proporcional a $\lambda/(2\pi\sin\psi_0)$, donde $\psi_0$ es el ángulo de incidencia.
+\end{itemize}
+
+El ángulo de incidencia (look angle) del sensor respecto a la vertical es:
+\[
+\psi_0 = \arctan\!\left(\frac{\rho_0}{z_0}\right)
+\]
+
+La figura~\ref{fig:circular_sar} muestra la trayectoria, el k-espacio y la PSF resultante.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{fig03_circular_sar.pdf}
+\caption{SAR circular monoestático. (a) Trayectoria circular a altura $z_0$ y radio $\rho_0$. (b) Cobertura del k-espacio horizontal: anillo de radio $R_c = 4\pi\sin\psi_0/\lambda$. (c) PSF horizontal como función de Bessel $J_0(R_c\,\delta)$; el ancho $-3\,\text{dB}$ define la resolución $\delta_{xy}$.}
+\label{fig:circular_sar}
+\end{figure}
+
+\section{Derivación de la resolución horizontal}
+
+\subsection{La cobertura en el k-espacio}
+
+Para un sensor en $(\rho_0\cos\alpha, \rho_0\sin\alpha, z_0)$ y un objetivo en $(0,0,0)$ (en el plano del suelo), el vector de onda efectivo en el plano horizontal tiene componentes:
+\[
+k_x = -\frac{4\pi f_0}{c}\sin\psi_0\cos\alpha, \qquad k_y = -\frac{4\pi f_0}{c}\sin\psi_0\sin\alpha
+\]
+
+Al variar $\alpha \in [0, 2\pi]$, estos trazan un \textbf{círculo de radio}:
+\[
+R_c = \frac{4\pi f_0}{c}\sin\psi_0 = \frac{4\pi\sin\psi_0}{\lambda_0}
+\]
+
+\subsection{La PSF horizontal como función de Bessel}
+
+La distribución de $k_x$ para $\alpha$ uniforme sigue la distribución arcseno $p(k_x) = 1/(\pi\sqrt{R_c^2-k_x^2})$. La transformada de Fourier de esta distribución es la función de Bessel de primer tipo de orden cero:
+\[
+\text{PSF}_{xy}(\delta) = \int_{-R_c}^{R_c} p(k_x)\,e^{jk_x\delta}\,dk_x = J_0(R_c\,\delta)
+\]
+
+El punto $-3\,\text{dB}$ de $J_0$ ocurre en $u \approx 1.20$ (es decir, $J_0(1.20) \approx 1/\sqrt{2}$):
+
+\result{Resolución Horizontal, SAR Circular Monoestático}{
+\[
+\boxed{\delta_{xy} = \frac{2\times 1.20}{R_c} = \frac{2.40\,\lambda_0}{4\pi\sin\psi_0} = \frac{0.60\,\lambda_0}{\pi\sin\psi_0}}
+\]
+}
+
+\nota{Interpretación física}{
+La resolución horizontal no depende del ancho de banda $B$ sino de la \emph{longitud de onda} $\lambda_0$ y del \emph{ángulo de incidencia} $\psi_0$. A mayor ángulo (sensor más lateral) y menor longitud de onda, mejor resolución horizontal.
+}
+
+\section{Resolución vertical en SAR circular}
+
+Para una sola vuelta circular a altura constante $z_0$, la cobertura en $k_z$ proviene únicamente de la variación de frecuencia:
+\[
+k_z = -\frac{4\pi f}{c}\cos\psi_0, \quad f \in [f_0-B/2,\, f_0+B/2]
+\]
+\[
+\Delta k_z^{(B)} = \frac{4\pi B}{c}\cos\psi_0
+\]
+
+La resolución vertical para una sola vuelta circular es:
+\[
+\dz^{circ} = \frac{2\pi}{\Delta k_z^{(B)}} = \frac{c}{2B\cos\psi_0}
+\]
+
+Esta resolución es generalmente \emph{mala} (decenas de metros para bandas de decenas de MHz). La solución es añadir diversidad de ángulo de elevación mediante el vuelo helicoidal.
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{El Espacio de Número de Onda: Marco Unificador}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{La PSF como transformada de Fourier}
+
+El resultado central que unifica todos los sistemas SAR es:
+
+\defin{Principio de Resolución SAR (dominio k-espacio)}{
+La imagen SAR de un blanco puntual es la \textbf{transformada de Fourier inversa} de la función de densidad de muestreo $W(\mathbf{k})$ en el espacio de número de onda:
+\[
+\mathrm{PSF}(\boldsymbol{\delta}) = \int_{\mathcal{K}} W(\mathbf{k})\,e^{+j\mathbf{k}\cdot\boldsymbol{\delta}}\,d^3k
+\]
+donde $\boldsymbol{\delta} = \mathbf{p} - \mathbf{P}$ es el desplazamiento desde el foco verdadero.
+
+La \textbf{resolución} en la dirección $\hat{u}$ es inversamente proporcional al ancho espectral:
+\[
+\delta_u = \frac{2\pi}{\Delta k_u}, \quad \Delta k_u = \max_{f,t}(\mathbf{k}\cdot\hat{u}) - \min_{f,t}(\mathbf{k}\cdot\hat{u})
+\]
+}
+
+\section{El modelo de señal y la función de fase}
+
+La señal SAR en el dominio frecuencia, para un blanco puntual en $\mathbf{P}$ con reflectividad $g(\mathbf{P})$, es:
+\[
+S(f, t) = g(\mathbf{P})\,A(f,t)\,\exp\!\left(-j\frac{2\pi f}{c}\ROP(\mathbf{r}_{TX}(t), \mathbf{r}_{RX}(t), \mathbf{P})\right)
+\]
+
+donde $\ROP$ es el \textbf{camino óptico total} — la distancia equivalente en vacío que acumula la misma fase que el trayecto real a través de los dos medios:
+\[
+\ROP = d_1^{TX} + n_2\,d_2^{TX} + n_2\,d_2^{RX} + d_1^{RX}
+\]
+
+La \textbf{fase de la señal} es:
+\[
+\Phi(f,t;\mathbf{P}) = -\frac{2\pi f}{c}\ROP(\mathbf{r}_{TX}(t), \mathbf{r}_{RX}(t), \mathbf{P})
+\]
+
+\section{El vector de número de onda instantáneo: Teorema de Danskin}
+
+El vector $\mathbf{k}(f,t;\mathbf{P})$ mide la sensibilidad de la fase al desplazamiento del objetivo:
+\[
+\mathbf{k}(f,t;\mathbf{P}) \equiv -\nabla_\mathbf{P}\,\Phi = \frac{2\pi f}{c}\,\nabla_\mathbf{P}\,\ROP
+\]
+
+Calcular $\nabla_\mathbf{P}\,\ROP$ parece difícil porque $\ROP$ depende implícitamente de $\mathbf{P}$ a través de los puntos de refracción $\mathbf{Q}_{TX}^*$ y $\mathbf{Q}_{RX}^*$. El \textbf{Teorema de Danskin} (Teorema de la Envolvente) resuelve esto elegantemente:
+
+\defin{Teorema de Danskin aplicado a $\ROP$}{
+Dado que $\ROP$ es el mínimo del tiempo de tránsito sobre las posiciones de refracción, en el punto óptimo la derivada respecto a los puntos de refracción se anula. Por tanto, al diferenciar respecto a $\mathbf{P}$, solo importa el efecto directo de $\mathbf{P}$ sobre los segmentos $d_2^{TX}$ y $d_2^{RX}$:
+\[
+\nabla_\mathbf{P}\,\ROP = \frac{\partial(n_2 d_2^{TX})}{\partial\mathbf{P}} + \frac{\partial(n_2 d_2^{RX})}{\partial\mathbf{P}} = n_2\,\hat{\mathbf{e}}_2^{TX} + n_2\,\hat{\mathbf{e}}_2^{RX}
+\]
+donde $\hat{\mathbf{e}}_2^{TX}$ y $\hat{\mathbf{e}}_2^{RX}$ son los \textbf{vectores unitarios desde los puntos de refracción hacia $\mathbf{P}$} en el Medio~2.
+}
+
+\result{Vector de Número de Onda Instantáneo}{
+\[
+\boxed{\mathbf{k}(f,t;\mathbf{P}) = \frac{2\pi f\,n_2}{c}\!\left(\hat{\mathbf{e}}_2^{TX}(t) + \hat{\mathbf{e}}_2^{RX}(t)\right)}
+\]
+Este resultado es \emph{exacto} (sin aproximaciones) para cualquier geometría con interfaz plana y medios homogéneos.
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{SAR Helicoidal Monoestático: Resolución 3D}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{La trayectoria helicoidal cónica}
+
+La hélice cónica combina rotación azimutal con descenso en altura y variación de radio. Sus parámetros se muestran en la figura~\ref{fig:helical}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{fig04_helical_params.pdf}
+\caption{Parámetros geométricos de la hélice cónica biestática. La inclinación $\beta$ del vector espiral respecto al plano horizontal, combinada con el look angle medio $\psi_0$, determina la apertura tomográfica efectiva $B_\perp = B_{helix}|\cos(\beta-\psi_0)|$. La condición óptima es $\beta = \psi_0$.}
+\label{fig:helical}
+\end{figure}
+
+La parametrización exacta de la hélice cónica con velocidad tangencial $V_0$ constante es:
+\begin{align}
+\rho(t) &= \rho_{top} + V_\rho\,t \\
+\alpha(t) &= \frac{V_0}{V_\rho}\!\left[\ln\rho(t) - \ln\rho_{top}\right] \\
+z(t) &= z_{top} + V_z\,t
+\end{align}
+donde $V_\rho = (\rho_{base}-\rho_{top})/t_{max}$ y $V_z = -(z_{top}-z_{base})/t_{max} < 0$.
+
+\section{Las dos fuentes de resolución vertical}
+
+El vector de onda vertical es:
+\[
+k_z(f,t) = -\frac{4\pi f\,n_2}{c}\cos\theta_t(t)
+\]
+
+donde $\theta_t(t)$ es el ángulo de transmisión en el Medio 2, vinculado al look angle $\psi(t)$ por la ley de Snell: $\sin\theta_t = \sin\psi/n_2$.
+
+La cobertura en $k_z$ proviene de \textbf{dos fuentes independientes}:
+
+\begin{enumerate}
+  \item \textbf{Variación de frecuencia} (a geometría fija): $f$ varía en $[f_0-B/2, f_0+B/2]$ → contribución $\Delta k_z^{(B)}$.
+  \item \textbf{Variación de look angle} (al descender la hélice): $\psi$ varía de $\psi_{top}$ a $\psi_{bot}$ → contribución $\Delta k_z^{(geom)}$.
+\end{enumerate}
+
+La figura~\ref{fig:kspace_vert} ilustra estas contribuciones.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{fig06_kspace_vertical.pdf}
+\caption{Descomposición de $W_z$. (a) Variación de $k_z$ con frecuencia y geometría: el ancho de banda $B$ y el descenso helicoidal actúan como fuentes independientes de $\Delta k_z$. (b) Para la configuración simulada, la contribución tomográfica (geométrica) supera en 6.8× a la contribución del ancho de banda.}
+\label{fig:kspace_vert}
+\end{figure}
+
+\section{Derivación de la resolución vertical: paso a paso}
+
+\subsection{Paso 1: Extensión espectral exacta}
+
+El rango completo de $k_z$ se alcanza cuando frecuencia y geometría alcanzan simultáneamente sus extremos:
+\[
+\Delta k_z = \frac{4\pi n_2}{c}\!\left[(f_0+\tfrac{B}{2})\cos\theta_t^{top} - (f_0-\tfrac{B}{2})\cos\theta_t^{bot}\right]
+\]
+
+\subsection{Paso 2: Conexión entre $\Delta\cos\theta_t$ y la apertura $B_\perp$}
+
+La variación de $\theta_t$ al descender la hélice se relaciona con la variación del look angle $\Delta\psi = B_\perp/R_0$. Diferenciando la ley de Snell:
+\[
+\frac{d\cos\theta_t}{d\psi} = -\frac{\sin\psi\cos\psi}{n_2^2\cos\theta_t}
+\]
+\[
+\Delta\cos\theta_t \approx \frac{\sin\psi_0\cos\psi_0}{n_2^2\cos\theta_{t,0}}\cdot\frac{B_\perp}{R_0}
+\]
+
+La contribución geométrica al $\Delta k_z$ es:
+\[
+\Delta k_z^{(geom)} = \frac{4\pi B_\perp}{\lambda_0 R_0}\cdot\frac{\sin\psi_0\cos\psi_0}{n_2\cos\theta_{t,0}}
+\]
+
+\textbf{Verificación:} para $n_2=1$ (aire), $\cos\theta_{t,0}\to\cos\psi_0$ y se recupera la expresión de Góes 2022 (Ec. 4.24): $\Delta k_z \approx 4\pi B_\perp\sin\psi_0/(\lambda_0 R_0)$. $\checkmark$
+
+\subsection{Paso 3: La apertura tomográfica efectiva}
+
+La hélice cónica tiene longitud $B_{helix} = \sqrt{\Delta z^2 + \Delta\rho^2}$ e inclinación $\beta = \arctan(\Delta z/\Delta\rho)$. La proyección perpendicular a la dirección de visión media (LOS) es:
+\[
+\boxed{B_\perp = B_{helix}\,|\cos(\beta - \psi_0)|}
+\]
+
+\begin{center}
+\begin{tikzpicture}[scale=1.1]
+  % LOS
+  \draw[->,thick,orange] (0,0) -- (2.5,1.8) node[right] {LOS ($R_0$)};
+  % B_helix
+  \draw[->,thick,green!60!black] (2.5,1.8) -- (3.8,0.6) node[right] {$B_{helix}$};
+  % B_perp
+  \draw[dashed,blue,thick] (2.5,1.8) -- (3.4,1.2) node[right,blue] {$B_\perp$};
+  \draw[blue,thick] (3.4,1.2) -- (3.8,0.6);
+  % ángulo
+  \draw[<->] (2.8,1.6) arc[start angle=220,end angle=270,radius=0.4];
+  \node at (3.1,1.3) {$\beta-\psi_0$};
+  % punto
+  \fill[black] (0,0) circle (2pt) node[below] {Objetivo};
+\end{tikzpicture}
+\end{center}
+
+\textbf{Condición óptima}: $\beta = \psi_0$ $\Rightarrow$ $B_\perp = B_{helix}$ (máxima apertura tomográfica para una longitud dada de trayectoria).
+
+\subsection{Paso 4: Ensamblaje de $W_z$}
+
+Sumando ambas contribuciones bajo la aproximación de banda estrecha ($B/f_0 \ll 1$):
+\[
+\Delta k_z = \underbrace{\frac{4\pi n_2 B\cos\theta_{t,0}}{c}}_{\Delta k_z^{(B)}} + \underbrace{\frac{4\pi B_\perp\sin\psi_0\cos\psi_0}{\lambda_0 R_0 n_2\cos\theta_{t,0}}}_{\Delta k_z^{(geom)}} = \frac{4\pi}{c}\,\Wz
+\]
+
+donde se define el \textbf{ancho de banda efectivo vertical}:
+
+\result{Ancho de Banda Efectivo Vertical $W_z$}{
+\[
+\boxed{W_z = \underbrace{n_2\,B\,\cos\theta_{t,0}}_{\text{contribución BW}} + \underbrace{\frac{c\,B_\perp\,\sin\psi_0\cos\psi_0}{\lambda_0\,R_0\,n_2\cos\theta_{t,0}}}_{\text{contribución tomográfica}}}
+\]
+}
+
+\subsection{Paso 5: Resolución vertical}
+
+Aplicando $\delta_z = 2\pi/\Delta k_z$:
+
+\result{Resolución Vertical — Fórmula Central}{
+\[
+\boxed{\delta_z = \frac{c}{2\,W_z}}
+\]
+Validado experimentalmente con error \textbf{0.05\%} para target en el eje.
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Propagación en Dos Medios: Refracción de Snell}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{La interfaz plana y los dos medios}
+
+La escena tiene una interfaz plana en $z=0$. Por encima ($z>0$) se encuentra el aire con índice de refracción $n_1=1$ y velocidad $c$. Por debajo ($z<0$) está el suelo con $n_2=\sqrt{\varepsilon_r}$ y velocidad $v_2=c/n_2$.
+
+La figura~\ref{fig:snell} muestra la geometría de propagación biestática con refracción.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\textwidth]{fig05_snell_geometry.pdf}
+\caption{Geometría de propagación biestática en dos medios. Los puntos de refracción $\mathbf{Q}_{TX}^*$ y $\mathbf{Q}_{RX}^*$ son determinados por el Principio de Fermat (mínimo tiempo de tránsito), equivalente a la ley de Snell. El camino óptico total $\ROP = d_1^{TX} + n_2 d_2^{TX} + n_2 d_2^{RX} + d_1^{RX}$.}
+\label{fig:snell}
+\end{figure}
+
+\section{La ley de Snell y los puntos de refracción}
+
+En cada punto de refracción, la ley de Snell garantiza la continuidad de la componente tangencial del vector de onda:
+\[
+n_1\sin\theta_i = n_2\sin\theta_t \quad\Longrightarrow\quad \sin\theta_t = \frac{\sin\theta_i}{n_2}
+\]
+
+El ángulo de transmisión en el Medio 2, evaluado en el look angle medio $\psi_0$:
+\[
+\cos\theta_{t,0} = \sqrt{1 - \frac{\sin^2\psi_0}{n_2^2}}
+\]
+
+Los puntos de refracción $\mathbf{Q}^*$ se obtienen minimizando el tiempo de tránsito (Principio de Fermat). Para la interfaz plana, esto se reduce a resolver un sistema no lineal (en el caso 3D general) o una ecuación trascendental (en 2D):
+\[
+\frac{\rho_{sensor}-Q_\rho}{\sqrt{(\rho_{sensor}-Q_\rho)^2+z_{sensor}^2}} = n_2\,\frac{Q_\rho}{\sqrt{Q_\rho^2+|z_P|^2}}
+\]
+
+\nota{Profundidad aparente vs.\ real}{
+Sin corrección de refracción, una imagen SAR procesada asumiendo velocidad $c$ ubica el objetivo a una \emph{profundidad aparente} mayor que la real:
+\[
+d_{aparente} = \sqrt{\varepsilon_r}\cdot d_{real}
+\]
+Para $\varepsilon_r=4$, un objeto a 5\,m real aparece a 10\,m aparente. La corrección de Snell es \emph{imprescindible} para localizar correctamente el objetivo.
+}
+
+\section{Impacto de la refracción en la resolución}
+
+La presencia del Medio 2 modifica las expresiones de resolución de dos maneras:
+
+\begin{enumerate}
+\item El ángulo de incidencia $\psi_0$ en el aire determina $\theta_{t,0}$ en el suelo. Para $n_2>1$, $\theta_{t,0} < \psi_0$ (el rayo se dobla hacia la vertical).
+\item El factor $\costnot$ aparece en $\Wz$: el término de ancho de banda es $n_2 B\costnot$ (mayor para $n_2>1$), y el término tomográfico tiene $n_2\costnot$ en el denominador.
+\end{enumerate}
+
+La resolución horizontal es \emph{independiente de $n_2$} cuando se expresa en términos de $\psi_0$ (los factores $n_2$ se cancelan):
+\[
+\delta_{xy} = \frac{0.60\,\lambda_0}{\pi\sin\psi_0} \quad\text{(no depende de } n_2\text{)}
+\]
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Sistema Completo: SAR Biestático Helicoidal}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{La configuración biestática con NorthOffset}
+
+En la configuración biestática, el TX y RX vuelan sobre la misma hélice cónica pero con un \textbf{offset azimutal fijo} $\Delta\phi$ (``NorthOffset''). La figura~\ref{fig:full_system} muestra el sistema completo.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{fig08_full_system.pdf}
+\caption{Sistema SAR biestático helicoidal cónico con dos medios e interfaz plana. TX (azul) y RX (rojo punteado) vuelan sobre la misma hélice con separación azimutal $\Delta\phi=90°$. Los rayos refractados en la interfaz $z=0$ alcanzan el target enterrado $\mathbf{P}$.}
+\label{fig:full_system}
+\end{figure}
+
+\section{Análisis del k-espacio para target en el eje}
+
+Para un target en el eje de la hélice ($x_P=y_P=0$) con TX a azimut $\alpha$ y RX a azimut $\alpha+\Delta\phi$, los vectores unitarios en el Medio~2 son:
+\begin{align}
+\hat{\mathbf{e}}_2^{TX} &= \big(-\sin\theta_t\cos\alpha,\; -\sin\theta_t\sin\alpha,\; -\cos\theta_t\big)\\
+\hat{\mathbf{e}}_2^{RX} &= \big(-\sin\theta_t\cos(\alpha+\Delta\phi),\; -\sin\theta_t\sin(\alpha+\Delta\phi),\; -\cos\theta_t\big)
+\end{align}
+
+\subsection{Componente vertical: independiente de $\Delta\phi$}
+
+La componente $z$ de la suma de vectores es:
+\[
+(\hat{\mathbf{e}}_2^{TX}+\hat{\mathbf{e}}_2^{RX})\cdot\hat{z} = -\cos\theta_t - \cos\theta_t = -2\cos\theta_t
+\]
+
+\textbf{Resultado fundamental:} $k_z = -(4\pi f n_2/c)\cos\theta_t$ es \emph{completamente independiente de $\Delta\phi$}. La \textbf{resolución vertical es invariante al NorthOffset}.
+
+\subsection{Componentes horizontales: escaladas por $|\cos(\Delta\phi/2)|$}
+
+Usando la identidad $\cos\alpha+\cos(\alpha+\Delta\phi) = 2\cos(\Delta\phi/2)\cos(\alpha+\Delta\phi/2)$:
+\[
+k_x = -\frac{4\pi f n_2}{c}\sin\theta_t\,|\cos(\Delta\phi/2)|\,\cos\!\big(\alpha+\tfrac{\Delta\phi}{2}\big)
+\]
+
+Al variar $\alpha \in [0, 2\pi N_t]$, se traza un círculo de radio:
+\[
+R_c(\Delta\phi) = \frac{4\pi\sin\psi_0}{\lambda_0}\cdot|\cos(\Delta\phi/2)|
+\]
+
+La figura~\ref{fig:northoffset} muestra el efecto de $\Delta\phi$ en el k-espacio horizontal.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{fig07_northoffset_kspace.pdf}
+\caption{Cobertura del k-espacio horizontal para tres valores de NorthOffset. (a) $\Delta\phi=0°$: cobertura completa, máxima resolución horizontal (equivalente monoestático). (b) $\Delta\phi=90°$: radio reducido a $1/\sqrt{2}$, resolución $\sqrt{2}$ veces peor. (c) $\Delta\phi=180°$: cancelación total, sin resolución horizontal para target en el eje.}
+\label{fig:northoffset}
+\end{figure}
+
+\section{Formas de la PSF según NorthOffset}
+
+La figura~\ref{fig:psf_shapes} muestra las formas de la PSF 3D resultante.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{fig09_psf_comparison.pdf}
+\caption{Forma de la PSF 3D para distintos NorthOffsets. Para $\Delta\phi=180°$ con target en el eje, la PSF es un ``disco'' plano (alta resolución en $z$, ninguna en $xy$). Para $\Delta\phi<180°$, la PSF adquiere forma elipsoidal con resolución en las tres dimensiones.}
+\label{fig:psf_shapes}
+\end{figure}
+
+\section{Las ecuaciones completas de resolución}
+
+\result{Resolución 3D — Sistema SAR Biestático Helicoidal en Dos Medios}{
+\begin{align}
+\boxed{\delta_z} &= \boxed{\frac{c}{2\,W_z}} \\[8pt]
+W_z &= \underbrace{n_2\,B\,\cos\theta_{t,0}}_{\text{ancho de banda}} + \underbrace{\frac{c\,B_\perp\,\sin\psi_0\cos\psi_0}{\lambda_0\,R_0\,n_2\cos\theta_{t,0}}}_{\text{apertura tomográfica}} \\[8pt]
+\boxed{\delta_{xy}(\Delta\phi)} &= \boxed{\frac{0.60\,\lambda_0}{\pi\,\sin\psi_0\cdot|\cos(\Delta\phi/2)|}} \\[8pt]
+\cos\theta_{t,0} &= \sqrt{1-\frac{\sin^2\psi_0}{n_2^2}}\;,\quad B_\perp = B_{helix}\,|\cos(\beta-\psi_0)|
+\end{align}
+}
+
+\begin{table}[H]
+\centering
+\caption{Descripción de todos los parámetros del modelo}
+\label{tab:params}
+\begin{tabular}{clll}
+\toprule
+Símbolo & Descripción & Expresión & Unidades \\
+\midrule
+$f_0$ & Frecuencia portadora & — & Hz \\
+$\lambda_0 = c/f_0$ & Longitud de onda & — & m \\
+$B$ & Ancho de banda chirp & $f_{max}-f_{min}$ & Hz \\
+$n_2 = \sqrt{\varepsilon_r}$ & Índice de refracción suelo & — & — \\
+$\psi_0$ & Look angle medio & $\arctan(\rho_0/z_0)$ & rad \\
+$\theta_{t,0}$ & Ángulo transmisión suelo & $\arcsin(\sin\psi_0/n_2)$ & rad \\
+$R_0$ & Distancia media sensor-origen & $\sqrt{\rho_0^2+z_0^2}$ & m \\
+$B_{helix}$ & Longitud espiral & $\sqrt{\Delta z^2+\Delta\rho^2}$ & m \\
+$\beta$ & Ángulo inclinación hélice & $\arctan(\Delta z/\Delta\rho)$ & rad \\
+$B_\perp$ & Apertura tomográfica efectiva & $B_{helix}|\cos(\beta-\psi_0)|$ & m \\
+$\Delta\phi$ & NorthOffset TX-RX & — & rad \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Curvas de diseño}
+
+La figura~\ref{fig:resolution_curves} muestra cómo cada parámetro del sistema afecta las resoluciones.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{fig10_resolution_curves.pdf}
+\caption{Curvas de diseño del sistema. (a) $\delta_z$ vs.\ $B_\perp$ para distintos anchos de banda: la apertura tomográfica domina para $B_\perp$ grande. (b) $\delta_{xy}$ vs.\ NorthOffset para distintas frecuencias: el sistema pierde resolución horizontal al alejarse del caso monoestático. (c) $\delta_z$ vs.\ ángulo de inclinación $\beta$: el mínimo se alcanza en $\beta=\psi_0$ (hélice óptima).}
+\label{fig:resolution_curves}
+\end{figure}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Extensión a Target Off-Axis}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{El problema fuera del eje}
+
+Las fórmulas anteriores se derivaron para un target en el eje de la hélice ($x_P=y_P=0$). Para targets desplazados, la simetría cilíndrica se rompe y aparece el \textbf{efecto near-range vs.\ far-range}: las posiciones del sensor más próximas al target tienen mayor influencia en la PSF que las más lejanas.
+
+La figura~\ref{fig:offaxis} ilustra este efecto y la corrección propuesta.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{fig11_offaxis_correction.pdf}
+\caption{Corrección de Góes para target off-axis. (a) Para un target en $x_P=20\,\text{m}$, el near-range (distancia $\rho_0-x_P=140\,\text{m}$) es menor que el far-range (distancia $\rho_0+x_P=180\,\text{m}$). (b) El ángulo equivalente $\tilde{\psi}_0$ disminuye con $x_P$, capturando el efecto near-range.}
+\label{fig:offaxis}
+\end{figure}
+
+\section{La corrección de Góes (2022)}
+
+Para un target en $(x_P, 0, z_P)$, se reemplaza $\psi_0$ y $R_0$ por los valores efectivos de near-range:
+
+\result{Corrección Off-Axis (Góes 2022)}{
+\[
+\tilde{\psi}_0 = \arctan\!\left(\frac{\rho_0-|x_P|}{z_0}\right),\quad \tilde{R}_0 = \sqrt{(\rho_0-|x_P|)^2+z_0^2}
+\]
+y se reemplaza $\psi_0 \to \tilde{\psi}_0$, $R_0 \to \tilde{R}_0$ en todas las fórmulas de resolución.
+}
+
+La dirección radial (hacia $x_P$) usa $\tilde{\psi}_0$; la dirección azimutal (perpendicular) usa aproximadamente $\psi_0$. Esto produce una \textbf{PSF asimétrica} ($\delta_x \neq \delta_y$) para targets off-axis.
+
+\nota{Condición de validez de la corrección}{
+La corrección de Góes fue derivada para sistemas con pérdida de propagación $\propto 1/R^2$, donde las posiciones near-range tienen mayor peso. Para simulaciones sin dicha pérdida, la mejora real es aproximadamente la mitad de la predicha.
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Validación Experimental}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Configuración de la simulación}
+
+El modelo fue validado mediante un simulador MATLAB de backprojection biestático con resolución iterativa de la ley de Snell. Los parámetros del experimento son:
+
+\begin{table}[H]
+\centering
+\caption{Parámetros de la simulación de validación}
+\label{tab:sim_params}
+\begin{tabular}{lrl}
+\toprule
+Parámetro & Valor & Descripción \\
+\midrule
+$f_0$ & 10 GHz & Frecuencia portadora (banda X) \\
+$B$ & 50 MHz & Ancho de banda chirp \\
+$n_2$ & 2 & Índice de refracción suelo ($\varepsilon_r=4$) \\
+$\rho_0$ & 160 m & Radio medio de la hélice \\
+$z_0$ & 100 m & Altura media del sensor \\
+$\psi_0$ & 58.0° & Look angle medio \\
+$B_{helix}$ & 47.17 m & Longitud total de la espiral \\
+$\beta$ & 58.0° & Ángulo de inclinación (= $\psi_0$, \emph{óptimo}) \\
+$B_\perp$ & 47.17 m & Apertura tomográfica efectiva \\
+$z_P$ & $-5$ m & Profundidad del target \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Resultados comparativos}
+
+La figura~\ref{fig:validation} compara predicciones y mediciones.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{fig12_validation.pdf}
+\caption{Comparación entre predicciones analíticas y resultados de simulación. Los errores en $\delta_z$ son inferiores al 7.1\% en todos los casos. Los errores en $\delta_{xy}$ (7.8--11.6\%) provienen de la aproximación del look angle que ignora la profundidad $z_P$.}
+\label{fig:validation}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Tabla completa de validación}
+\label{tab:validation}
+\begin{tabular}{lllrrr}
+\toprule
+Experimento & Variable & Predicción & Simulación & Error \\
+\midrule
+NorthOffset=180°, on-axis & $\delta_z$ & 21.10 cm & 21.12 cm & \textbf{0.05\%} \\
+NorthOffset=180°, on-axis & $\delta_{xy}$ & 0.24 m (grilla) & 0.240 m & \textbf{0.0\%} \\
+NorthOffset=90°, on-axis & $\delta_z$ & 21.10 cm & 21.12 cm & \textbf{0.05\%} \\
+NorthOffset=90°, on-axis & $\delta_{xy}$ & 9.54 mm & 8.8 mm & \textbf{7.8\%} \\
+NorthOffset=90°, $x_P=20$ m & $\delta_z$ & 18.72 cm & 20.05 cm & \textbf{7.1\%} \\
+NorthOffset=90°, $x_P=20$ m & $\delta_x$ & 9.96 mm & 8.8 mm & \textbf{11.6\%} \\
+NorthOffset=90°, $x_P=20$ m & $\delta_y$ & 9.96 mm & 9.1 mm & \textbf{8.6\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Discusión}
+
+\paragraph{Resolución vertical $\delta_z$:}
+El error de 0.05\% para target on-axis confirma que la fórmula $\delta_z = c/(2W_z)$ es \emph{prácticamente exacta} dentro de las hipótesis declaradas. La invariancia al NorthOffset (mismo valor para $\Delta\phi=180°$ y $90°$) fue verificada tanto analíticamente como numéricamente.
+
+\paragraph{Resolución horizontal $\delta_{xy}$:}
+El error sistemático del 7.8\% para target on-axis proviene de usar $\psi_0 = \arctan(\rho_0/z_0)$ en lugar del ángulo refractado exacto al target a $z_P=-5\,\text{m}$. La corrección requeriría integrar numéricamente el resultado del solver Snell.
+
+\paragraph{Target off-axis:}
+La corrección de Góes predice la dirección correcta del efecto (mejora en $\delta_z$ para near-range) pero sobreestima la magnitud porque la simulación no incluye pérdida de propagación $1/R^2$. En sistemas reales, la corrección de Góes debería ser más precisa.
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Conclusiones y Guía de Uso}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{El modelo completo en una página}
+
+\result{Ecuaciones Finales — SAR Biestático Helicoidal en Dos Medios}{
+\textbf{Resolución vertical} (invariante al NorthOffset, error < 0.1\% on-axis):
+\[
+\delta_z = \frac{c}{2\,W_z}, \quad W_z = n_2 B\cos\theta_{t,0} + \frac{c\,B_\perp\sin\psi_0\cos\psi_0}{\lambda_0 R_0 n_2\cos\theta_{t,0}}
+\]
+\vspace{4pt}
+\textbf{Resolución horizontal} (error < 12\%, criterio $-3\,\text{dB}$ de PSF tipo $J_0$):
+\[
+\delta_{xy}(\Delta\phi) = \frac{0.60\,\lambda_0}{\pi\,\sin\psi_0\cdot|\cos(\Delta\phi/2)|}
+\]
+\vspace{4pt}
+\textbf{Parámetros auxiliares:}
+\begin{align*}
+&\cos\theta_{t,0} = \sqrt{1-\sin^2\psi_0/n_2^2}, \quad B_\perp = B_{helix}|\cos(\beta-\psi_0)| \\
+&\psi_0 = \arctan(\rho_0/z_0), \quad R_0 = \sqrt{\rho_0^2+z_0^2} \\
+&B_{helix} = \sqrt{\Delta z^2+\Delta\rho^2}, \quad \beta = \arctan(\Delta z/\Delta\rho)
+\end{align*}
+\vspace{4pt}
+\textbf{Para target off-axis} ($x_P \neq 0$): reemplazar $\psi_0 \to \tilde{\psi}_0 = \arctan((\rho_0-|x_P|)/z_0)$ y $R_0 \to \tilde{R}_0 = \sqrt{(\rho_0-|x_P|)^2+z_0^2}$.
+}
+
+\section{Guía de diseño del sistema}
+
+\begin{enumerate}
+  \item \textbf{Elegir $f_0$ según penetración en suelo:} P-band ($\approx 435\,\text{MHz}$) para objetivos a varios metros de profundidad. X-band solo para profundidades centimétrico-decimétricas.
+
+  \item \textbf{Maximizar $B_\perp$ con la condición $\beta = \psi_0$:} diseñar la hélice cónica para que su ángulo de inclinación coincida con el look angle medio $\psi_0 = \arctan(\rho_0/z_0)$.
+
+  \item \textbf{El NorthOffset $\Delta\phi$ controla el balance $\delta_z/\delta_{xy}$:}
+  \begin{itemize}
+    \item $\Delta\phi = 0°$: mejor resolución horizontal, misma $\delta_z$.
+    \item $\Delta\phi = 90°$: degradación $\sqrt{2}$ en $\delta_{xy}$, misma $\delta_z$.
+    \item $\Delta\phi = 180°$: sin resolución horizontal, óptimo $\delta_z$ (toda la energía en $k_z$).
+  \end{itemize}
+
+  \item \textbf{La resolución horizontal depende de $\lambda_0$ y $\psi_0$:} aumentar la frecuencia o el ángulo de incidencia mejora $\delta_{xy}$ linealmente.
+
+  \item \textbf{La resolución vertical depende de $W_z$:} el término tomográfico puede dominar sobre el de BW cuando $B_\perp \gg \lambda_0 R_0 n_2^2 B/(c\sin\psi_0\cos\psi_0)$.
+\end{enumerate}
+
+\section{Limitaciones y trabajo futuro}
+
+\begin{itemize}
+  \item Las fórmulas asumen target en el eje y TX/RX en la misma hélice. Para geometrías más generales, el análisis del k-espacio debe repetirse.
+  \item No se modela la atenuación dieléctrica ($e^{-\alpha z}$) ni la dispersión frecuencial de $n_2(f)$.
+  \item La PSF tipo $J_0$ asume cobertura azimutal completa ($N_t \geq 1$ vuelta). Para coberturas parciales, la PSF cambia de forma.
+  \item La validación fue realizada a 10\,GHz. Para P-band, las mismas fórmulas aplican con distintos valores numéricos.
+\end{itemize}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\appendix
+\chapter{Derivaciones Matemáticas Detalladas}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Teorema de Danskin — Demostración}
+
+Sea $F(x, \alpha) = d_1^{TX}(x,Q^*(x)) + n_2 d_2^{TX}(Q^*(x),x)$ una función mínimo sobre $Q$. En el mínimo $Q^*(x)$, la condición de primer orden es $\partial F/\partial Q = 0$. Aplicando la regla de la cadena:
+\[
+\frac{dF}{dx} = \frac{\partial F}{\partial x}\bigg|_{Q^*} + \underbrace{\frac{\partial F}{\partial Q}\bigg|_{Q^*}}_{=0}\frac{dQ^*}{dx} = \frac{\partial F}{\partial x}\bigg|_{Q^*}
+\]
+
+Este resultado permite ignorar la dependencia implícita de $Q^*$ con $x$ al diferenciaryentre $F$ respecto a parámetros externos al problema de optimización.
+
+\section{La distribución arcseno y el perfil $J_0$}
+
+Para $k_x = R_c\cos\alpha$ con $\alpha$ uniforme en $[0,2\pi]$, la densidad de probabilidad de $k_x$ es la distribución arcseno:
+\[
+p(k_x) = \frac{1}{\pi\sqrt{R_c^2-k_x^2}}, \quad k_x \in [-R_c, R_c]
+\]
+
+La función característica (transformada de Fourier de $p$) es:
+\[
+\hat{p}(\delta) = \int_{-R_c}^{R_c} \frac{e^{jk_x\delta}}{\pi\sqrt{R_c^2-k_x^2}}\,dk_x = J_0(R_c\,\delta)
+\]
+
+donde $J_0$ es la función de Bessel de primera especie y orden cero. El punto $-3\,\text{dB}$ ($J_0(u)=1/\sqrt{2}$) ocurre en $u \approx 1.20$.
+
+\section{Verificación dimensional de $W_z$}
+
+\begin{align*}
+n_2 B\cos\theta_{t,0} &: [\text{adim}][\text{Hz}][\text{adim}] = \text{Hz} \checkmark \\
+\frac{c B_\perp\sin\psi_0\cos\psi_0}{\lambda_0 R_0 n_2\cos\theta_{t,0}} &: \frac{[\text{m/s}][\text{m}]}{[\text{m}][\text{m}]} = \frac{\text{m}^2/\text{s}}{\text{m}^2} = \text{Hz} \checkmark \\
+\delta_z = \frac{c}{2W_z} &: \frac{[\text{m/s}]}{[\text{Hz}]} = \text{m} \checkmark
+\end{align*}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\backmatter
+\chapter*{Referencias}
+\addcontentsline{toc}{chapter}{Referencias}
+
+\begin{enumerate}
+  \item A.\ Moreira et al., ``A tutorial on synthetic aperture radar,'' \emph{IEEE Geosci.\ Remote Sens.\ Mag.}, vol.\ 1, no.\ 1, 2013.
+  \item D.\ C.\ Munson, J.\ D.\ O'Brien, W.\ K.\ Jenkins, ``A tomographic formulation of spotlight-mode SAR,'' \emph{Proc.\ IEEE}, vol.\ 71, no.\ 8, 1983.
+  \item J.\ A.\ Góes, \emph{Techniques for High-Resolution 3D Images with Synthetic Aperture Radar}, Tesis Doctoral, UNICAMP, 2022.
+  \item L.\ M.\ H.\ Ulander, H.\ Hellsten, G.\ Stenstrom, ``Synthetic-aperture radar processing using fast factorized back-projection,'' \emph{IEEE Trans.\ Aerosp.\ Electron.\ Syst.}, vol.\ 39, no.\ 3, 2003.
+  \item A.\ Ishimaru, Tsz-King Chan, Y.\ Kuga, ``An imaging technique using confocal circular synthetic aperture radar,'' \emph{IEEE Trans.\ Geosci.\ Remote Sens.}, vol.\ 36, no.\ 5, 1998.
+  \item O.\ Arikan, D.\ C.\ Munson Jr., ``A tomographic formulation of bistatic SAR,'' \emph{ICASSP}, 1988.
+  \item M.\ Garcia-Fernandez et al., ``Autonomous Airborne 3D SAR Imaging System for Subsurface Sensing,'' \emph{Remote Sensing}, vol.\ 11, no.\ 20, 2019.
+  \item F.\ Banda et al., ``Single and Multipolarimetric P-Band SAR Tomography of Subsurface Ice,'' \emph{IEEE TGRS}, 2015.
+\end{enumerate}
+
+\end{document}

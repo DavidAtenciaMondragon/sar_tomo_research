@@ -1,0 +1,7 @@
+# Lista de arquivos e diretórios a serem ignorados pelo Git
+
+*.png
+*.avi
+
+proc/codegen/
+proc/data/

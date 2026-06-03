@@ -1,0 +1,24 @@
+{"radar": [
+    {
+        "posInicial"    : [0,0,0],
+        "tipoTrajetoria": "espiral",
+        "NumVoltasEsp"  : 3,
+        "RaioMaiorEsp"  : 151,
+        "RaioMenorEsp"  : 110,
+        "AltMaiorEsp"   : 120,
+        "AltMenorEsp"   : 70,
+        "Vt"            : 120,
+        "PRF"           : 155,
+        "fs"            : 60e6,
+        "GananciaAnt"   : 6,
+        "FreqPortadora" : 425e6,
+        "AperturaAzimut": 14,
+        "AperturaElev"  : 50,
+        "Yaw"           : 180,
+        "InclElev"      : 20,
+        "Temperatura"   : 300,
+        "B"             : 60e6,
+        "SNRrange"      : [-15, -5]
+    }
+  ]
+  }

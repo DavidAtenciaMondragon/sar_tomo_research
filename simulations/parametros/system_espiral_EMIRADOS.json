@@ -1,0 +1,29 @@
+{"system":[
+    {
+        "VelocidadeLuz":    3e8,
+        "IndiceMaximo":     256,
+        "NumeroPulsos":     10000,
+        "PlotarGrafico":    true,
+        "RefGeografico":    [0,0,0],
+        "xMin":             -150,
+        "xMax":             150,
+        "yMin":             -150,
+        "yMax":             150,
+        "discGrid":         1,
+        "ratioUp":          2,
+        "EscenarioExterno": true,
+        "gridSnell": {
+                        "dxy": 0.04,
+                        "lxy": 0.12,
+                        "dz": 0.08,
+                        "lz": 0.24
+                    },
+                    "gridSnellVolumetrico": {
+                        "dxy": 0.2,
+                        "lxy": 6.0,
+                        "dz": 0.5,
+                        "lz": 2.5
+                    }
+    }
+]
+}
