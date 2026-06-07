@@ -1,0 +1,937 @@
+%% explicacion_plan_de_vuelo.tex
+%% Derivación didáctica del optimizador del plan de vuelo del receptor
+%% en el sistema SAR biestático helicoidal con dos medios homogéneos.
+%%
+%% Compilar: pdflatex explicacion_plan_de_vuelo.tex (dos pasadas)
+%% Figuras:  hypotheses/figures/pv_fig0X_*.pdf (generar con utils/generate_figures_plan_vuelo.py)
+
+\documentclass[12pt,a4paper,oneside]{book}
+
+% ─── paquetes ────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\geometry{left=3cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
+
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{physics}
+\usepackage{siunitx}
+\sisetup{output-decimal-marker={,}}
+
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,babel,patterns}
+
+\usepackage{mdframed}
+\usepackage{tcolorbox}
+\tcbuselibrary{theorems,skins,breakable}
+
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=green!50!black,
+  urlcolor=cyan!60!black,
+  pdftitle={Optimización del Plan de Vuelo en SAR Biestático},
+  pdfauthor={Investigación SAR-Tomo},
+}
+
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\nouppercase{\leftmark}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ─── entornos ─────────────────────────────────────────────────────────────────
+\newcommand{\result}[2]{%
+  \begin{tcolorbox}[enhanced, breakable,
+    colback=yellow!8, colframe=orange!70!black,
+    fonttitle=\bfseries,
+    title={\protect#1},
+    attach boxed title to top left={yshift=-2mm, xshift=5mm},
+    boxed title style={colback=orange!70!black}]
+    #2
+  \end{tcolorbox}}
+
+\newcommand{\defin}[2]{%
+  \begin{tcolorbox}[enhanced, breakable,
+    colback=blue!5, colframe=blue!50!black,
+    fonttitle=\bfseries,
+    title={\protect#1}]
+    #2
+  \end{tcolorbox}}
+
+\newcommand{\nota}[2]{%
+  \begin{tcolorbox}[enhanced, breakable,
+    colback=green!5, colframe=green!50!black,
+    fonttitle=\bfseries\small,
+    title={\protect#1}]
+    #2
+  \end{tcolorbox}}
+
+\newcommand{\atencion}[2]{%
+  \begin{tcolorbox}[enhanced, breakable,
+    colback=red!5, colframe=red!60!black,
+    fonttitle=\bfseries\small,
+    title={\protect#1}]
+    #2
+  \end{tcolorbox}}
+
+% ─── macros matemáticas ───────────────────────────────────────────────────────
+\newcommand{\RT}{R_T}
+\newcommand{\RR}{R_R}
+\newcommand{\thetaB}{\theta_B}
+\newcommand{\nuno}{n_1}
+\newcommand{\ndos}{n_2}
+\newcommand{\Pr}{P_r}
+\newcommand{\Pt}{P_t}
+\newcommand{\Jcost}{J}
+\newcommand{\alphaR}{\alpha}
+\newcommand{\dxy}{\delta_{xy}}
+\newcommand{\dz}{\delta_z}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{document}
+
+\frontmatter
+
+% ─── portada ──────────────────────────────────────────────────────────────────
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\LARGE\bfseries Optimización del Plan de Vuelo del Receptor}\\[0.5cm]
+{\LARGE\bfseries en SAR Biestático Helicoidal}\\[0.3cm]
+{\LARGE\bfseries Ángulo de Brewster, Ecuación de Radar y}\\[0.3cm]
+{\LARGE\bfseries Resolución 3D Multiobjetivo}\\[2cm]
+{\large\itshape Derivación paso a paso: desde la física de Fresnel\\
+hasta la función de costo log-normalizada y\\
+la estrategia de búsqueda multi-inicio}\\[3cm]
+{\large Proyecto de Investigación SAR-Tomo}\\[0.5cm]
+{\large\today}\\[4cm]
+\includegraphics[width=0.65\textwidth]{pv_fig10_sistema_3d.pdf}\\[1cm]
+{\small Configuración biestática óptima: TX en hélice cónica (azul), RX
+optimizado para ángulo de Brewster (rojo), targets subsuperficiales (×),
+y caminos refractados en la interfaz aire-suelo ($z=0$).}
+\end{titlepage}
+
+\tableofcontents
+
+\mainmatter
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Introducción: El Problema del Plan de Vuelo}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Motivación}
+
+En un sistema SAR biestático para tomografía de subsuelo, el transmisor (TX) sigue una trayectoria predeterminada —la hélice cónica— optimizada para maximizar la diversidad angular y la resolución 3D del volumen de interés. Sin embargo, la posición del receptor (RX) en cada instante es un \textbf{grado de libertad libre} que el diseñador del sistema puede elegir.
+
+La pregunta central de este documento es:
+
+\begin{center}
+\fbox{\parbox{0.82\textwidth}{\centering\itshape
+¿Dónde debe volar el receptor en cada instante para que el sistema biestático\\
+sea simultáneamente óptimo en potencia recibida \textbf{y} en resolución 3D?
+}}
+\end{center}
+
+Esta pregunta, aparentemente simple, tiene varias capas de complejidad:
+
+\begin{itemize}
+  \item La potencia recibida depende de la geometría biestática a través de la \textbf{ecuación de radar} y los \textbf{coeficientes de Fresnel} en la interfaz aire-suelo.
+  \item La resolución 3D depende del \textbf{ángulo de separación biestática} $\Delta\phi$ y del ángulo de observación $\psi_0$, como se derivó en \texttt{explicacion\_resolucion.tex}.
+  \item Ambos criterios tienen \textbf{escalas y dimensiones completamente distintas} (Watts vs. metros), lo que hace imposible sumarlos directamente.
+  \item El espacio de búsqueda es \textbf{no convexo}: múltiples mínimos locales en la función de costo.
+\end{itemize}
+
+\section{Enfoque adoptado}
+
+El optimizador del plan de vuelo (\texttt{run\_plano\_de\_voo.m}) resuelve este problema con tres ideas clave:
+
+\begin{enumerate}
+  \item \textbf{Explotación del ángulo de Brewster}: la polarización TM incidente bajo un ángulo específico produce transmitancia unitaria en la interfaz, maximizando la potencia que llega al target subsuperficial.
+  \item \textbf{Normalización logarítmica}: la función de costo combina potencia y resolución usando $\log_{10}$, haciendo ambos términos adimensionales y de magnitud comparable.
+  \item \textbf{Multi-inicio guiado geométricamente}: la búsqueda con \texttt{fmincon} parte de 5 candidatos heurísticos que cubren las regiones de interés biestático.
+\end{enumerate}
+
+\section{Relación con otros documentos}
+
+Este documento se apoya directamente en:
+\begin{itemize}
+  \item \texttt{explicacion\_resolucion.tex}: las fórmulas de resolución 3D biestática ($\dxy$, $\dz$) que se usan como segundo objetivo de optimización.
+  \item Los archivos MATLAB en \texttt{simulations/flightpath/}: implementación numérica de todos los conceptos derivados aquí.
+\end{itemize}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Física de la Interfaz: Polarización TM y Ángulo de Brewster}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{La interfaz aire-suelo}
+
+El sistema opera sobre dos medios homogéneos separados por una interfaz plana horizontal en $z=0$:
+\begin{itemize}
+  \item \textbf{Medio 1 (aire)}: $z > 0$, índice de refracción $\nuno = 1$, velocidad $c$.
+  \item \textbf{Medio 2 (suelo)}: $z < 0$, índice de refracción $\ndos = \sqrt{\varepsilon_r}$, velocidad $v_2 = c/\ndos$.
+\end{itemize}
+
+Para el suelo seco típico, $\varepsilon_r \approx 4$ $\Rightarrow$ $\ndos = 2$.
+
+La señal radar de banda P ($f_0 = 400\,\text{MHz}$) incide oblicuamente en la interfaz con un ángulo $\theta_1$ (medido desde la normal). Una fracción de la potencia se transmite al medio 2 con ángulo $\theta_2$ dado por la ley de Snell:
+\[
+\nuno\sin\theta_1 = \ndos\sin\theta_2
+\quad\Longrightarrow\quad
+\sin\theta_2 = \frac{\sin\theta_1}{\ndos}
+\]
+
+\section{Las ecuaciones de Fresnel para polarización TM}
+
+La señal radar utiliza polarización \textbf{TM} (campo eléctrico en el plano de incidencia, también llamada polarización p). Las ecuaciones de Fresnel para los coeficientes de campo eléctrico son:
+
+\result{Coeficientes de Fresnel — Polarización TM}{
+\begin{align}
+r_{TM} &= \frac{\ndos\cos\theta_1 - \nuno\cos\theta_2}{\ndos\cos\theta_1 + \nuno\cos\theta_2}
+\label{eq:r_TM}\\[6pt]
+t_{TM} &= \frac{2\nuno\cos\theta_1}{\ndos\cos\theta_1 + \nuno\cos\theta_2}
+\label{eq:t_TM}
+\end{align}
+}
+
+Para la ecuación de radar, lo relevante es la \textbf{transmitancia y reflectancia de potencia}, que incluyen el factor de cambio de impedancia entre medios:
+
+\result{Transmitancia y Reflectancia de Potencia}{
+\begin{align}
+T &= \frac{\ndos\cos\theta_2}{\nuno\cos\theta_1}\,|t_{TM}|^2
+\label{eq:T_potencia}\\[6pt]
+R &= |r_{TM}|^2
+\label{eq:R_potencia}
+\end{align}
+con la conservación de energía $T + R = 1$ $\checkmark$
+}
+
+\section{El ángulo de Brewster: transmitancia unitaria}
+
+Para polarización TM existe un ángulo especial en el que el coeficiente de reflexión se anula exactamente: $r_{TM} = 0$. Esto ocurre cuando numerador de~\eqref{eq:r_TM} es cero:
+\[
+\ndos\cos\theta_1 = \nuno\cos\theta_2
+\]
+Combinando con la ley de Snell $\sin\theta_2 = \sin\theta_1/\ndos$:
+
+\result{Ángulo de Brewster}{
+\[
+\boxed{\thetaB = \arctan\!\left(\frac{\ndos}{\nuno}\right)}
+\]
+En $\theta_1 = \thetaB$: $r_{TM} = 0$, $T = 1$ (toda la potencia se transmite al subsuelo).
+Para $\ndos = 2$: $\thetaB = \arctan(2) \approx 63.43°$.
+}
+
+La figura~\ref{fig:fresnel_tm} muestra las curvas $T(\theta_1)$ y $R(\theta_1)$ completas.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{pv_fig01_fresnel_tm.pdf}
+\caption{Coeficientes de Fresnel para polarización TM con $\ndos=2$ ($\varepsilon_r=4$).
+(a) Transmitancia $T$ y reflectancia $R$ de potencia en función del ángulo de incidencia.
+(b) Coeficientes de campo $|r_{TM}|$ y $|t_{TM}|$.
+El ángulo de Brewster $\thetaB \approx 63.43°$ es el único punto donde $R=0$, $T=1$.
+Para el sistema P-band, este ángulo es el objetivo de la optimización del plan de vuelo.}
+\label{fig:fresnel_tm}
+\end{figure}
+
+\section{Consecuencia para la geometría biestática}
+
+Si el RX se coloca de modo que la señal llega al target con ángulo de incidencia $\theta_1 \approx \thetaB$ \emph{tanto en el tramo TX→Target como en el tramo Target→RX}, la potencia transmitida es máxima. Esta condición impone restricciones en la posición horizontal del RX relativa al TX y al centroide de los targets.
+
+\nota{Cuantificación de la ganancia de Brewster}{
+Para $\ndos=2$ y ángulo de incidencia de $63.43°$: $T=1.0$ (Brewster). Para ángulo de $30°$: $T\approx 0.88$. Para incidencia normal ($0°$): $T\approx 0.89$. El ángulo de Brewster proporciona $\sim 12-14\%$ más de potencia transmitida respecto al promedio, lo cual es modesto pero real.
+}
+
+La figura~\ref{fig:brewster_geometry} muestra la geometría óptima que sitúa la señal biestática en el ángulo de Brewster.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.80\textwidth]{pv_fig08_brewster_geometry.pdf}
+\caption{Geometría óptima de Brewster en el plano biestático. El transmisor TX ilumina
+el target con ángulo de incidencia $\thetaB$ sobre la interfaz. El receptor RX se ubica
+en la posición simétrica (opuesta al TX respecto al target) para que el tramo Target→RX
+también incida a $\thetaB$. La \emph{distancia de Brewster} $d_B = (z_{RX}+|z_P|)/\tan\thetaB$
+define el radio horizontal óptimo del RX desde el target.}
+\label{fig:brewster_geometry}
+\end{figure}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{El Principio de Fermat y la Solución Analítica de Snell}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{El principio de Fermat}
+
+\defin{Principio de Fermat (formulación de Hamilton)}{
+La trayectoria seguida por un rayo electromagnético entre dos puntos es aquella que hace
+\emph{estacionario} (en general, mínimo) el tiempo de tránsito óptico:
+\[
+\mathcal{T} = \int_A^B n(\mathbf{r})\,ds
+\]
+donde $n(\mathbf{r})$ es el índice de refracción local y $ds$ el diferencial de longitud de trayectoria.
+}
+
+Para dos medios homogéneos con interfaz plana, el tiempo óptico entre fuente $S=(s_x,s_y,s_z)$ con $s_z>0$ y target $T=(t_x,t_y,t_z)$ con $t_z<0$ a través de un punto de refracción $P=(p_x,p_y,0)$ en la interfaz es:
+\[
+\mathcal{T}(P) = \nuno\,\|S-P\| + \ndos\,\|P-T\|
+= \nuno\,d_1(P) + \ndos\,d_2(P)
+\]
+
+Minimizar $\mathcal{T}$ sobre $P$ da exactamente la \textbf{ley de Snell} en el punto de refracción.
+
+\section{Reducción 3D $\rightarrow$ 1D para interfaz plana horizontal}
+
+Un resultado clave, que permite evitar el optimizador 2D completo, es la siguiente propiedad geométrica:
+
+\result{Reducción Dimensional de Fermat}{
+Para una interfaz plana horizontal ($z=0$), el punto de refracción óptimo $P^*$ siempre pertenece
+a la \textbf{línea recta horizontal} que une las proyecciones de la fuente y del target sobre
+la interfaz:
+\[
+P^* = S_{xy} + u^*\,\hat{d}_{xy}, \quad u^* \in [0, D]
+\]
+donde $S_{xy}=(s_x,s_y)$, $T_{xy}=(t_x,t_y)$, $\hat{d}_{xy} = (T_{xy}-S_{xy})/D$ y $D=\|T_{xy}-S_{xy}\|$.
+
+En consecuencia, el problema 2D (buscar $p_x,p_y$) se reduce a un problema 1D (encontrar el escalar $u^*$).
+}
+
+\textbf{Demostración:} La condición de primer orden $\nabla_P\,\mathcal{T}=0$ en el plano $z=0$ requiere:
+\[
+\nuno\frac{P-S_{xy}}{d_1} + \ndos\frac{P-T_{xy}}{d_2} = \mathbf{0}
+\]
+Esto significa que $(P-S_{xy})$ y $(T_{xy}-P)$ son paralelos (colineales): $P$ debe estar en la línea $S_{xy}$-$T_{xy}$. $\square$
+
+\section{La ecuación de Snell 1D y su solución Newton-Raphson}
+
+Parametrizando $P = S_{xy} + u\,\hat{d}_{xy}$ con $u\in[0,D]$:
+\[
+d_1(u) = \sqrt{u^2 + s_z^2}, \qquad d_2(u) = \sqrt{(D-u)^2 + |t_z|^2}
+\]
+
+La condición de Snell $\nuno\sin\theta_1 = \ndos\sin\theta_2$ se escribe como:
+
+\result{Ecuación de Snell 1D (función raíz)}{
+\[
+f(u) = \nuno\frac{u}{d_1(u)} - \ndos\frac{D-u}{d_2(u)} = 0
+\]
+con derivada:
+\[
+f'(u) = \nuno\frac{s_z^2}{d_1^3(u)} + \ndos\frac{t_z^2}{d_2^3(u)} > 0 \quad \text{siempre}
+\]
+La función $f$ es estrictamente monótona creciente $\Rightarrow$ la raíz es \textbf{única}.
+}
+
+La figura~\ref{fig:snell_1d} muestra la función $f(u)$ y la convergencia de Newton-Raphson.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{pv_fig03_snell_1d.pdf}
+\caption{Función $f(u) = \nuno u/d_1 - \ndos(D-u)/d_2$ para una geometría típica
+($s_z=100\,\text{m}$, $|t_z|=5\,\text{m}$, $D=80\,\text{m}$, $\ndos=2$).
+(a) $f(u)$ es monótona creciente con raíz única $u^*\approx 65.6\,\text{m}$.
+(b) Las primeras 4 iteraciones de Newton-Raphson (flechas rojas) convergen desde
+el estimado inicial $u_0$ con reducción cuadrática del error — típicamente < 5 iteraciones
+vs.\ 50-150 de un optimizador quasi-Newton 2D (\texttt{fminunc}).}
+\label{fig:snell_1d}
+\end{figure}
+
+\section{Algoritmo Newton-Raphson implementado}
+
+El algoritmo implementado en \texttt{calculateRefractionPointFermat.m} es:
+
+\begin{algorithm}[H]
+\caption{Punto de refracción de Snell (Newton-Raphson 1D)}
+\begin{algorithmic}[1]
+\Require Posición fuente $S$, target $T$, índices $\nuno$, $\ndos$
+\State $\hat{d} \gets (T_{xy}-S_{xy})/D$,\quad $s_z \gets |S_z|$,\quad $t_z \gets |T_z|$
+\State $u \gets D\cdot\dfrac{s_z/\nuno}{s_z/\nuno + t_z/\ndos}$ \Comment{Estimado inicial: interpolación óptica}
+\For{$\text{iter} = 1\ldots 12$}
+  \State $d_1 \gets \sqrt{u^2+s_z^2}$;\quad $d_2 \gets \sqrt{(D-u)^2+t_z^2}$
+  \State $f \gets \nuno\,u/d_1 - \ndos\,(D-u)/d_2$
+  \State $f' \gets \nuno\,s_z^2/d_1^3 + \ndos\,t_z^2/d_2^3$
+  \State $u \gets \text{clip}(u - f/f',\;0,\;D)$
+  \If{$|f/f'| < 10^{-10}\cdot D$} \textbf{break} \EndIf
+\EndFor
+\State \Return $P^* = [S_{xy} + u\,\hat{d};\;0]$
+\end{algorithmic}
+\end{algorithm}
+
+\nota{Ganancia de rendimiento}{
+Reemplazar \texttt{fminunc} (quasi-Newton 2D, $\sim$100 evaluaciones de la función de costo óptico) por Newton-Raphson 1D (3-5 iteraciones con aritmética elemental) produce una aceleración de \textbf{$\sim$100×} en este cómputo, que es el cuello de botella principal del simulador.
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{La Ecuación de Radar Biestático con Refracción}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Propagación biestática en dos medios}
+
+En el sistema biestático, la señal sigue cuatro segmentos de trayectoria con refracción en la interfaz:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{pv_fig04_bistatic_radar.pdf}
+\caption{Trayectoria completa de la señal biestática con dos refracciones.
+\textbf{Tramo TX→Target}: la señal viaja $R_1=\|TX - Q_1\|$ en aire y $R_2=\|Q_1 - P\|$ en suelo,
+refractándose en $Q_1^*$ (punto de Fermat). \textbf{Tramo Target→RX}: análogamente,
+$R_3=\|P - Q_2\|$ en suelo y $R_4=\|Q_2 - RX\|$ en aire, refractándose en $Q_2^*$.
+Las longitudes totales de trayectoria son $\RT = R_1+R_2$ y $\RR = R_3+R_4$.}
+\label{fig:bistatic_radar}
+\end{figure}
+
+\section{Derivación de la ecuación de radar con refracción}
+
+La ecuación de radar biestática estándar (sin refracción) para un blanco de sección eficaz $\sigma$ es:
+\[
+\Pr = \frac{\Pt\,G_T\,G_R\,\sigma\,\lambda^2}{(4\pi)^3\,R_{TX}^2\,R_{RX}^2}
+\]
+donde $R_{TX}$ y $R_{RX}$ son las distancias TX-target y target-RX.
+
+Con refracción en la interfaz, deben hacerse tres modificaciones:
+
+\subparagraph{Modificación 1 — Pérdida de propagación con camino óptico total.}
+La pérdida de spreading en el tramo TX→Target usa el camino óptico \emph{total}
+$\RT = R_1+R_2$ (y no $R_2$ solamente). El frente de onda, aunque viaja a velocidades
+diferentes en cada medio, se propaga como si fuera una esfera con radio efectivo $\RT$
+al evaluar la potencia en la interfaz de Huygens. Análogamente, en el tramo Target→RX
+se usa $\RR = R_3+R_4$.
+
+\subparagraph{Modificación 2 — Transmitancia de potencia.}
+En cada cruce de la interfaz se pierde una fracción de la potencia por reflexión:
+\begin{itemize}
+  \item Tramo TX→Target: transmitancia $T_1(\theta_{i,1})$ en el ángulo de incidencia $\theta_{i,1}$ del TX.
+  \item Tramo Target→RX: transmitancia $T_2(\theta_{i,2})$ en el ángulo de incidencia $\theta_{i,2}$ del Target.
+\end{itemize}
+
+\result{Ecuación de Radar Biestática con Refracción}{
+\[
+\boxed{\Pr = \frac{\Pt\,G_T\,G_R\,\sigma\,T_1\,T_2\,\lambda^2}{(4\pi)^3\,\RT^2\,\RR^2}}
+\]
+donde:
+\begin{align*}
+\RT &= R_1 + R_2 = \|TX - Q_1^*\| + \|Q_1^* - P\| \\
+\RR &= R_3 + R_4 = \|P - Q_2^*\| + \|Q_2^* - RX\|\\
+T_1 &= \frac{\ndos\cos\theta_{t,1}}{\nuno\cos\theta_{i,1}}\,|t_{TM}(\theta_{i,1})|^2 \\
+T_2 &= \frac{\nuno\cos\theta_{i,2}}{\ndos\cos\theta_{t,2}}\,|t_{TM}(\theta_{i,2})|^2
+\end{align*}
+}
+
+\section{El factor $(4\pi)^3$: origen y justificación}
+
+El denominador $(4\pi)^3$ aparece en la ecuación de radar biestático porque la potencia involucra \textbf{tres} etapas de conversión que cada una contribuye un factor $4\pi$:
+
+\begin{enumerate}
+  \item \textbf{Pérdida de propagación TX→Target}: el transmisor irradia sobre la esfera de área $4\pi\RT^2$. La densidad de potencia en el target es $\Pt G_T / (4\pi\RT^2)$.
+  \item \textbf{Reradiación del target (scatter)}: el target re-emite con densidad de potencia proporcional a $\sigma/(4\pi\RR^2)$ en dirección del RX (sección eficaz $\sigma$ = área efectiva re-irradiadora).
+  \item \textbf{Apertura efectiva del RX}: el receptor tiene apertura efectiva $A_{eff} = G_R\lambda^2/(4\pi)$. Multiplicando la densidad de potencia incidente $[\text{W/m}^2]$ por $A_{eff}$ $[\text{m}^2]$ se obtienen los Watts recibidos.
+\end{enumerate}
+
+\atencion{Error conceptual corregido}{
+Una versión anterior del código usaba \textbf{cuatro} factores $R^2$ independientes:
+$(4\pi)^3 R_1^2 R_2^2 R_3^2 R_4^2$, tratando el punto de refracción $Q^*$ como una fuente secundaria que re-emite isótropa\-mente. Esto es físicamente incorrecto: la interfaz es una superficie dieléctrica, no un scatter. La versión corregida usa los caminos totales $\RT^2$ y $\RR^2$.
+}
+
+\section{Parámetros del sistema (banda P)}
+
+\begin{table}[H]
+\centering
+\caption{Parámetros del sistema SAR biestático en banda P para subsuperficie}
+\label{tab:system_params}
+\begin{tabular}{llrl}
+\toprule
+Símbolo & Parámetro & Valor & Justificación \\
+\midrule
+$f_0$ & Frecuencia portadora & $400\,\text{MHz}$ & Banda P — penetración de subsuelo \\
+$\lambda$ & Longitud de onda & $0.75\,\text{m}$ & $\lambda = c/f_0$ \\
+$B$ & Ancho de banda chirp & $50\,\text{MHz}$ & $[-25,+25]\,\text{MHz}$ alrededor de $f_0$ \\
+$\Pt$ & Potencia transmitida & $100\,\text{kW}$ & \\
+$G_T = G_R$ & Ganancia antena & $6\,\text{dBi}$ & Patrón real (aper. az. 14°, elev. 50°) \\
+$\sigma$ & Sección eficaz target & $1\,\text{m}^2$ & \\
+$\varepsilon_r$ & Permitividad relativa suelo & $4$ & Suelo seco típico \\
+$\ndos$ & Índice de refracción & $2$ & $\ndos = \sqrt{\varepsilon_r}$ \\
+$\thetaB$ & Ángulo de Brewster & $63.43°$ & $\arctan(\ndos/\nuno)$ \\
+$z_P$ & Profundidad de targets & $[-10,\,-2]\,\text{m}$ & 64 targets en grid 3D \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Justificación de la banda P para penetración de subsuelo}
+
+La figura~\ref{fig:pband_attenuation} compara la atenuación electromagnética en suelo
+húmedo para distintas frecuencias.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{pv_fig09_pband_attenuation.pdf}
+\caption{Atenuación en suelo para distintas bandas. A 10\,GHz (banda X), la atenuación
+en suelo húmedo excede $25\,\text{dB/m}$, haciendo imposible detectar objetos a más
+de 1--2 cm de profundidad. En banda P ($400\,\text{MHz}$), la atenuación es
+$\lesssim 0.5\,\text{dB/m}$, permitiendo detectar targets a 5--10 m de profundidad
+con presupuesto de enlace favorable.}
+\label{fig:pband_attenuation}
+\end{figure}
+
+\section{Estimación del link budget}
+
+Con los parámetros de la tabla~\ref{tab:system_params} y geometría típica ($\RT\approx\RR\approx 165\,\text{m}$, $T_1=T_2=1$ en Brewster):
+
+\begin{align*}
+\Pr &= \frac{10^5 \cdot 4 \cdot 4 \cdot 1 \cdot 1 \cdot 1 \cdot (0.75)^2}{(4\pi)^3 \cdot (165)^2 \cdot (165)^2}\\
+    &= \frac{10^5 \cdot 16 \cdot 0.5625}{1984.4 \cdot 2.72\times10^4 \cdot 2.72\times10^4}\\
+    &\approx \frac{9\times10^5}{1.47\times10^{12}} \approx 6.1\times10^{-7}\,\text{W}
+\end{align*}
+
+\[
+\Pr[\text{dBm}] = 10\log_{10}(6.1\times10^{-7}\times1000) \approx -32\,\text{dBm}
+\]
+
+\nota{Nota sobre la estimación}{
+El valor de $-32\,\text{dBm}$ supone Brewster exacto ($T_1=T_2=1$) y RCS unitario.
+En condiciones reales, la potencia recibida será menor por: ángulo no exactamente Brewster,
+RCS real del objeto, atenuación en el suelo (no modelada en la ecuación de Friis simple),
+y ganancia de antena menor que el máximo direccional.
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{La Función de Costo Multi-Objetivo}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{El problema de la heterogeneidad dimensional}
+
+El optimizador del plan de vuelo busca simultáneamente:
+\begin{itemize}
+  \item \textbf{Maximizar} la potencia recibida $\Pr$ — típicamente en el rango $10^{-8}$–$10^{-12}\,\text{W}$.
+  \item \textbf{Minimizar} el área de resolución $\dxy\cdot\dz$ — típicamente en el rango $10^{-2}$–$10^{-4}\,\text{m}^2$.
+\end{itemize}
+
+Una combinación lineal directa $w_1\Pr + w_2\dxy\dz$ es problemática por dos razones:
+
+\begin{enumerate}
+  \item \textbf{Dimensiones físicas diferentes}: W vs.\ m$^2$ — la suma no tiene sentido dimensional.
+  \item \textbf{Escalas completamente distintas}: $\Pr\sim 10^{-10}$ frente a $\dxy\dz\sim 10^{-3}$.
+    Cualquier peso $w_2$ que haga comparable la resolución con la potencia resultaría
+    $w_2 \sim 10^7\,\text{W/m}^2$, sin interpretación física.
+\end{enumerate}
+
+\section{Solución: normalización logarítmica}
+
+La física multiplicativa de la ecuación de radar y de las resoluciones SAR sugiere naturalmente el uso de $\log_{10}$:
+
+\begin{itemize}
+  \item $\log_{10}(\Pr)$ para $\Pr \sim 10^{-10}\,\text{W}$ da un valor $\approx -10$: adimensional, O(10).
+  \item $\log_{10}(\dxy\dz)$ para $\dxy\dz \sim 10^{-3}\,\text{m}^2$ da un valor $\approx -3$: adimensional, O(1--5).
+\end{itemize}
+
+Propiedades clave que justifican el uso de $\log_{10}$:
+\begin{enumerate}
+  \item \textbf{Monotonicidad}: $\log_{10}$ es estrictamente creciente $\Rightarrow$ maximizar $\Pr$ equivale a maximizar $\log_{10}(\Pr)$.
+  \item \textbf{Adimensionalización}: $\log_{10}(x\,[\text{W}])$ pierde las unidades físicas pero conserva toda la información de ordenamiento relativo.
+  \item \textbf{Física multiplicativa}: la ecuación de radar es un producto de factores ($G_T$, $T_1$, $\RT^{-2}$, etc.); en escala logarítmica esto se convierte en una suma, lo que la hace compatible con la estructura de la función de costo aditiva.
+\end{enumerate}
+
+\section{La función de costo combinada}
+
+\result{Función de Costo Multi-Objetivo Log-Normalizada}{
+\[
+\boxed{J = -(1-\alphaR)\log_{10}(\Pr) + \alphaR\log_{10}(\dxy\cdot\dz)}
+\]
+\begin{itemize}
+  \item $\alphaR = 0$: $J = -\log_{10}(\Pr)$ — \textbf{solo maximizar potencia} (comportamiento original).
+  \item $\alphaR = 1$: $J = \log_{10}(\dxy\dz)$ — \textbf{solo minimizar resolución}.
+  \item $\alphaR \in (0,1)$: equilibrio multiobjetivo. El valor por defecto es $\alphaR = 0.3$ (70\% potencia, 30\% resolución).
+\end{itemize}
+El optimizador \texttt{fmincon} \emph{minimiza} $J$, lo cual corresponde a:\\
+maximizar $\Pr$ (primer término) y minimizar $\dxy\dz$ (segundo término).
+}
+
+\section{Análisis de los términos en escala logarítmica}
+
+Para la configuración nominal del sistema (tabla~\ref{tab:system_params}):
+
+\begin{table}[H]
+\centering
+\caption{Órdenes de magnitud de los términos de costo para geometría típica}
+\label{tab:cost_magnitudes}
+\begin{tabular}{lccc}
+\toprule
+Cantidad & Valor típico & $\log_{10}$ & Signo en $J$ \\
+\midrule
+$\Pr$ & $10^{-10}$–$10^{-8}\,\text{W}$ & $-10$ a $-8$ & $-(1-\alphaR)\times(-10)=+(8\text{ a }10)(1-\alphaR)$ \\
+$\dxy$ & $0.01$–$0.1\,\text{m}$ & $-2$ a $-1$ & — \\
+$\dz$ & $0.5$–$5\,\text{m}$ & $-0.3$ a $0.7$ & — \\
+$\dxy\dz$ & $5\times10^{-3}$–$0.5\,\text{m}^2$ & $-2.3$ a $-0.3$ & $+\alphaR\times(-2)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Ambos términos son O(1--10), haciendo la ponderación con $\alphaR\in[0,1]$ significativa.
+
+\section{La frontera de Pareto}
+
+La figura~\ref{fig:pareto} ilustra la frontera de Pareto entre potencia y resolución.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{pv_fig07_pareto.pdf}
+\caption{Frontera de Pareto en el espacio ($\Pr$, $\dxy\dz$). Cada punto de la curva corresponde
+a un valor de $\alphaR$ y representa una posición óptima distinta del RX. Para $\alphaR=0$ (extremo
+inferior-derecho), el RX maximiza potencia. Para $\alphaR=1$ (extremo superior-izquierdo), el RX
+minimiza el área de resolución. El punto de equilibrio $\alphaR^* \approx 0.3$ es donde los gradientes
+de ambos objetivos en escala logarítmica son iguales.}
+\label{fig:pareto}
+\end{figure}
+
+\section{Casos degenerados de la función de costo}
+
+La implementación maneja tres casos especiales:
+
+\begin{enumerate}
+  \item \textbf{Potencia nula o negativa}: $\log_{10}$ no está definido. Se usa penalización $-300$ (equivalente a $\Pr = 10^{-300}\,\text{W}$, precio muy alto en el costo).
+  \item \textbf{Resolución infinita}: ocurre cuando $\dxy\to\infty$ (separación biestática $\Delta\phi\to 180°$ con target en el eje) o $\dz\to\infty$. Se usa penalización $+10$ en el término de resolución.
+  \item \textbf{$\alphaR = 0$}: el término de resolución no se evalúa (por ramas de código), evitando el cómputo innecesario de $\dxy$ y $\dz$.
+\end{enumerate}
+
+\section{Derivación del cruce $\alphaR^*$}
+
+El ángulo de cruce $\alphaR^*$ es aquel en que el gradiente del término de potencia iguala al de resolución. En el óptimo de Brewster, la variación conjunta satisface aproximadamente:
+
+\[
+(1-\alphaR^*)\,|\Delta\log_{10}\Pr| = \alphaR^*\,|\Delta\log_{10}(\dxy\dz)|
+\]
+
+Para los valores numéricos típicos ($|\Delta\log_{10}\Pr|\approx 2$, $|\Delta\log_{10}(\dxy\dz)|\approx 0.3$):
+\[
+\alphaR^* \approx \frac{|\Delta\log_{10}\Pr|}{|\Delta\log_{10}\Pr|+|\Delta\log_{10}(\dxy\dz)|}
+= \frac{2}{2.3} \approx 0.87
+\]
+
+Por encima de $\alphaR^*$, la función de costo es dominada por la resolución; por debajo, por la potencia.
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{La Estrategia de Búsqueda Multi-Inicio}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{No convexidad del problema}
+
+La función de costo $J(x_R, y_R)$ como función de la posición horizontal del RX no es convex: puede tener múltiples mínimos locales. Esto se debe a:
+\begin{itemize}
+  \item El ángulo biestático $\Delta\phi$ depende de la posición relativa TX-RX, y la función $|\cos(\Delta\phi/2)|$ tiene estructura oscilatoria.
+  \item Los coeficientes de Fresnel $T_1, T_2$ tienen un máximo pronunciado (pero único) en $\thetaB$.
+  \item El patrón de antena introduce dependencia angular adicional.
+\end{itemize}
+
+\atencion{Consecuencia práctica}{
+Un optimizador de un único inicio puede quedar atrapado en un mínimo local que no corresponde
+al ángulo de Brewster. La búsqueda multi-inicio con candidatos heurísticos mitiga este problema.
+}
+
+\section{Los cinco candidatos de inicio}
+
+La figura~\ref{fig:multistart} muestra la ubicación geométrica de los 5 candidatos.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{pv_fig06_multistart.pdf}
+\caption{Vista cenital (plano $z=0$) mostrando la posición del TX (cuadrado azul), el centroide
+del grid de targets (punto rojo), y los 5 candidatos de inicio para la posición del RX.
+Los candidatos 1, 2 y 3 cubren las direcciones opuesta y perpendiculares al TX.
+Los candidatos 4 y 5 se ubican en la región guiada por el ángulo de Brewster, con jitter
+aleatorio para romper simetrías.}
+\label{fig:multistart}
+\end{figure}
+
+Los candidatos están definidos en \texttt{chooseCandidateRxPos.m} como:
+
+\begin{description}
+  \item[Candidato 1 (opuesto):] $\mathbf{x}_0 = \mathbf{c} + d\,\hat{e}_{\text{opp}} \cdot 0.8 + \mathcal{N}(0,1)^2$, donde $\mathbf{c}$ es el centroide del grid de targets, $d$ es la distancia TX-centroide, y $\hat{e}_{\text{opp}}$ apunta desde el centroide en dirección opuesta al TX. Esto aproxima un ángulo biestático $\Delta\phi \approx 180°$.
+
+  \item[Candidato 2 (perpendicular +):] $\mathbf{x}_0 = \mathbf{c} + d\,\hat{e}_{\perp} \cdot 0.8$. Ángulo biestático $\Delta\phi \approx 90°$.
+
+  \item[Candidato 3 (perpendicular $-$):] $\mathbf{x}_0 = \mathbf{c} - d\,\hat{e}_{\perp} \cdot 0.8$. Exploración del semiplano contrario.
+
+  \item[Candidatos 4 y 5 (Brewster):] Se calcula la \textbf{distancia de Brewster}:
+  \[
+  d_B = \frac{z_{RX} + |z_P|}{\tan\thetaB}
+  \]
+  y se ubican los candidatos en la dirección azimutal opuesta al TX desde el centroide, a distancia $d_B$, con perturbación aleatoria uniforme de amplitud $0.2\,d_B$.
+\end{description}
+
+\section{El optimizador interior-point}
+
+\texttt{fmincon} con algoritmo \texttt{interior-point} minimiza $J(x_R, y_R)$ con restricciones de caja:
+\[
+x_R \in [-200,\,200]\,\text{m}, \quad y_R \in [-200,\,200]\,\text{m}
+\]
+
+Los parámetros de parada son: \texttt{MaxIterations}=200, \texttt{FunctionTolerance}=$10^{-10}$.
+
+En cada llamada a $J$, se evalúan:
+\begin{itemize}
+  \item Para los 64 targets: 1 llamada Newton-Raphson (Target→RX) + cálculos de Fresnel/radar.
+  \item 1 llamada a \texttt{calculateBistaticResolution} (aritmética pura, sin optimización interna).
+\end{itemize}
+
+\section{Pre-cómputo del tramo TX→Target}
+
+Una optimización clave es que el tramo TX→Target (refracción $Q_1^*$, ángulo $\theta_{i,1}$, transmitancia $T_1$, longitud $\RT$) es \textbf{constante} para todas las posiciones candidatas del RX, ya que TX y los targets no cambian durante la optimización. Por tanto, estos datos se pre-computan una sola vez por posición TX (función \texttt{precomputeTxData.m}) antes del bucle multi-inicio:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{pv_fig05_cost_function.pdf}
+\caption{Función de costo $J(x_R, y_R)$ en el plano horizontal para $\alphaR=0.3$.
+(a) Mapa de calor de $J$ para una posición TX fija, mostrando la estructura de mínimos múltiples.
+(b) Perfil de $J$ a lo largo de la dirección azimutal óptima: el mínimo global corresponde
+a la posición de Brewster opuesta al TX. Los 5 candidatos de inicio se marcan con cruces.}
+\label{fig:cost_function}
+\end{figure}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Estimaciones Numéricas y Análisis de Sensibilidad}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Geometría nominal y parámetros derivados}
+
+Con los parámetros de la tabla~\ref{tab:system_params} y la hélice cónica nominal:
+
+\begin{table}[H]
+\centering
+\caption{Parámetros geométricos de la hélice cónica y distancias derivadas}
+\label{tab:geometry}
+\begin{tabular}{llrl}
+\toprule
+Símbolo & Parámetro & Valor & Cálculo \\
+\midrule
+$\rho_{min}$ & Radio menor hélice & $147.5\,\text{m}$ & — \\
+$\rho_{max}$ & Radio mayor hélice & $172.5\,\text{m}$ & — \\
+$z_{min}$ & Altitud mínima (base) & $80\,\text{m}$ & — \\
+$z_{max}$ & Altitud máxima (cima) & $120\,\text{m}$ & — \\
+$\Delta\rho$ & Variación de radio & $25\,\text{m}$ & $\rho_{max}-\rho_{min}$ \\
+$\Delta z$ & Variación de altura & $40\,\text{m}$ & $z_{max}-z_{min}$ \\
+$B_{helix}$ & Longitud espiral & $47.17\,\text{m}$ & $\sqrt{\Delta\rho^2+\Delta z^2}$ \\
+$\beta$ & Ángulo inclinación & $58.0°$ & $\arctan(\Delta z/\Delta\rho)$ \\
+$\rho_0$ & Radio medio & $160\,\text{m}$ & $(\rho_{min}+\rho_{max})/2$ \\
+$z_0$ & Altitud media & $100\,\text{m}$ & $(z_{min}+z_{max})/2$ \\
+$\psi_0$ & Look angle medio & $58.0°$ & $\arctan(\rho_0/z_0)$ \\
+$d_B$ & Distancia Brewster & $\approx 105\,\text{m}$ & $(z_0+|z_P|)/\tan\thetaB$, $z_P=-5\,\text{m}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Se verifica que $\beta \approx \psi_0 \approx 58°$, lo que significa que la hélice tiene inclinación óptima ($B_\perp \approx B_{helix}$) para la resolución vertical. Esto \emph{no es coincidencia} — la hélice fue diseñada con esta condición.
+
+\section{Estimación de la resolución 3D en el punto óptimo}
+
+Aplicando las fórmulas de \texttt{explicacion\_resolucion.tex} con $\Delta\phi=90°$ (NorthOffset del RX):
+
+\subparagraph{Ángulo de transmisión en el suelo:}
+\[
+\cos\theta_{t,0} = \sqrt{1-\frac{\sin^2(58°)}{4}} = \sqrt{1-0.181} = 0.905
+\]
+
+\subparagraph{Distancia de slant range:}
+\[
+R_0 = \sqrt{\rho_0^2 + z_0^2} = \sqrt{160^2 + 100^2} = 188.7\,\text{m}
+\]
+
+\subparagraph{Apertura tomográfica efectiva:}
+\[
+B_\perp = B_{helix}\,|\cos(\beta-\psi_0)| = 47.17\,|\cos(0°)| = 47.17\,\text{m}
+\]
+
+\subparagraph{Resolución vertical:}
+\begin{align*}
+W_z &= \ndos\,B\,\cos\theta_{t,0} + \frac{c\,B_\perp\,\sin\psi_0\cos\psi_0}{\lambda\,R_0\,\ndos\cos\theta_{t,0}}\\
+    &= 2 \times 50\times10^6 \times 0.905 + \frac{3\times10^8 \times 47.17 \times \sin(58°)\cos(58°)}{0.75 \times 188.7 \times 2 \times 0.905}\\
+    &= 90.5\,\text{MHz} + \frac{3\times10^8 \times 47.17 \times 0.449}{256.2}\\
+    &= 90.5\,\text{MHz} + 24.9\,\text{MHz} = 115.4\,\text{MHz}
+\end{align*}
+\[
+\dz = \frac{c}{2\,W_z} = \frac{3\times10^8}{2 \times 115.4\times10^6} = 1.30\,\text{m}
+\]
+
+\subparagraph{Resolución horizontal ($\Delta\phi=90°$):}
+\[
+\dxy = \frac{0.60\,\lambda}{\pi\,\sin\psi_0\,|\cos(\Delta\phi/2)|}
+= \frac{0.60 \times 0.75}{\pi \times \sin(58°) \times |\cos(45°)|}
+= \frac{0.45}{\pi \times 0.848 \times 0.707} = 0.24\,\text{m}
+\]
+
+\result{Resoluciones nominales estimadas (P-band, $\Delta\phi=90°$)}{
+\begin{align*}
+\dxy &\approx 0.24\,\text{m} \quad \text{(horizontal)} \\
+\dz &\approx 1.30\,\text{m} \quad \text{(vertical)} \\
+\dxy\cdot\dz &\approx 0.31\,\text{m}^2
+\end{align*}
+La contribución del ancho de banda al $W_z$ es 90.5 MHz (78\%) y la contribución
+tomográfica es 24.9 MHz (22\%); el término de BW domina en banda P.
+}
+
+\section{Análisis de sensibilidad de $J$ respecto a $\alphaR$}
+
+La figura~\ref{fig:alpha_sensitivity} muestra cómo la posición óptima del RX y el valor de $J^*$ cambian con $\alphaR$.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{pv_fig09_alpha_sensitivity.pdf}
+\caption{Sensibilidad de la optimización al parámetro $\alphaR$.
+(a) Valor del costo $J^*$ en el óptimo como función de $\alphaR$: el mínimo se desplaza
+de la región de Brewster ($\alphaR\to 0$) hacia la región de mejor resolución ($\alphaR\to 1$).
+(b) Componentes individuales: contribución de potencia (azul) y de resolución (rojo)
+en el punto óptimo para cada $\alphaR$.
+El cruce $\alphaR^*\approx 0.87$ indica el punto donde ambos objetivos tienen igual peso
+en la función de costo total.}
+\label{fig:alpha_sensitivity}
+\end{figure}
+
+\section{Vista general del sistema optimizado}
+
+La figura~\ref{fig:sistema_3d} muestra la configuración completa del sistema con la
+trayectoria del RX optimizada para $\alphaR=0.3$.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{pv_fig10_sistema_3d.pdf}
+\caption{Vista 3D del sistema optimizado. (a) La hélice cónica del TX (línea azul sólida)
+desciende mientras amplía su radio. (b) Las posiciones óptimas del RX (puntos rojos)
+forman una trayectoria aproximada que mantiene el ángulo biestático cercano al de Brewster.
+(c) Las flechas naranjas ilustran los caminos refractados TX→Target y Target→RX para la
+posición óptima de un TX seleccionado.}
+\label{fig:sistema_3d}
+\end{figure}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Conclusiones y Guía de Uso}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Resumen del método}
+
+\result{Algoritmo de Optimización del Plan de Vuelo (resumen)}{
+\textbf{Para cada posición TX en la hélice}:
+\begin{enumerate}
+  \item Pre-computar ganancias TX $G_T^{(i)}$ y datos de Fermat TX→Target ($R_T^{(i)}, T_1^{(i)}$) para los 64 targets.
+  \item Construir la geometría de búsqueda (distancia de Brewster, dirección opuesta).
+  \item Para cada uno de los 5 candidatos de inicio:
+    \begin{enumerate}
+      \item Inicializar $\mathbf{x}_0^{(k)}$ según las heurísticas geométricas.
+      \item Minimizar $J(\mathbf{x}_R)$ con \texttt{fmincon} (bounds $\pm 200\,\text{m}$).
+      \item En cada evaluación de $J$: resolver Newton-Raphson 1D para Target→RX (64×), calcular $\dxy\cdot\dz$.
+    \end{enumerate}
+  \item Seleccionar el candidato con menor $J^*$.
+  \item Reportar $\Pr^* = 10^{-J_\text{power}^*}$ y las resoluciones $\dxy^*, \dz^*$ en el óptimo.
+\end{enumerate}
+}
+
+\section{Guía de parámetros de diseño}
+
+\begin{enumerate}
+  \item \textbf{Selección de $\alphaR$}: comenzar con $\alphaR=0$ (solo potencia) para verificar que el ángulo de Brewster se encuentra. Luego incrementar hacia $\alphaR=0.3$. No superar $\alphaR^*\approx 0.87$ sin verificar que la posición de Brewster siga siendo accesible.
+
+  \item \textbf{Número de candidatos de inicio}: 5 candidatos es el mínimo razonable para cubrir los cuadrantes de búsqueda. Incrementar a 8--10 si el espacio es muy no convexo (e.g., grid de targets muy ancho).
+
+  \item \textbf{Factor de decimación}: el código decimóa la trayectoria TX en un factor 200 (por defecto), lo que produce $\sim\!25$ posiciones TX evaluadas por vuelta. Reducir a 100 para mayor resolución temporal de la trayectoria del RX; aumentar a 400+ si el tiempo de cómputo es limitante.
+
+  \item \textbf{Frecuencia de operación}: mantener en banda P ($\leq 500\,\text{MHz}$) para targets a más de 1 m de profundidad. La penalización en resolución horizontal ($\dxy\propto\lambda$) es severa pero inevitable para la penetración requerida.
+
+  \item \textbf{Condición $\beta\approx\psi_0$}: verificar que la inclinación de la hélice satisfaga $\beta = \arctan(\Delta z/\Delta\rho) \approx \arctan(\rho_0/z_0)$. Esto maximiza $B_\perp$ y por ende $W_z$, mejorando la resolución vertical sin cambiar la trayectoria TX.
+\end{enumerate}
+
+\section{Limitaciones}
+
+\begin{itemize}
+  \item La ecuación de radar no incluye \textbf{atenuación dieléctrica} en el suelo ($e^{-\alpha|z_P|}$). Para subsuelos húmedos, este término reduce significativamente la potencia recibida.
+  \item Los coeficientes de Fresnel asumen \textbf{medios homogéneos sin pérdidas} ($\varepsilon_r$ real). En suelos reales, $\varepsilon_r$ es complejo y el ángulo de Brewster se modifica.
+  \item El grid de 64 targets es \textbf{representativo} del volumen de interés, no una discre\-tización exhaustiva. Los targets reales son continuos.
+  \item La \textbf{interpolación PCHIP} de la trayectoria del RX entre posiciones optimizadas puede introducir oscilaciones si el decimationFactor es demasiado grande.
+\end{itemize}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\appendix
+\chapter{Derivación Formal de la Reducción 3D$\to$1D de Fermat}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Enunciado del teorema}
+
+\begin{mdframed}
+\textbf{Teorema (Fermat 1D para interfaz plana).}
+Sea $S = (s_x, s_y, s_z)$ con $s_z > 0$ una fuente en el Medio 1 ($n_1$) y $T = (t_x, t_y, t_z)$ con $t_z < 0$ un target en el Medio 2 ($n_2$). El punto de refracción $P^* = \arg\min_{P\in z=0} [n_1\|S-P\|+n_2\|P-T\|]$ pertenece al segmento de línea horizontal que une $S_{xy}=(s_x,s_y)$ con $T_{xy}=(t_x,t_y)$ proyectados en $z=0$.
+\end{mdframed}
+
+\section{Demostración}
+
+Sea $P = (p_x, p_y, 0)$ y definamos $\mathcal{T}(p_x,p_y) = n_1 d_1 + n_2 d_2$ donde:
+\[
+d_1 = \sqrt{(p_x-s_x)^2+(p_y-s_y)^2+s_z^2}, \quad d_2 = \sqrt{(p_x-t_x)^2+(p_y-t_y)^2+t_z^2}
+\]
+
+Las condiciones de primer orden $\partial\mathcal{T}/\partial p_x = \partial\mathcal{T}/\partial p_y = 0$ dan:
+\[
+n_1\frac{p_x-s_x}{d_1} + n_2\frac{p_x-t_x}{d_2} = 0
+\]
+\[
+n_1\frac{p_y-s_y}{d_1} + n_2\frac{p_y-t_y}{d_2} = 0
+\]
+
+Estas dos ecuaciones pueden escribirse vectorialmente como:
+\[
+n_1\frac{\mathbf{p}-\mathbf{S}_{xy}}{d_1} = -n_2\frac{\mathbf{p}-\mathbf{T}_{xy}}{d_2}
+\]
+
+donde $\mathbf{S}_{xy}=(s_x,s_y)$, $\mathbf{T}_{xy}=(t_x,t_y)$, $\mathbf{p}=(p_x,p_y)$.
+
+Denotando $\mathbf{a} = \mathbf{p}-\mathbf{S}_{xy}$ y $\mathbf{b} = \mathbf{T}_{xy}-\mathbf{p}$, la condición se convierte en:
+\[
+\frac{n_1}{d_1}\mathbf{a} = \frac{n_2}{d_2}\mathbf{b}
+\]
+
+Esto significa que $\mathbf{a}$ y $\mathbf{b}$ son \textbf{paralelos} (proporcionales por un escalar positivo). Geométricamente, $\mathbf{a} = \mathbf{p}-\mathbf{S}_{xy}$ y $\mathbf{b} = \mathbf{T}_{xy}-\mathbf{p}$ paralelos implican que $\mathbf{p}$, $\mathbf{S}_{xy}$ y $\mathbf{T}_{xy}$ son colineales, es decir, $\mathbf{p}$ pertenece a la línea que pasa por $\mathbf{S}_{xy}$ y $\mathbf{T}_{xy}$. $\square$
+
+\section{Unicidad de la raíz}
+
+Parametrizando $\mathbf{p} = \mathbf{S}_{xy} + u\hat{d}$ con $D = \|\mathbf{T}_{xy}-\mathbf{S}_{xy}\|$ y $\hat{d} = (\mathbf{T}_{xy}-\mathbf{S}_{xy})/D$, la función:
+\[
+f(u) = n_1\frac{u}{\sqrt{u^2+s_z^2}} - n_2\frac{D-u}{\sqrt{(D-u)^2+t_z^2}}
+\]
+tiene derivada:
+\[
+f'(u) = \frac{n_1\,s_z^2}{(u^2+s_z^2)^{3/2}} + \frac{n_2\,t_z^2}{((D-u)^2+t_z^2)^{3/2}} > 0
+\]
+para todos $u\in\mathbb{R}$, $s_z>0$, $t_z\neq 0$. Por tanto $f$ es estrictamente monótona creciente, tiene a lo sumo una raíz. Combinando con los valores de frontera $f(0) = -n_2\,D/\sqrt{D^2+t_z^2} < 0$ y $f(D) = n_1\,D/\sqrt{D^2+s_z^2} > 0$, el teorema del valor intermedio garantiza exactamente una raíz $u^*\in(0,D)$. $\square$
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\backmatter
+\chapter*{Referencias}
+\addcontentsline{toc}{chapter}{Referencias}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\begin{enumerate}
+  \item M.\ Born y E.\ Wolf, \emph{Principles of Optics}, 7ª ed., Cambridge University Press, 1999. [Ecuaciones de Fresnel, ángulo de Brewster]
+  \item D.\ C.\ Munson, J.\ D.\ O'Brien, W.\ K.\ Jenkins, ``A tomographic formulation of spotlight-mode SAR,'' \emph{Proc.\ IEEE}, vol.\ 71, no.\ 8, 1983.
+  \item J.\ A.\ Góes, \emph{Techniques for High-Resolution 3D Images with Synthetic Aperture Radar}, Tesis Doctoral, UNICAMP, 2022. [Resoluciones $\dxy$, $\dz$ para SAR biestático helicoidal]
+  \item F.\ T.\ Ulaby, R.\ K.\ Moore, A.\ K.\ Fung, \emph{Microwave Remote Sensing}, Artech House, 1981. [Atenuación en suelo, permitividades]
+  \item G.\ F.\ Edelmann et al., ``Imaging subsurface objects with P-band SAR,'' \emph{IEEE TGRS}, 2019. [Motivación banda P]
+  \item R.\ Kress, \emph{Numerical Analysis}, Springer, 1998. [Convergencia de Newton-Raphson]
+  \item A.\ Ishimaru, \emph{Electromagnetic Wave Propagation, Radiation, and Scattering}, Prentice Hall, 1991. [Ecuación de radar biestática]
+  \item O.\ Arikan, D.\ C.\ Munson Jr., ``A tomographic formulation of bistatic SAR,'' \emph{ICASSP}, 1988.
+\end{enumerate}
+
+\end{document}
