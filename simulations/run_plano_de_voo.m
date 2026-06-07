@@ -98,6 +98,10 @@ for tx_idx = 1:length(PxT)
     % Ganancias del transmisor hacia todos los targets (precalculadas, fijas para este Tx)
     [~, ~, Gt_current] = calculateTxGainsForTargets(Tx_pos_current, tg, radPattern);
 
+    % Datos de refracción Tx→Target (constantes para este Tx — evita recalcular en cada
+    % evaluación de fmincon, eliminando ~50% de los llamados a calculateRefractionPointFermat)
+    [R_T_pre, T1_pre] = precomputeTxData(Tx_pos_current, tg, n1, n2);
+
     % Geometría de búsqueda guiada por el ángulo de Brewster
     search_geo = buildRxSearchGeometry(Tx_pos_current, Rx_z, tg, angulo_brewster);
 
@@ -112,7 +116,7 @@ for tx_idx = 1:length(PxT)
         [x_opt, fval] = fmincon(...
             @(xy) objective_function(xy, tg, Tx_pos_current, Rx_z, radPattern, ...
                 Gt_current, Pt, sigma, lambda, n1, n2, ...
-                alpha_res, B, B_helix, beta_helix, target_center_2d), ...
+                alpha_res, B, B_helix, beta_helix, target_center_2d, R_T_pre, T1_pre), ...
             x0, [], [], [], [], lb, ub, [], options);
 
         results{i} = x_opt;
@@ -128,7 +132,7 @@ for tx_idx = 1:length(PxT)
     % Evaluar potencia y resolución en el punto óptimo (para reporting)
     c_power = objective_function(best_xy, tg, Tx_pos_current, Rx_z, radPattern, ...
         Gt_current, Pt, sigma, lambda, n1, n2, ...
-        0, B, B_helix, beta_helix, target_center_2d);          % alpha=0 → cost = -log10(Pr)
+        0, B, B_helix, beta_helix, target_center_2d, R_T_pre, T1_pre);  % alpha=0 → cost = -log10(Pr)
     max_power_all(tx_idx) = 10^(-c_power);
 
     [delta_xy_all(tx_idx), delta_z_all(tx_idx)] = calculateBistaticResolution(...

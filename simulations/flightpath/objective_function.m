@@ -1,5 +1,5 @@
 function cost = objective_function(xy, tg, Tx_pos, Rx_z, radPattern, Gt, Pt, sigma, lambda, n1, n2, ...
-    alpha_res, B, B_helix, beta_helix, target_center_2d)
+    alpha_res, B, B_helix, beta_helix, target_center_2d, R_T_pre, T1_pre)
 % OBJECTIVE_FUNCTION  Combined bistatic cost: power vs. 3D resolution tradeoff.
 %
 % Minimizes a dimensionless log-normalized cost that simultaneously maximizes
@@ -31,6 +31,8 @@ function cost = objective_function(xy, tg, Tx_pos, Rx_z, radPattern, Gt, Pt, sig
 %   B_helix          - Helix arc length (m)  [used for delta_z]
 %   beta_helix       - Helix tilt angle (rad)[used for delta_z]
 %   target_center_2d - Horizontal centroid of target grid [2x1] (m)
+%   R_T_pre          - Pre-computed Tx→Target path lengths [1 x Ntg] (m)
+%   T1_pre           - Pre-computed Tx→Target TM transmittance [1 x Ntg]
 
 Rx_pos      = [xy(1); xy(2); Rx_z];
 total_power = 0;
@@ -38,13 +40,11 @@ total_power = 0;
 for i = 1:size(tg, 2)
     target_pos = tg(:, i);
 
-    % Tramo 1: Tx → Target (refracción en interfaz, ida)
-    intersec_Tx_Tg    = calculateRefractionPointFermat(Tx_pos, target_pos, n1, n2);
-    ang_inc_1         = calculateIncidenceAngle(Tx_pos, intersec_Tx_Tg, target_pos);
-    [~,~,~,~, T1, ~]  = calculateTMcoef(ang_inc_1, n1, n2);
-    R_T = norm(Tx_pos - intersec_Tx_Tg) + norm(intersec_Tx_Tg - target_pos);
+    % Tramo 1: Tx → Target (precomputado — constante para este Tx)
+    R_T = R_T_pre(i);
+    T1  = T1_pre(i);
 
-    % Tramo 2: Target → Rx (refracción en interfaz, vuelta)
+    % Tramo 2: Target → Rx (depende de la posición del Rx, calculado aquí)
     intersec_Tg_Rx    = calculateRefractionPointFermat(target_pos, Rx_pos, n2, n1);
     ang_inc_2         = calculateIncidenceAngle(target_pos, intersec_Tg_Rx, Rx_pos);
     [~,~,~,~, T2, ~]  = calculateTMcoef(ang_inc_2, n2, n1);
