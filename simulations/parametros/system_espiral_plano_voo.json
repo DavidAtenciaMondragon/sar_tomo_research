@@ -12,6 +12,7 @@
         "yMax":          150,
         "discGrid":      1,
         "ratioUp":       2,
+        "searchRadius":  200,
         "gridSnell": {
             "dxy": 0.04,
             "lxy": 0.12,

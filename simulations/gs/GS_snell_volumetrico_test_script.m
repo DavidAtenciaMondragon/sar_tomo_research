@@ -111,7 +111,10 @@ else
 end
 %% Create raw data
 
-n = 3;
+if ~isfield(strSystem, 'IndiceRefracaoSolo')
+    error('Falta el parametro "IndiceRefracaoSolo" en system%s.json', paramSuffix);
+end
+n = strSystem.IndiceRefracaoSolo;
 c = strSystem.VelocidadeLuz;
 threshold = 1e-10;
 

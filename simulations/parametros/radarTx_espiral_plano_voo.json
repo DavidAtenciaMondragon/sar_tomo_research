@@ -1,0 +1,26 @@
+{"radar": [
+    {
+        "posInicial"    : [0,0,0],
+        "tipoTrajetoria": "espiral",
+        "NumVoltasEsp"  : 2,
+        "RaioMaiorEsp"  : 172.5,
+        "RaioMenorEsp"  : 147.5,
+        "AltMaiorEsp"   : 120,
+        "AltMenorEsp"   : 80,
+        "Vt"            : 120,
+        "PRF"           : 400,
+        "fs"            : 60e6,
+        "PotenciaTx"    : 100e3,
+        "GananciaAnt"   : 6,
+        "FreqPortadora" : 10e9,
+        "FreqMenor"     : -25e6,
+        "FreqMayor"     : 25e6,
+        "DuracaoPulso"  : 1.3e-6,
+        "AperturaAzimut": 14,
+        "AperturaElev"  : 50,
+        "NorthOffset"   : 0,
+        "InclElev"      : 20,
+        "Temperatura"   : 300
+    }
+  ]
+  }

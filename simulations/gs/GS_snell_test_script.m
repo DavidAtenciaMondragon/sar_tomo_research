@@ -1,6 +1,4 @@
 function GS_snell_test_script(paramSuffix)
-clc
-close all
 
 scriptDir = fileparts(mfilename('fullpath'));
 projectDir = fileparts(scriptDir);
@@ -79,7 +77,10 @@ saveas(figTrajectory, fullfile(figOutputDir,'trayectorias_snell.png'));
 
 %% Create raw data
 
-n = 2;
+if ~isfield(strSystem, 'IndiceRefracaoSolo')
+    error('Falta el parametro "IndiceRefracaoSolo" en system%s.json', paramSuffix);
+end
+n = strSystem.IndiceRefracaoSolo;
 c = strSystem.VelocidadeLuz;
 threshold = 1e-10;
 

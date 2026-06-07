@@ -34,7 +34,7 @@
 \usepackage{multirow}
 
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc}
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,babel}
 
 \usepackage{mdframed}
 \usepackage{tcolorbox}
@@ -255,14 +255,376 @@ La figura~\ref{fig:aperture} ilustra la diferencia entre apertura real y sintét
 \end{figure}
 
 \section{Equivalencia tomográfica del SAR Spotlight}
+\label{sec:spotlight_tomo}
 
-El SAR en modo \emph{spotlight} (donde el haz apunta continuamente al mismo parche) tiene una equivalencia directa con la tomografía computarizada (CT), demostrada por Munson et al.\ (1983). La señal demodulada en cada ángulo de observación $\theta$ es la transformada de Fourier de la proyección de la reflectividad del parche, lo que permite reconstruir la imagen mediante algoritmos de CT.
+\subsection{El modo Spotlight: apuntamiento dinámico del haz}
 
-En el dominio del número de onda, el SAR spotlight adquiere muestras en un \textbf{sector anular}:
+En el modo \emph{stripmap} la antena apunta en dirección fija (broadside), barriendo una franja continua del terreno. En el modo \emph{spotlight} el sistema rota electrónicamente el haz para que ilumine \emph{continuamente el mismo parche} de terreno mientras la plataforma avanza. La figura~\ref{fig:stripmap_vs_spotlight} compara ambos modos.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.85, >=Stealth]
+  %% STRIPMAP
+  \begin{scope}[xshift=-4.2cm]
+    \node[above, font=\bfseries\small] at (0,4.6) {(a) Modo Stripmap};
+    \draw[->, thick, gray!60] (-1.6,4.0) -- (1.6,4.0) node[right, font=\small] {$v$};
+    \foreach \x/\col in {-1.0/blue!70, 0/green!55!black, 1.0/red!65}{
+      \fill[\col] (\x,4.0) circle (3.5pt);
+      \draw[\col, thick] (\x,4.0) -- (\x-0.65,0.05) -- (\x+0.65,0.05) -- cycle;
+    }
+    \draw[thick, brown!60!black] (-2.8,0) -- (2.8,0) node[right,font=\small] {suelo};
+    \fill[blue!15]  (-1.65,0) rectangle (-0.35,0.12);
+    \fill[green!15] (-0.65,0) rectangle ( 0.65,0.12);
+    \fill[red!15]   ( 0.35,0) rectangle ( 1.65,0.12);
+    \draw[<->, orange, thick] (-1.65,-0.35) -- (1.65,-0.35)
+      node[midway, below, font=\small] {franja continua};
+    \node[font=\small, align=center] at (0,-1.0)
+      {Haces paralelos \\ $\Rightarrow\;\delta_{az}=d_a/2$};
+  \end{scope}
+  %% SPOTLIGHT
+  \begin{scope}[xshift=4.2cm]
+    \node[above, font=\bfseries\small] at (0,4.6) {(b) Modo Spotlight};
+    \draw[->, thick, gray!60] (-1.6,4.0) -- (1.6,4.0) node[right, font=\small] {$v$};
+    \fill[blue!70]        (-1.0,4.0) circle (3.5pt);
+    \draw[blue!70, thick] (-1.0,4.0) -- (-0.38,0.05) -- (0.38,0.05) -- cycle;
+    \fill[green!55!black]        (0,4.0) circle (3.5pt);
+    \draw[green!55!black, thick] (0,4.0) -- (-0.38,0.05) -- (0.38,0.05) -- cycle;
+    \fill[red!65]        (1.0,4.0) circle (3.5pt);
+    \draw[red!65, thick] (1.0,4.0) -- (-0.38,0.05) -- (0.38,0.05) -- cycle;
+    \draw[thick, brown!60!black] (-2.8,0) -- (2.8,0);
+    \fill[orange!35] (-0.38,0) rectangle (0.38,0.12);
+    \node[orange!80!black, font=\bfseries\small] at (0,-0.35) {parche fijo};
+    \node[font=\small, align=center] at (0,-1.0)
+      {Haz rota con el sensor \\ $\Rightarrow\;L_{SA}$ mayor};
+  \end{scope}
+\end{tikzpicture}
+\caption{Comparación entre modos Stripmap y Spotlight. En Stripmap los haces en posiciones distintas iluminan parches distintos; en Spotlight el haz rota para apuntar siempre al mismo parche, acumulando una apertura sintética $L_{SA}$ mayor y, por tanto, mejor resolución en azimut.}
+\label{fig:stripmap_vs_spotlight}
+\end{figure}
+
+La consecuencia directa del apuntamiento continuo es que la duración de iluminación del parche solo está limitada por el tiempo de vuelo disponible, no por el ancho de haz físico de la antena. Cuanto mayor es $L_{SA}$, mejor es la resolución en azimut. Esto es diametralmente opuesto al stripmap, donde la apertura está fijada por el ancho de haz: $L_{SA}^{stripmap} \approx \lambda R_0 / d_a$.
+
+\subsection{La analogía con Tomografía Computarizada (CT)}
+
+En un escáner CT se envían haces de rayos X desde múltiples ángulos $\phi$ y en cada ángulo se mide la \textbf{proyección} de la densidad $f(x,y)$ a lo largo de líneas paralelas:
 \[
-\{(k_x, k_y) : k_{min} \leq \sqrt{k_x^2+k_y^2} \leq k_{max},\; -\theta_M \leq \arctan(k_y/k_x) \leq \theta_M\}
+g(\phi,\,s) = \int_{-\infty}^{+\infty} f\!\left(s\cos\phi - t\sin\phi,\;\; s\sin\phi + t\cos\phi\right)\,dt
 \]
-cuya extensión determina directamente las resoluciones en rango y azimut.
+donde $s$ es la coordenada transversal al haz y $t$ la coordenada a lo largo del rayo.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.88, >=Stealth]
+  %% CT
+  \begin{scope}[xshift=-4.0cm]
+    \node[above, font=\bfseries\small] at (0,3.1) {(a) Escáner CT};
+    \draw[gray!35, thick, dashed] (0,0) circle (2.3cm);
+    \draw[fill=gray!22, thick] (0,0) ellipse (0.95cm and 1.15cm);
+    \node[font=\small] at (0,0) {$f(x,y)$};
+    \fill[yellow!70!black] (-2.3,0) circle (4pt) node[left, font=\small] {fuente};
+    \fill[green!55!black]  ( 2.3,0) circle (4pt) node[right,font=\small] {detector};
+    \foreach \dy in {-0.55,0,0.55}{
+      \draw[red!55, thin, ->] (-2.3,\dy) -- (2.3,\dy);
+    }
+    \draw[blue!65, very thick] (2.3,-1.0) -- (2.3,1.0);
+    \node[blue!65, font=\small, right] at (2.35,0) {$g(\phi,s)$};
+    \draw[->, thick, gray!60] (0.15,2.1) arc[start angle=93,end angle=38,radius=2.1];
+    \node[font=\small, gray!60] at (1.5,2.2) {giro $\phi$};
+  \end{scope}
+  %% flecha equivalencia
+  \draw[->, very thick, double, orange!80!black] (-0.35,0) -- (0.75,0);
+  \node[font=\bfseries\small, orange!80!black] at (0.2,0.4) {$\equiv$};
+  %% SAR Spotlight
+  \begin{scope}[xshift=4.2cm]
+    \node[above, font=\bfseries\small] at (0,3.1) {(b) SAR Spotlight};
+    \draw[fill=gray!22, thick] (0,0) ellipse (0.95cm and 0.75cm);
+    \node[font=\small] at (0,0) {$f(x,y)$};
+    \fill[blue!70]        (-1.9,2.2) circle (4pt);
+    \fill[green!55!black] ( 0.0,2.6) circle (4pt);
+    \fill[red!65]         ( 1.9,2.2) circle (4pt);
+    \draw[thick, gray!50, ->] (-2.3,1.9) arc[start angle=205,end angle=-25,radius=1.55];
+    \draw[blue!60,        thick, ->] (-1.9,2.2) -- (-0.32,0.32);
+    \draw[green!50!black, thick, ->] ( 0.0,2.6) -- ( 0.00,0.72);
+    \draw[red!55,         thick, ->] ( 1.9,2.2) -- ( 0.32,0.32);
+    \draw[<->] (-0.45,2.05) arc[start angle=130,end angle=90,radius=0.72];
+    \node[font=\small] at (-0.05,2.4) {$\Delta\theta_s$};
+    \node[font=\tiny, gray!55] at (0,-1.55) {trayectoria SAR};
+  \end{scope}
+\end{tikzpicture}
+\caption{Analogía CT--SAR Spotlight. Ambos miden ``proyecciones'' del objeto desde múltiples ángulos. En CT los rayos X atraviesan el cuerpo y el detector mide integrales de densidad. En SAR spotlight, el eco en cada posición del sensor es matemáticamente equivalente a la proyección de la reflectividad $f(x,y)$ a lo largo de la dirección de rango.}
+\label{fig:ct_sar_analogy}
+\end{figure}
+
+Munson, O'Brien y Jenkins (1983) demostraron que el eco SAR spotlight, tras la compresión en rango, es exactamente una proyección de la reflectividad de la escena en el sentido CT. La herramienta que formaliza esta equivalencia es el \textbf{Teorema de la Proyección Central}.
+
+\subsection{El Teorema de la Proyección Central (Fourier-Slice)}
+
+\defin{Teorema de la Proyección Central}{
+Sea $F(k_x,k_y)=\mathcal{F}_{2D}\{f\}$ la transformada de Fourier 2D de la escena $f(x,y)$, y $g(\phi,s)$ su proyección en la dirección angular $\phi$. Entonces:
+\[
+\mathcal{F}_1\!\left\{g(\phi,\,\cdot\,)\right\}(k_r)
+  = F\!\left(k_r\cos\phi,\;\;k_r\sin\phi\right)
+\]
+La transformada de Fourier 1D de la proyección en el ángulo $\phi$ da los valores de $F$ sobre la \emph{línea radial} de ángulo $\phi$ en el k-espacio.
+}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.90, >=Stealth]
+  %% Dominio espacial
+  \begin{scope}[xshift=-3.8cm]
+    \node[above, font=\bfseries\small] at (0,3.0) {Dominio espacial};
+    \draw[->] (-2.3,0) -- (2.3,0) node[right, font=\small] {$x$};
+    \draw[->] (0,-2.3) -- (0,2.3) node[above, font=\small] {$y$};
+    \draw[fill=gray!20, thick] (0,0.15) ellipse (1.1cm and 0.78cm);
+    \node[font=\small] at (0,0.15) {$f(x,y)$};
+    % Dirección de proyección (ángulo ~35° desde eje x)
+    \draw[red!70, very thick, ->] (-2.1,-1.22) -- (2.1,1.22)
+      node[right, font=\small, red!70] {$\phi$};
+    % Eje de integración s (perpendicular)
+    \draw[blue!65, very thick, ->] (-1.73,1.0) -- (1.73,-1.0)
+      node[right, font=\small, blue!65] {$s$};
+    % Líneas de proyección (paralelas a dir phi, dashed)
+    \foreach \off in {-0.9,-0.45,0.45,0.9}{
+      \draw[gray!35, thin, dashed]
+        ({-2.1+\off*0.5},{-1.22-\off*0.87}) -- ({2.1+\off*0.5},{1.22-\off*0.87});
+    }
+    % Perfil de proyección lateral
+    \draw[orange!80!black, very thick] (-2.4,-0.6) -- (-2.4,1.3);
+    \draw[orange!70, thick] (-2.5,0.35) -- (-2.3,0.35);
+    \node[orange!80!black, font=\small, left] at (-2.4,0.35) {$g(\phi,s)$};
+  \end{scope}
+  %% Flecha TF
+  \draw[->, very thick, double, gray!55] (-0.4,0) -- (0.9,0);
+  \node[font=\small, above] at (0.25,0.1) {$\mathcal{F}_1$};
+  \node[font=\tiny, below] at (0.25,-0.1) {(sobre $s$)};
+  %% k-espacio
+  \begin{scope}[xshift=4.0cm]
+    \node[above, font=\bfseries\small] at (0,3.0) {k-espacio};
+    \draw[->] (-2.3,0) -- (2.3,0) node[right, font=\small] {$k_x$};
+    \draw[->] (0,-2.3) -- (0,2.3) node[above, font=\small] {$k_y$};
+    % Líneas radiales de distintos ángulos (gris claro)
+    \foreach \ang in {0,18,36,54,72,90,108,126,144,162}{
+      \draw[gray!28, thin] ({\ang}:2.0) -- ({180+\ang}:2.0);
+    }
+    % Zona cubierta (disco completo si phi in [0,pi))
+    \fill[blue!10, opacity=0.6] (0,0) circle (1.85cm);
+    % Línea radial destacada en dirección phi (~30° del eje x = ~35° del eje y)
+    \draw[red!70, very thick] (-2.1,-1.22) -- (2.1,1.22);
+    \node[red!70, font=\small] at (1.5,1.45) {$F(k_r\cos\phi,k_r\sin\phi)$};
+    \draw[gray!40, dashed] (0,0) circle (1.85cm);
+    \node[blue!60, font=\small] at (0,-2.55)
+      {$\phi\in[0,\pi)$: k-espacio completo};
+  \end{scope}
+\end{tikzpicture}
+\caption{Visualización del Teorema de la Proyección Central. Cada proyección desde un ángulo $\phi$ aporta, vía su TF 1D, los valores de $F(k_x,k_y)$ sobre la línea radial de ángulo $\phi$ en el k-espacio. Acumulando proyecciones de todos los ángulos $\phi\in[0°,180°)$, el k-espacio queda densamente cubierto y $f(x,y)$ puede recuperarse por TF 2D inversa.}
+\label{fig:fourier_slice}
+\end{figure}
+
+El procedimiento práctico de reconstrucción a partir de proyecciones es:
+\begin{enumerate}
+  \item Calcular la TF 1D de cada proyección $g(\phi_i,s)$ para los $N$ ángulos adquiridos.
+  \item Colocar el resultado en el k-espacio sobre la línea radial de ángulo $\phi_i$.
+  \item Interpolar de coordenadas polares a cartesianas (o usar backprojection).
+  \item Aplicar la TF 2D inversa para obtener $f(x,y)$.
+\end{enumerate}
+Este es exactamente el fundamento de los algoritmos SAR de tipo \emph{polar format} (PFA) y \emph{omega-k}.
+
+\subsection{Derivación: la señal SAR spotlight como muestra del k-espacio}
+
+Consideremos un sensor monoestático en $(0,\,y_s,\,H)$, escena con reflectividad $f(x,y)$ en $z=0$, y pulso LFM con frecuencia portadora $f_0$ y ancho de banda $B$. La señal recibida en la frecuencia $f$ para la posición $y_s$ es:
+\[
+S(f,\,y_s) = \iint f(x,y)\;\exp\!\left(-j\frac{4\pi f}{c}\,R(x,y,y_s)\right)\,dx\,dy
+\]
+donde $R(x,y,y_s)=\sqrt{x^2+(y-y_s)^2+H^2}$ es la distancia sensor--objetivo.
+
+\subsubsection{Paso 1: Linealización de la distancia (campo lejano)}
+
+Para un parche pequeño centrado en el origen y ángulo de squint $\theta_s=\arctan(y_s/H)$:
+\[
+R(x,y,y_s)\;\approx\; R_0 - x\sin\theta_s - y\cos\theta_s
+    + \underbrace{\mathcal{O}\!\left(\tfrac{x^2+y^2}{2R_0}\right)}_{\text{término cuadrático, despreciado}}
+\]
+con $R_0=\sqrt{y_s^2+H^2}$. Esta aproximación es válida cuando el parche es pequeño comparado con $R_0$ (condición de campo lejano).
+
+\subsubsection{Paso 2: Sustitución en la señal}
+
+\begin{align}
+S(f,\theta_s) &\approx e^{-j\frac{4\pi f}{c}R_0}
+  \iint f(x,y)\;\exp\!\left(j\frac{4\pi f}{c}\left[x\sin\theta_s + y\cos\theta_s\right]\right)\,dx\,dy \nonumber\\
+&= e^{-j\frac{4\pi f}{c}R_0}\;\iint f(x,y)\;e^{j(k_x x + k_y y)}\,dx\,dy \nonumber\\
+&= e^{-j\frac{4\pi f}{c}R_0}\; F(k_x,\,k_y) \label{eq:sar_kspace}
+\end{align}
+
+donde hemos identificado los números de onda:
+\[
+\boxed{k_x = \frac{4\pi f}{c}\sin\theta_s, \qquad k_y = \frac{4\pi f}{c}\cos\theta_s}
+\]
+
+\subsubsection{Paso 3: Identificación con el Teorema de Fourier-Slice}
+
+En coordenadas polares del k-espacio, con $k_r = \sqrt{k_x^2+k_y^2} = 4\pi f/c$ y ángulo $\phi = \pi/2 - \theta_s$:
+\[
+(k_x,\,k_y) = k_r(\sin\theta_s,\,\cos\theta_s) = k_r(\cos\phi,\,\sin\phi)
+\]
+
+Comparando con el Teorema de la Proyección Central: $F(k_r\cos\phi,\,k_r\sin\phi) = \mathcal{F}_1\{g(\phi,\cdot)\}(k_r)$, vemos que la señal SAR (descontando la fase de referencia $e^{-j\frac{4\pi f}{c}R_0}$) \emph{es exactamente} la proyección de la escena en el ángulo $\phi=\pi/2-\theta_s$.
+
+\result{Equivalencia de Munson et al.\ (1983)}{
+\[
+\boxed{S(f,\,\theta_s)\;e^{+j\frac{4\pi f}{c}R_0} = F\!\left(\frac{4\pi f}{c}\sin\theta_s,\;\;\frac{4\pi f}{c}\cos\theta_s\right)}
+\]
+Cada pulso SAR a frecuencia $f$ y ángulo de squint $\theta_s$ muestrea un \textbf{punto del k-espacio 2D} de la escena en coordenadas polares. El SAR spotlight actúa como un escáner CT: adquiriendo múltiples pulsos a distintos ángulos llena todo un sector del k-espacio.
+}
+
+\subsection{Cobertura del k-espacio: el sector anular}
+
+Al variar $f\in[f_0-B/2,\,f_0+B/2]$ y $\theta_s\in[-\theta_M,+\theta_M]$, los puntos muestreados forman un \textbf{sector anular} (porción de corona circular):
+
+\[
+\mathcal{K}_{spot} = \left\{(k_x,k_y)\;:\;
+  k_{min}\leq\sqrt{k_x^2+k_y^2}\leq k_{max},\;\;
+  \left|\arctan\!\frac{k_x}{k_y}\right|\leq\theta_M
+\right\}
+\]
+\[
+k_{min}=\frac{4\pi(f_0-B/2)}{c}, \qquad k_{max}=\frac{4\pi(f_0+B/2)}{c}
+\]
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=1.05, >=Stealth]
+  %% Ejes
+  \draw[->] (-0.5,0) -- (3.5,0) node[right, font=\small] {$k_x$};
+  \draw[->] (0,-0.4) -- (0,3.6) node[above, font=\small] {$k_y$};
+  %% Sector anular: llenamos sector externo, luego borramos el interno
+  \fill[blue!15] (0,0) -- (60:2.5) arc[start angle=60,end angle=120,radius=2.5] -- cycle;
+  \fill[white]   (0,0) -- (60:1.4) arc[start angle=60,end angle=120,radius=1.4] -- cycle;
+  %% Arco exterior k_max
+  \draw[blue!65, thick] (60:2.5) arc[start angle=60,end angle=120,radius=2.5];
+  \node[blue!65, font=\small] at (-2.0,2.55) {$k_{max}=\dfrac{4\pi(f_0+B/2)}{c}$};
+  %% Arco interior k_min
+  \draw[red!60, thick] (60:1.4) arc[start angle=60,end angle=120,radius=1.4];
+  \node[red!60, font=\small] at (0.85,1.15) {$k_{min}$};
+  %% Bordes angulares
+  \draw[green!55!black, thick] (0,0) -- (60:2.75);
+  \draw[green!55!black, thick] (0,0) -- (120:2.75);
+  \node[green!55!black, font=\small] at ( 1.85,2.65) {$\theta_M$};
+  \node[green!55!black, font=\small] at (-1.85,2.65) {$\theta_M$};
+  %% Líneas radiales (pulsos SAR a distintos ángulos)
+  \foreach \ang in {63,69,75,81,87,93,99,105,111,117}{
+    \draw[gray!38, thin] (\ang:1.4) -- (\ang:2.5);
+  }
+  %% Flecha y etiqueta: extensión radial Delta k_r
+  \draw[<->, orange, very thick] (0.12,1.4) -- (0.12,2.5);
+  \node[orange, font=\small\bfseries, right=2pt] at (0.12,1.95)
+    {$\Delta k_r = \dfrac{4\pi B}{c}$};
+  %% Flecha: extensión azimutal Delta k_perp
+  \draw[<->, purple, very thick] (60:2.65) -- (120:2.65);
+  \node[purple, font=\small\bfseries, above=2pt] at (0,2.65)
+    {$\Delta k_\perp \approx k_c\cdot 2\theta_M$};
+  %% k central
+  \draw[->, gray!45, thin] (0.55,2.1) -- (90:1.95);
+  \node[gray!60, font=\tiny, right] at (0.55,2.15) {$k_c=4\pi f_0/c$};
+  %% Cuadro de resoluciones
+  \node[font=\small, fill=yellow!15, draw=orange!70, rounded corners, align=left, inner sep=5pt]
+    at (2.55,0.95)
+    {$\delta_r = \dfrac{2\pi}{\Delta k_r} = \dfrac{c}{2B}$\\[5pt]
+     $\delta_{az} = \dfrac{2\pi}{\Delta k_\perp} = \dfrac{\lambda_0}{2\cdot 2\theta_M}$};
+  \fill[black] (0,0) circle (2pt);
+\end{tikzpicture}
+\caption{Cobertura del k-espacio en SAR Spotlight. Los datos adquiridos (líneas grises) llenan un sector anular: la extensión radial $\Delta k_r = 4\pi B/c$ es controlada por el ancho de banda y determina la resolución en rango; la extensión angular $2\theta_M$ es controlada por la apertura sintética y determina la resolución en azimut.}
+\label{fig:spotlight_kspace}
+\end{figure}
+
+\subsection{De la cobertura del k-espacio a las resoluciones}
+
+Aplicando el principio $\delta=2\pi/\Delta k$ a cada dirección:
+
+\subsubsection{Resolución en rango}
+
+La extensión radial del sector anular es:
+\[
+\Delta k_r = k_{max} - k_{min} = \frac{4\pi(f_0+B/2)}{c} - \frac{4\pi(f_0-B/2)}{c} = \frac{4\pi B}{c}
+\]
+Por tanto:
+\[
+\delta_r = \frac{2\pi}{\Delta k_r} = \frac{2\pi\cdot c}{4\pi B} = \frac{c}{2B}
+\]
+Este resultado reproduce exactamente la resolución del chirp LFM del Capítulo~2. La consistencia confirma el formalismo.
+
+\subsubsection{Resolución en azimut}
+
+En la aproximación de banda estrecha ($B/f_0\ll 1$), la extensión del k-espacio en la dirección transversal (azimut, eje $k_x$) es:
+\[
+\Delta k_\perp \approx k_c \cdot 2\theta_M
+  = \frac{4\pi f_0}{c}\cdot\frac{L_{SA}}{R_0}
+  = \frac{4\pi L_{SA}}{\lambda_0\,R_0}
+\]
+donde $2\theta_M = L_{SA}/R_0$ es el ángulo total de apertura. Aplicando $\delta_{az}=2\pi/\Delta k_\perp$:
+\[
+\delta_{az} = \frac{2\pi\,\lambda_0\,R_0}{4\pi\,L_{SA}} = \frac{\lambda_0\,R_0}{2\,L_{SA}}
+\]
+
+\result{Resoluciones SAR Spotlight}{
+\[
+\boxed{\delta_r = \frac{c}{2B}} \qquad\text{(rango: solo depende de $B$)}
+\]
+\[
+\boxed{\delta_{az} = \frac{\lambda_0\,R_0}{2\,L_{SA}}} \qquad\text{(azimut: mejora con $L_{SA}$)}
+\]
+Al dirigir el haz siempre al mismo parche, $L_{SA}$ puede exceder el límite del ancho de haz físico, logrando resolución en azimut arbitrariamente fina (a costa de campo de visión).
+}
+
+\subsection{Comparación Stripmap vs.\ Spotlight en el k-espacio}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.90, >=Stealth]
+  %% Stripmap
+  \begin{scope}[xshift=-3.5cm]
+    \node[above, font=\bfseries\small] at (0,2.9) {Stripmap};
+    \draw[->] (-2.4,0) -- (2.4,0) node[right, font=\tiny] {$k_x$};
+    \draw[->] (0,-0.5) -- (0,2.9) node[above, font=\tiny] {$k_y$};
+    \fill[blue!15] (0,0) -- (80:2.2) arc[start angle=80,end angle=100,radius=2.2] -- cycle;
+    \fill[white]   (0,0) -- (80:1.3) arc[start angle=80,end angle=100,radius=1.3] -- cycle;
+    \draw[blue!65, thick] (80:2.2) arc[start angle=80,end angle=100,radius=2.2];
+    \draw[red!55,  thick] (80:1.3) arc[start angle=80,end angle=100,radius=1.3];
+    \draw[green!55!black, thick] (0,0) -- (80:2.45);
+    \draw[green!55!black, thick] (0,0) -- (100:2.45);
+    \node[green!55!black, font=\tiny] at (-0.9,2.35) {$\theta_{beam}/2$};
+    \draw[<->, purple, thick] (-0.45,1.3) -- (-0.45,2.2);
+    \node[purple, font=\tiny, left] at (-0.45,1.75) {\shortstack{$\Delta k_\perp$\\pequeño}};
+    \node[font=\small, align=center] at (0,-0.55) {$\delta_{az}=d_a/2$};
+  \end{scope}
+  %% Spotlight
+  \begin{scope}[xshift=3.5cm]
+    \node[above, font=\bfseries\small] at (0,2.9) {Spotlight};
+    \draw[->] (-2.4,0) -- (2.4,0) node[right, font=\tiny] {$k_x$};
+    \draw[->] (0,-0.5) -- (0,2.9) node[above, font=\tiny] {$k_y$};
+    \fill[blue!15] (0,0) -- (55:2.2) arc[start angle=55,end angle=125,radius=2.2] -- cycle;
+    \fill[white]   (0,0) -- (55:1.3) arc[start angle=55,end angle=125,radius=1.3] -- cycle;
+    \draw[blue!65, thick] (55:2.2) arc[start angle=55,end angle=125,radius=2.2];
+    \draw[red!55,  thick] (55:1.3) arc[start angle=55,end angle=125,radius=1.3];
+    \draw[green!55!black, thick] (0,0) -- (55:2.45);
+    \draw[green!55!black, thick] (0,0) -- (125:2.45);
+    \node[green!55!black, font=\tiny] at (-1.7,2.3) {$\theta_M$};
+    \node[green!55!black, font=\tiny] at ( 1.7,2.3) {$\theta_M$};
+    \draw[<->, purple, very thick] (-2.0,1.3) -- (-2.0,2.2);
+    \node[purple, font=\tiny, left] at (-2.0,1.75) {\shortstack{$\Delta k_\perp$\\grande}};
+    \node[font=\small, align=center] at (0,-0.55) {$\delta_{az}=\lambda_0 R_0/(2L_{SA})$};
+  \end{scope}
+  \node[font=\small, fill=yellow!15, draw=orange!70, rounded corners, align=center, inner sep=4pt]
+    at (0,-1.5) {Misma extensión radial $\Rightarrow$ misma $\delta_r$\quad;\quad
+                  mayor $\Delta k_\perp$ $\Rightarrow$ mejor $\delta_{az}$};
+\end{tikzpicture}
+\caption{Comparación del k-espacio: Stripmap cubre un sector angular estrecho (limitado por el ancho de haz físico), mientras que Spotlight acumula un sector mucho más amplio. Ambos tienen la misma extensión radial (mismo $B$, misma $\delta_r$). La ventaja del Spotlight es la mayor extensión azimutal $\Delta k_\perp$, que se traduce directamente en mejor $\delta_{az}$.}
+\label{fig:stripmap_spotlight_kspace}
+\end{figure}
+
+\nota{Conexión con los capítulos siguientes}{
+La equivalencia tomográfica no se limita al SAR 2D lineal. En el SAR circular (Capítulo~4), la apertura $360°$ rellena un \emph{anillo completo} en el k-espacio horizontal, produciendo la PSF isotrópica de tipo $J_0$. En el SAR helicoidal (Capítulo~5), la variación de elevación añade la dimensión $k_z$, convirtiendo el sector anular en un \emph{sólido toroidal 3D} que permite tomografía volumétrica. El principio invariante en todos los casos es: \textbf{cuanto más extenso sea el k-espacio cubierto, mejor es la resolución espacial resultante}.
+}
 
 %%═══════════════════════════════════════════════════════════════════════════════
 \chapter{SAR Circular Monoestático: Resolución Isotrópica}

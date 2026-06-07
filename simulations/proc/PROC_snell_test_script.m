@@ -1,6 +1,4 @@
 function PROC_snell_test_script(paramSuffix)
-clc
-close all
 
 scriptDir = fileparts(mfilename('fullpath'));
 projectDir = fileparts(scriptDir);
@@ -80,14 +78,12 @@ threshold = 1e-11;
 c = strSystem.VelocidadeLuz;
 outputData = zeros(size(X));
 
-n2 = n;
+if ~isfield(strSystem, 'IndiceRefracaoSolo')
+    error('Falta el parametro "IndiceRefracaoSolo" en system%s.json', paramSuffix);
+end
+n2 = strSystem.IndiceRefracaoSolo;
 
 for m = 1:numel(X)
-
-    % Show progress
-%     if coder.target('MATLAB')
-%         fprintf('--- PROCESANDO %d de %d ---\n', m, numel(X));
-%     end
     
     % Slant range calculation
     [R1t,R2t] = slantRange(PxT,PyT,PzT,X(m),Y(m),Z(m),n2,threshold);
