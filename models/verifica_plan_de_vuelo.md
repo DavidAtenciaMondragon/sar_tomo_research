@@ -124,72 +124,120 @@ El producto de los tres factores geométricos $4\pi \cdot (4\pi)^2 = (4\pi)^3$ s
 
 #### 2.6.1 El conflicto geométrico
 
-La explotación del ángulo de Brewster posiciona al Rx a una distancia horizontal específica del target (§5.2), determinando el ángulo azimutal entre Tx y Rx. La resolución horizontal del sistema depende directamente de ese ángulo mediante:
+El ángulo de Brewster maximiza la transmitancia TM posicionando al Rx a una distancia horizontal d_B del centroide del target (§5.2). Este posicionamiento determina el ángulo azimutal Δφ entre Tx y Rx visto desde el target, y la resolución horizontal del sistema depende directamente de Δφ mediante (ecuación derivada en `explicacion_resolucion.tex`, §7.2):
 
 $$\delta_{xy}(\Delta\phi) = \frac{0.60\,\lambda_0}{\pi\,\sin\psi_0\cdot|\cos(\Delta\phi/2)|}$$
 
-donde Δφ es la separación azimutal Tx–Rx vista desde el centroide del área de targets. Esta expresión muestra que:
-- Δφ → 0° (monostático): δ_xy mínima (mejor resolución horizontal)
-- Δφ → 180°: δ_xy → ∞ (resolución horizontal nula)
+donde ψ₀ es el look angle del Rx hacia el centroide. Esta expresión revela el **conflicto geométrico** central:
 
-El ángulo de Brewster posiciona al Rx en una dirección que en general no coincide con Δφ = 0°, creando un **conflicto geométrico** que el optimizador debe resolver.
+| Condición | Δφ | Efecto en δ_xy | Efecto en P_r |
+|---|---|---|---|
+| Rx colineal con Tx (cuasi-monostático) | ≈ 0° | Mínima (mejor resolución) | Baja (T₂ lejos de θ_B) |
+| Rx en posición de Brewster | ≈ 60–120° | Degradada por 1/cos(Δφ/2) | Máxima (T₂ = 1) |
+| Rx antipodal al Tx | ≈ 180° | → ∞ (sin resolución horizontal) | Variable |
 
-La resolución vertical no depende de Δφ (invariante al NorthOffset), pero sí depende de ψ₀ del Rx a través de B_⊥:
+La resolución vertical es **invariante a Δφ** (demostrado analíticamente en el .tex, §7.1), pero sí depende del look angle ψ₀ del Rx a través de la apertura tomográfica efectiva B_⊥:
 
-$$\delta_z = \frac{c}{2\,W_z}, \qquad W_z = n_2 B\cos\theta_{t,0} + \frac{c\,B_\perp\sin\psi_0\cos\psi_0}{\lambda_0\,R_0\,n_2\cos\theta_{t,0}}$$
+$$\delta_z = \frac{c}{2\,W_z}, \qquad W_z = \underbrace{n_2\,B\,\cos\theta_{t,0}}_{\text{contribución BW}} + \underbrace{\frac{c\,B_\perp\,\sin\psi_0\cos\psi_0}{\lambda_0\,R_0\,n_2\cos\theta_{t,0}}}_{\text{contribución tomográfica}}$$
 
-donde B_⊥ = B_helix·|cos(β − ψ₀)|. Mover el Rx cambia ψ₀ y por tanto B_⊥ y δ_z.
+con B_⊥ = B_helix·|cos(β − ψ₀)|, que se maximiza en la condición óptima β = ψ₀. Mover el Rx cambia ψ₀_Rx y por tanto B_⊥ y δ_z simultáneamente.
 
-#### 2.6.2 El problema de la escala
+**Nota sobre la aproximación**: Las fórmulas de resolución del .tex fueron derivadas para Tx y Rx en la misma hélice (mismo ψ₀). En la optimización bistática dinámica, Tx y Rx pueden tener look angles distintos. La implementación usa ψ₀_Rx (look angle del receptor optimizado), que domina la cobertura del k-espacio en la posición de retorno y es la aproximación más relevante para el diseño del receptor.
 
-Los tres objetivos tienen dimensiones y órdenes de magnitud completamente distintos:
+#### 2.6.2 El problema de la heterogeneidad dimensional
 
-| Magnitud | Escala típica | log₁₀ |
-|---|---|---|
-| P_r (W) | ~10⁻¹⁰ W | −10 |
-| δ_xy (m) | ~0.05–0.5 m | −1.3 a −0.3 |
-| δ_z (m) | ~0.2–2 m | −0.7 a 0.3 |
-| δ_xy · δ_z (m²) | ~0.01–1 m² | −2 a 0 |
+Los dos objetivos tienen dimensiones y escalas radicalmente distintas:
 
-Una suma directa P_r + δ_xy sería numéricamente absurda. La solución es trabajar en escala logarítmica, que hace cada término adimensional y de orden de magnitud comparable.
+| Magnitud | Unidad | Escala típica | log₁₀(·/ref) |
+|---|---|---|---|
+| P_r | W | ~10⁻¹⁰ | −10 |
+| δ_xy | m | ~0.05–0.5 | −1.3 a −0.3 |
+| δ_z | m | ~0.2–2 | −0.7 a 0.3 |
+| δ_xy · δ_z | m² | ~0.01–1 | −2 a 0 |
 
-#### 2.6.3 Función de costo log-normalizada
+Una scalarización lineal P_r − w·(δ_xy + δ_z) exigiría que w tenga unidades de W/m, carece de interpretación física, y el resultado sería dominado numéricamente por la magnitud con mayor rango absoluto. La escala logarítmica elimina este problema.
 
-La función de costo combinada (a minimizar por `fmincon`) es:
+#### 2.6.3 Justificación de la transformación logarítmica
+
+La transformación log₁₀ es una **función monótonamente creciente**, por lo que preserva el orden de los óptimos: el argmax de P_r es el argmin de −log₁₀(P_r), y el argmin de δ_xy·δ_z es el argmin de log₁₀(δ_xy·δ_z). Este es el primer criterio de validez de la normalización.
+
+El segundo criterio es la **comparabilidad de escalas**. Sea Δ_P el rango típico de −log₁₀(P_r) sobre el espacio de búsqueda (≈ 5 décadas), y Δ_R el rango típico de log₁₀(δ_xy·δ_z) (≈ 2–3 décadas). La normalización logarítmica comprime ambos rangos al mismo orden de magnitud, garantizando que el gradiente de J sea sensible a ambos objetivos simultáneamente.
+
+Una tercera justificación es que en la ecuación de radar, la potencia recibida varía como producto de factores (Gt·Gr·T₁·T₂·λ²/R⁴), de modo que P_r responde a cambios en la geometría multiplicativamente. De manera análoga, δ_xy ∝ 1/(sinψ₀·|cos(Δφ/2)|) varía de forma multiplicativa. Scalarizar en espacio logarítmico es, por tanto, **coherente con la física multiplicativa** del sistema.
+
+#### 2.6.4 Función de costo log-normalizada y su derivación
+
+La función de costo combinada a minimizar por `fmincon` es:
 
 $$\boxed{J(\mathbf{r}_{Rx}) = -(1-\alpha)\,\log_{10} P_r(\mathbf{r}_{Rx}) + \alpha\,\log_{10}\!\left[\delta_{xy}(\mathbf{r}_{Rx})\cdot\delta_z(\mathbf{r}_{Rx})\right]}$$
 
-con α ∈ [0,1] el peso de tradeoff.
+con α ∈ [0, 1] el peso de tradeoff.
 
 **Verificación de la dirección de optimización** (fmincon minimiza J):
-- Primer término: −log₁₀(P_r) decrece cuando P_r aumenta → maximizar potencia ✓
-- Segundo término: log₁₀(δ_xy·δ_z) decrece cuando la resolución mejora (δ → 0) → minimizar resolución ✓
+- −log₁₀(P_r) se minimiza ↔ P_r se maximiza ✓
+- log₁₀(δ_xy·δ_z) se minimiza ↔ δ_xy·δ_z se minimiza (mejor resolución) ✓
 
-**Verificación dimensional**: ambos términos son log₁₀ de cantidades con unidades (W y m²), lo que formalmente solo produce una constante aditiva irrelevante para la optimización. La diferencia de referencias (1 W y 1 m²) actúa como normalización implícita:
+**Análisis dimensional**: ambos términos son log₁₀ de cocientes adimensionales respecto a la unidad SI del sistema (1 W y 1 m²):
 
 $$J = -(1-\alpha)\,\log_{10}\!\left(\frac{P_r}{1\,\text{W}}\right) + \alpha\,\log_{10}\!\left(\frac{\delta_{xy}\cdot\delta_z}{1\,\text{m}^2}\right)$$
 
-Esta normalización por 1 W y 1 m² es la más natural para el sistema de unidades SI.
+La diferencia de referencias (1 W, 1 m²) introduce constantes aditivas que no afectan al argmin de J y son la normalización implícita más natural del sistema SI.
 
-**Escala numérica con valores típicos** (α = 0.3):
+**Escala numérica con valores típicos del sistema** (α = 0.3):
 
-$$J \approx -(0.7)\cdot(-10) + (0.3)\cdot(-2) = 7 - 0.6 = 6.4$$
+$$J \approx -(0.7)\cdot(-10) + (0.3)\cdot(-2) = 7.0 - 0.6 = 6.4$$
 
-Ambos términos contribuyen a J en magnitudes de orden 1–10, garantizando que el gradiente del optimizador sea sensible a ambos objetivos.
+**Contribución relativa al gradiente**: el peso efectivo de cada término al gradiente ∂J/∂r_Rx está determinado por el producto (α_efectivo)·(sensibilidad local). Si P_r varía en ±3 décadas sobre el espacio de búsqueda y δ_xy·δ_z varía en ±1 década, las contribuciones al rango de J son:
 
-#### 2.6.4 Casos límite
+| Término | Rango típico de J | Con α = 0.3 |
+|---|---|---|
+| −(1−α)·log₁₀(P_r) | 0.7 × 5 = 3.5 | dominante |
+| α·log₁₀(δ_xy·δ_z) | 0.3 × 2 = 0.6 | presente |
 
-| α | Comportamiento |
+Para α ≈ 0.6–0.7 los rangos serían comparables. El valor α = 0.3 es un punto de partida conservador que prioriza la potencia mientras incluye la resolución como restricción suave.
+
+#### 2.6.5 La frontera de Pareto y el rol de α
+
+El problema multi-objetivo tiene una **frontera de Pareto** en el espacio (P_r, δ_xy·δ_z): el conjunto de puntos donde no es posible mejorar un objetivo sin degradar el otro. La scalarización log-normalizada con distinto α recorre esta frontera:
+
+```
+δ_xy · δ_z
+     ▲
+     │ α→1 (solo resolución)
+     │  ×
+     │   ×
+     │    ×  ← frontera de Pareto
+     │     ×
+     │      × α→0 (solo potencia)
+     └──────────────────────────► P_r
+```
+
+- α = 0: el optimizador encuentra el punto de máxima potencia (extremo derecho de la frontera)
+- α = 1: el optimizador encuentra el punto de mínima resolución (extremo superior, mejor δ)
+- α ∈ (0,1): puntos intermedios de la frontera, con tradeoff explícito
+
+La scalarización logarítmica es más efectiva que la lineal para recorrer la frontera de Pareto cuando los objetivos tienen rangos muy distintos, ya que en espacio log-log la frontera tiende a ser más lineal y los pesos α tienen un efecto más predecible.
+
+#### 2.6.6 Casos límite y comportamiento degenerado
+
+| α | Comportamiento del optimizador |
 |---|---|
-| 0 | Maximización pura de potencia (comportamiento original) |
-| 0.3 | Tradeoff con prioridad en potencia (valor por defecto) |
-| 0.5 | Peso igual en escala logarítmica |
-| 1 | Minimización pura de resolución |
+| 0 | Maximización pura de P_r; equivale al script original |
+| 0.3 | 70% potencia, 30% resolución; valor por defecto recomendado |
+| 0.5 | Pesos iguales en escala log (potencia numéricamente dominante por mayor rango) |
+| ~0.65 | Contribuciones al rango de J aproximadamente iguales |
+| 1 | Minimización pura de δ_xy·δ_z; el Rx tiende a Δφ → 0° (cuasi-monostático) |
 
-**Casos degenerados** que el optimizador evita automáticamente:
-- Δφ → 180°: δ_xy → ∞ → log₁₀(δ_xy·δ_z) → +∞ → J → +∞ (penalizado) ✓
-- ψ₀ → 0° (Rx sobre el target): δ_xy → ∞ ídem ✓
-- P_r → 0: log₁₀(P_r) → −∞ → −(1−α)·log₁₀(P_r) → +∞ (penalizado) ✓
+**Penalizaciones automáticas** en los casos degenerados:
+
+| Situación | Efecto en J | Correctamente penalizado |
+|---|---|---|
+| Δφ → 180° | δ_xy → ∞ → log₁₀(δ_xy·δ_z) → +∞ → J → +∞ | Sí ✓ |
+| ψ₀ → 0° (Rx sobre target) | δ_xy → ∞ ídem | Sí ✓ |
+| P_r → 0 (posición desfavorable) | −log₁₀(P_r) → +∞ → J → +∞ | Sí ✓ |
+| β = ψ₀ (hélice óptima) | B_⊥ = B_helix, δ_z mínima | Favorecido ✓ |
+
+La auto-penalización de casos degenerados es una propiedad emergente de la formulación logarítmica, no un término adicional, lo que mantiene la función de costo simple y diferenciable.
 
 ---
 
@@ -338,6 +386,67 @@ $$P_r \approx \frac{10^5 \cdot 4 \cdot 4 \cdot 1 \cdot (0.75)^2}{(4\pi)^3 \cdot 
 $$P_r \approx \frac{9 \times 10^5}{(1984) \cdot 6.55 \times 10^9} \approx 6.9 \times 10^{-11} \text{ W} \approx -71.6 \text{ dBm}$$
 
 Este valor es una cota superior (suelo lossless, T = 1 en ambas interfaces, σ = 1 m²) y sirve como referencia para evaluar el margen de SNR del sistema.
+
+### 5.4 Estimación analítica de resolución 3D para el sistema configurado
+
+Con los parámetros del sistema (f₀ = 400 MHz, B = 50 MHz, n₂ = 2, B_helix = 47.17 m, β = 58.0°):
+
+**Parámetros auxiliares** (target a z_P = −5 m, Rx a h_Rx = 100 m, ρ_Rx ≈ 53 m en posición de Brewster):
+
+$$\psi_0 = \arctan\!\left(\frac{53}{100}\right) \approx 27.9°, \quad R_0 = \sqrt{53^2+100^2} \approx 113.3\,\text{m}$$
+
+$$\sin\theta_{t,0} = \frac{\sin 27.9°}{2} \approx 0.234, \quad \cos\theta_{t,0} \approx 0.972$$
+
+**Resolución vertical** (apertura tomográfica en condición óptima β = ψ₀ = 58.0° ≠ 27.9°):
+
+$$B_\perp = 47.17 \cdot |\cos(58.0° - 27.9°)| = 47.17 \cdot |\cos 30.1°| \approx 40.8\,\text{m}$$
+
+$$W_z = 2 \times 50 \times 10^6 \times 0.972 + \frac{3\times10^8 \times 40.8 \times \sin 27.9° \times \cos 27.9°}{0.75 \times 113.3 \times 2 \times 0.972}$$
+
+$$W_z \approx 97.2\,\text{MHz} + \frac{3\times10^8 \times 40.8 \times 0.467 \times 0.884}{164.8} \approx 97.2 + 30.9 \approx 128\,\text{MHz}$$
+
+$$\delta_z = \frac{c}{2\,W_z} = \frac{3\times10^8}{2 \times 128\times10^6} \approx 1.17\,\text{m}$$
+
+**Nota**: β = 58.0° ≠ ψ₀_Rx ≈ 28° en la posición de Brewster. La condición óptima δz mínima (β = ψ₀) se cumpliría si ψ₀_Rx ≈ 58°, es decir, ρ_Rx ≈ 160 m — radio de la espiral del Tx. Esto implica una **tensión adicional**: la posición de Brewster del Rx (ρ = 53 m) no es la posición de máxima apertura tomográfica (ρ = 160 m). El optimizador con α > 0 encontrará el equilibrio.
+
+**Resolución horizontal** en función de Δφ (para ψ₀_Rx ≈ 28°):
+
+$$\delta_{xy}(\Delta\phi) = \frac{0.60 \times 0.75}{\pi \times \sin 27.9° \times |\cos(\Delta\phi/2)|} = \frac{0.45}{1.467 \times |\cos(\Delta\phi/2)|}$$
+
+| Δφ | \|cos(Δφ/2)\| | δ_xy |
+|---|---|---|
+| 0° (monostático) | 1.000 | 0.307 m |
+| 30° | 0.966 | 0.318 m |
+| 60° | 0.866 | 0.354 m |
+| 90° (NorthOffset config.) | 0.707 | 0.434 m |
+| 120° | 0.500 | 0.614 m |
+| 150° | 0.259 | 1.186 m |
+| 180° (antipodal) | 0.000 | ∞ |
+
+**Tabla de costo J (α = 0.3) en los escenarios clave**:
+
+| Escenario | P_r (W) | δ_xy (m) | δ_z (m) | J |
+|---|---|---|---|---|
+| Solo Brewster (Δφ = 90°) | 6.9×10⁻¹¹ | 0.434 | 1.17 | 6.6 |
+| Solo resolución (Δφ = 0°) | reducida | 0.307 | ~1.5 | ~7.1 |
+| Brewster + Δφ → 0° (inalcanzable simultáneamente) | máx | mínima | — | mínimo teórico |
+| Óptimo tradeoff (α = 0.3) | intermedia | ~0.35–0.40 | ~1.2 | ~6.4 |
+
+Los valores muestran que el costo J varía en un rango de ≈ 1 unidad entre los extremos, lo que confirma que el tradeoff es numéricamente significativo y que el optimizador tiene margen real para encontrar un equilibrio.
+
+### 5.5 Sensibilidad de α: ¿cuánto importa el peso?
+
+La elección de α afecta la posición del Rx óptimo y, por tanto, los valores reportados de P_r, δ_xy y δ_z. La siguiente aproximación analítica estima la sensibilidad:
+
+Sea r_B la posición de Brewster (máxima P_r) y r_M la posición monostática (Δφ ≈ 0°, mínima δ_xy). El gradiente de J en la dirección r_B → r_M puede estimarse como:
+
+$$\left.\frac{\partial J}{\partial r}\right|_{r_B \to r_M} \approx -(1-\alpha)\frac{\Delta\log_{10}P_r}{\Delta r} + \alpha\frac{\Delta\log_{10}(\delta_{xy}\cdot\delta_z)}{\Delta r}$$
+
+Si P_r varía ~3 décadas y δ_xy·δ_z varía ~0.5 décadas sobre el segmento r_B → r_M, el punto estacionario (∂J/∂r = 0) ocurre en:
+
+$$\alpha^* = \frac{3}{3 + 0.5} \approx 0.86$$
+
+Para α < α*, el optimizador se mueve hacia r_B (Brewster). Para α > α*, hacia r_M (monostático). El valor por defecto α = 0.3 garantiza que el óptimo esté en la región de Brewster con corrección de resolución, lo cual es el objetivo físico del sistema.
 
 ---
 
