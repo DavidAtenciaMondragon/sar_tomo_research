@@ -135,7 +135,7 @@ def fig01_fresnel_tm():
                  fontsize=13, fontweight='bold', y=1.01)
     plt.tight_layout()
     save('pv_fig01_fresnel_tm.pdf')
-    print(f'    theta_B = {theta_B:.2f} deg,  T(theta_B) ≈ {np.interp(theta_B, theta, T):.4f}')
+    print(f'    theta_B = {theta_B:.2f} deg,  T(theta_B) ~= {np.interp(theta_B, theta, T):.4f}')
 
 
 # ─────────────────────────────────────────────────────────────────────────────
