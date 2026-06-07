@@ -36,11 +36,15 @@ for i = 1:size(tg, 2)
     az_Rx = mod(az_Rx + 2*pi, 2*pi);
     Gr = getAntennaGain(target_pos, Rx_pos, az_Rx, el_Rx, radPattern);
     
-    % Potencia bistática para este target - ECUACIÓN RADAR CORREGIDA
-    % Usando transmitancias de potencia en lugar de coeficientes de Fresnel
-    Pr_i = mean((Pt .* Gt(i) .* Gr .* sigma .* ...
-        transmitancia_Tx_Tg .* transmitancia_Tg_Rx .* lambda^2) ./ ...
-        ((4*pi)^3 * R_Tx_int1^2 * R_int1_Tg^2 * R_Tg_int2^2 * R_int2_Rx^2));
+    % Potencia bistática para este target
+    % Spreading loss calculado sobre la longitud total de cada tramo refractado:
+    % R_T = R_Tx_int1 + R_int1_Tg  (camino completo Tx→target)
+    % R_R = R_Tg_int2 + R_int2_Rx  (camino completo target→Rx)
+    R_T = R_Tx_int1 + R_int1_Tg;
+    R_R = R_Tg_int2 + R_int2_Rx;
+    Pr_i = (Pt * Gt(i) * Gr * sigma * ...
+        transmitancia_Tx_Tg * transmitancia_Tg_Rx * lambda^2) / ...
+        ((4*pi)^3 * R_T^2 * R_R^2);
     
     % Acumular potencia total
     total_power = total_power + Pr_i;

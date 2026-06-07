@@ -11,7 +11,7 @@
         "PRF"           : 400,
         "fs"            : 60e6,
         "GananciaAnt"   : 6,
-        "FreqPortadora" : 10e9,
+        "FreqPortadora" : 400e6,
         "AperturaAzimut": 14,
         "AperturaElev"  : 50,
         "NorthOffset"   : 90,
