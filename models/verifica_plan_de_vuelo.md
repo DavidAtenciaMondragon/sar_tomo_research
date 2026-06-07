@@ -1,6 +1,6 @@
 # Verificación y Crítica del Script `run_plano_de_voo.m`
 
-**Propósito del script**: Optimizar la trayectoria del receptor en un sistema SAR bistático, buscando la posición de Rx que maximiza la potencia recibida proveniente de targets subterráneos, explotando el ángulo de Brewster para maximizar la transmitancia en la interfaz aire–suelo (polarización TM).
+**Propósito del script**: Optimizar la trayectoria del receptor en un sistema SAR bistático, buscando la posición de Rx que equilibra la potencia recibida (explotando el ángulo de Brewster) y la resolución tridimensional del sistema (δ_xy, δ_z), ambos criterios combinados en una función de costo log-normalizada única.
 
 ---
 
@@ -12,28 +12,34 @@
 |---|---|---|
 | Frecuencia portadora | 400 MHz (banda P) | Corregido de 10 GHz; ver §4.2 |
 | Longitud de onda | λ = 0.75 m | c/400 MHz |
+| Ancho de banda chirp | B = 50 MHz | FreqMayor − FreqMenor |
 | Potencia Tx | 100 kW | |
 | Velocidad del vehículo | 120 m/s | |
 | PRF | 400 Hz | |
 | Altitud de la espiral | 80–120 m | Radio 147.5–172.5 m |
+| Longitud arco espiral | B_helix ≈ 47.17 m | √(40²+25²) |
+| Ángulo inclinación hélice | β ≈ 58.0° | arctan(40/25) |
 | Índice de refracción suelo | n₂ = 2 | n₁ = 1 (aire); εᵣ = 4, lossless |
 | Ángulo de Brewster teórico | θ_B ≈ 63.43° | arctan(n₂/n₁) = arctan(2) |
 | Profundidad de los targets | 2–10 m | 4×4×4 = 64 puntos |
 | RCS | σ = 1 m² | Isótropo |
 | Radio de búsqueda Rx | ±200 m | Espacio de búsqueda 2D |
+| Peso tradeoff | α = 0.3 | 70% potencia, 30% resolución |
 
 ### 1.2 Flujo del script
 
 ```
 1. Cargar parámetros → trayectoria espiral Tx
-2. Decimar posiciones Tx (factor 200) → ~50 posiciones de evaluación
-3. Para cada posición Tx decimada:
-   a. Calcular ganancias Tx hacia todos los targets
+2. Calcular B_helix, beta_helix, B (geometría para resolución)
+3. Decimar posiciones Tx (factor 200) → ~50 posiciones de evaluación
+4. Para cada posición Tx decimada:
+   a. Calcular ganancias Tx hacia todos los targets (precalculadas)
    b. Construir geometría de búsqueda Brewster
-   c. Lanzar fmincon desde 5 puntos candidatos
-   d. Seleccionar Rx_opt = argmax(Pr_total)
-4. Interpolar (PCHIP) trayectoria completa del Rx
-5. Guardar resultados y visualizar
+   c. Lanzar fmincon desde 5 puntos candidatos minimizando J combinado
+   d. Evaluar potencia y resolución por separado en el punto óptimo
+5. Interpolar (PCHIP) trayectoria completa del Rx
+6. Guardar resultados (.mat y .csv) con Pr, δxy, δz
+7. Visualizar configuración bistática optimizada
 ```
 
 ---
@@ -114,6 +120,77 @@ $$P_r = \underbrace{\frac{P_t G_t}{4\pi R_T^2}}_{\text{densidad de potencia en e
 
 El producto de los tres factores geométricos $4\pi \cdot (4\pi)^2 = (4\pi)^3$ surge naturalmente. Las transmitancias T₁ y T₂ se agregan como modificadores de la densidad de potencia incidente en la interfaz, y son dimensionalmente consistentes dado que son coeficientes de potencia (adimensionales, ∈ [0,1]).
 
+### 2.6 Función de costo multi-objetivo potencia–resolución
+
+#### 2.6.1 El conflicto geométrico
+
+La explotación del ángulo de Brewster posiciona al Rx a una distancia horizontal específica del target (§5.2), determinando el ángulo azimutal entre Tx y Rx. La resolución horizontal del sistema depende directamente de ese ángulo mediante:
+
+$$\delta_{xy}(\Delta\phi) = \frac{0.60\,\lambda_0}{\pi\,\sin\psi_0\cdot|\cos(\Delta\phi/2)|}$$
+
+donde Δφ es la separación azimutal Tx–Rx vista desde el centroide del área de targets. Esta expresión muestra que:
+- Δφ → 0° (monostático): δ_xy mínima (mejor resolución horizontal)
+- Δφ → 180°: δ_xy → ∞ (resolución horizontal nula)
+
+El ángulo de Brewster posiciona al Rx en una dirección que en general no coincide con Δφ = 0°, creando un **conflicto geométrico** que el optimizador debe resolver.
+
+La resolución vertical no depende de Δφ (invariante al NorthOffset), pero sí depende de ψ₀ del Rx a través de B_⊥:
+
+$$\delta_z = \frac{c}{2\,W_z}, \qquad W_z = n_2 B\cos\theta_{t,0} + \frac{c\,B_\perp\sin\psi_0\cos\psi_0}{\lambda_0\,R_0\,n_2\cos\theta_{t,0}}$$
+
+donde B_⊥ = B_helix·|cos(β − ψ₀)|. Mover el Rx cambia ψ₀ y por tanto B_⊥ y δ_z.
+
+#### 2.6.2 El problema de la escala
+
+Los tres objetivos tienen dimensiones y órdenes de magnitud completamente distintos:
+
+| Magnitud | Escala típica | log₁₀ |
+|---|---|---|
+| P_r (W) | ~10⁻¹⁰ W | −10 |
+| δ_xy (m) | ~0.05–0.5 m | −1.3 a −0.3 |
+| δ_z (m) | ~0.2–2 m | −0.7 a 0.3 |
+| δ_xy · δ_z (m²) | ~0.01–1 m² | −2 a 0 |
+
+Una suma directa P_r + δ_xy sería numéricamente absurda. La solución es trabajar en escala logarítmica, que hace cada término adimensional y de orden de magnitud comparable.
+
+#### 2.6.3 Función de costo log-normalizada
+
+La función de costo combinada (a minimizar por `fmincon`) es:
+
+$$\boxed{J(\mathbf{r}_{Rx}) = -(1-\alpha)\,\log_{10} P_r(\mathbf{r}_{Rx}) + \alpha\,\log_{10}\!\left[\delta_{xy}(\mathbf{r}_{Rx})\cdot\delta_z(\mathbf{r}_{Rx})\right]}$$
+
+con α ∈ [0,1] el peso de tradeoff.
+
+**Verificación de la dirección de optimización** (fmincon minimiza J):
+- Primer término: −log₁₀(P_r) decrece cuando P_r aumenta → maximizar potencia ✓
+- Segundo término: log₁₀(δ_xy·δ_z) decrece cuando la resolución mejora (δ → 0) → minimizar resolución ✓
+
+**Verificación dimensional**: ambos términos son log₁₀ de cantidades con unidades (W y m²), lo que formalmente solo produce una constante aditiva irrelevante para la optimización. La diferencia de referencias (1 W y 1 m²) actúa como normalización implícita:
+
+$$J = -(1-\alpha)\,\log_{10}\!\left(\frac{P_r}{1\,\text{W}}\right) + \alpha\,\log_{10}\!\left(\frac{\delta_{xy}\cdot\delta_z}{1\,\text{m}^2}\right)$$
+
+Esta normalización por 1 W y 1 m² es la más natural para el sistema de unidades SI.
+
+**Escala numérica con valores típicos** (α = 0.3):
+
+$$J \approx -(0.7)\cdot(-10) + (0.3)\cdot(-2) = 7 - 0.6 = 6.4$$
+
+Ambos términos contribuyen a J en magnitudes de orden 1–10, garantizando que el gradiente del optimizador sea sensible a ambos objetivos.
+
+#### 2.6.4 Casos límite
+
+| α | Comportamiento |
+|---|---|
+| 0 | Maximización pura de potencia (comportamiento original) |
+| 0.3 | Tradeoff con prioridad en potencia (valor por defecto) |
+| 0.5 | Peso igual en escala logarítmica |
+| 1 | Minimización pura de resolución |
+
+**Casos degenerados** que el optimizador evita automáticamente:
+- Δφ → 180°: δ_xy → ∞ → log₁₀(δ_xy·δ_z) → +∞ → J → +∞ (penalizado) ✓
+- ψ₀ → 0° (Rx sobre el target): δ_xy → ∞ ídem ✓
+- P_r → 0: log₁₀(P_r) → −∞ → −(1−α)·log₁₀(P_r) → +∞ (penalizado) ✓
+
 ---
 
 ## 3. Verificación de la coherencia del modelo
@@ -141,6 +218,10 @@ El denominador corregido usa las distancias totales de cada camino refractado: (
 ### 3.6 Frecuencia portadora — CORREGIDO ✓
 
 Cambiada a 400 MHz (P-band), compatible con penetración subsuperficial a 2–10 m en suelo seco. Ver §4.2 para el análisis detallado.
+
+### 3.7 Optimización multi-objetivo potencia–resolución — IMPLEMENTADO ✓
+
+Ver §2.6 para la derivación completa de la función de costo combinada.
 
 ---
 
@@ -270,9 +351,10 @@ Este valor es una cota superior (suelo lossless, T = 1 en ambas interfaces, σ =
 | Ángulo de incidencia respecto a normal | Correcto ✓ | — |
 | Ecuación de radar — denominador R₁²R₂²R₃²R₄² | **Corregido** ✓ | Alta |
 | Frecuencia 10 GHz para penetración subsuperficial | **Corregido** ✓ | Alta |
+| Resolución 3D ignorada en la optimización | **Implementado** ✓ | Alta |
 | Modelo de suelo lossless | Aproximación activa | Media |
 | Restricción altitud Rx = altitud Tx | Simplificación activa | Media |
 | Polarización TM no declarada en parámetros | Hipótesis implícita | Baja |
 | Reproducibilidad (semilla aleatoria) | Pendiente | Baja |
 
-**Conclusión**: Tras las correcciones aplicadas, la simulación es **física y matemáticamente coherente** en su estructura principal. El principio de explotar el ángulo de Brewster para maximizar la transmitancia TM en la interfaz aire–suelo está correctamente formulado, la ecuación de radar ahora usa las distancias totales de propagación correctas, y la frecuencia de 400 MHz es compatible con la penetración subsuperficial a las profundidades modeladas. Los valores de potencia reportados son cuantitativamente válidos bajo la hipótesis de suelo lossless, que constituye el límite superior físicamente realizable del sistema.
+**Conclusión**: Tras las correcciones y extensiones aplicadas, la simulación es **física y matemáticamente coherente** en su estructura principal. La función de costo log-normalizada J resuelve correctamente el problema de escala entre potencia (W) y resolución (m), ambos términos son adimensionales en escala logarítmica y el optimizador puede equilibrarlos de forma significativa. El parámetro α permite explorar toda la frontera de Pareto entre maximización de potencia y minimización de resolución 3D, con α = 0.3 como punto de partida recomendado (prioridad en potencia). Los valores de potencia y resolución reportados son cuantitativamente válidos bajo la hipótesis de suelo lossless (cota superior física).
