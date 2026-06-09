@@ -100,20 +100,20 @@ def fig01_radar_basics():
 
     # ángulo de incidencia ψ
     ang_rad = np.arctan2(tx - sx, H)
-    arc_ang = Arc((sx, H), 1.2, 1.2, angle=0, theta1=270 - np.degrees(ang_rad), theta2=270,
+    arc_ang = Arc((sx, H), 1.2, 1.2, angle=0, theta1=270, theta2=270 + np.degrees(ang_rad),
                   color='black', lw=1.5)
     ax.add_patch(arc_ang)
-    ax.text(sx + 0.7, H - 0.75, r'$\psi$', fontsize=13)
+    ax.text(sx + 0.55, H - 0.95, r'$\psi$', fontsize=13)
 
     # pulso chirp (esquema)
     bx = np.linspace(7, 8.5, 200)
     chirp_t = np.linspace(0, 1, 200)
     chirp_y = 0.4 * np.sin(2 * np.pi * (chirp_t + 2 * chirp_t**2)) * np.exp(-3 * (chirp_t - 0.5)**2)
     ax.plot(bx, chirp_y + 3.5, color=C['green'], lw=1.5)
-    ax.text(7.75, 3.1, 'Pulso LFM\n(bandwidth $B$)', ha='center', va='top', fontsize=9, color=C['green'])
-    ax.annotate('', xy=(8.5, 2.8), xytext=(7.0, 2.8),
+    ax.text(7.75, 3.00, 'Pulso CHIRP\n(bandwidth $B$)', ha='center', va='top', fontsize=9, color=C['green'])
+    ax.annotate('', xy=(8.5, 2.35), xytext=(7.0, 2.35),
                 arrowprops=dict(arrowstyle='<->', color=C['green'], lw=1.5))
-    ax.text(7.75, 2.65, r'$T_p$', ha='center', fontsize=10, color=C['green'])
+    ax.text(7.75, 2.2, r'$T_p$', ha='center', fontsize=10, color=C['green'])
 
     # resolución en rango
     ax.text(4.5, 5.4, r'Resolución en rango: $\delta_r = \dfrac{c}{2B}$',
@@ -240,14 +240,15 @@ def fig03_circular_sar():
     theta = np.linspace(0, 2 * np.pi, 300)
     for r, ls in [(k_in, '--'), (k_out, '-')]:
         ax2.plot(r * np.cos(theta), r * np.sin(theta), ls, color=C['green'], lw=2)
+    rc_label_y = 0.12 * k_out
+    dkr_arrow_y = -0.18 * k_out
+    dkr_label_y = dkr_arrow_y - 0.1 * k_out
     ax2.fill_between(k_out * np.cos(theta), k_out * np.sin(theta),
                      k_in * np.cos(theta), alpha=0.2, color=C['green'])
-    ax2.annotate('', xy=(k_out, 0), xytext=(0, 0),
-                arrowprops=dict(arrowstyle='->', color='black', lw=1.5))
-    ax2.text(k_out * 0.5, 0.15, r'$R_c = \frac{4\pi\sin\psi_0}{\lambda}$', fontsize=10)
-    ax2.annotate('', xy=(k_in, -0.2), xytext=(k_out, -0.2),
-                arrowprops=dict(arrowstyle='<->', color='darkblue', lw=1.5))
-    ax2.text((k_in + k_out) / 2, -0.35, r'$\Delta k_r = \frac{4\pi B}{c}$',
+    ax2.annotate('', xy=(k_out, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='black', lw=1.5))
+    ax2.text(k_out * 0.5, rc_label_y, r'$R_c = \frac{4\pi\sin\psi_0}{\lambda}$', fontsize=10)
+    ax2.annotate('', xy=(k_in, dkr_arrow_y), xytext=(k_out, dkr_arrow_y), arrowprops=dict(arrowstyle='<->', color='darkblue', lw=1.5))
+    ax2.text((k_in + k_out) / 2, dkr_label_y, r'$\Delta k_r = \frac{4\pi B}{c}$',
              ha='center', fontsize=9, color='darkblue')
     ax2.set_xlabel(r'$k_x$ [m$^{-1}$]'); ax2.set_ylabel(r'$k_y$ [m$^{-1}$]')
     ax2.set_title('(b) Cobertura\nen k-espacio', fontsize=11)
@@ -333,18 +334,18 @@ def fig04_helical_params():
     ax.text(2.0, 0, (z_top + z_base) / 2, r'$\Delta z$', fontsize=11, color='green')
     # Δρ
     ax.plot([0, rho_base - rho_top], [1.5, 1.5], [z_base, z_base], 'm-', lw=2)
-    ax.text((rho_base - rho_top) / 2, 1.6, z_base - 0.3, r'$\Delta\rho$', fontsize=11, color='m')
+    ax.text((rho_base - rho_top) / 2, 1.9, z_base + 0.1, r'$\Delta\rho$', fontsize=11, color='m')
 
     # B_helix (vector)
     ax.quiver(rho_top, 0, z_top, rho_base - rho_top, 0, z_base - z_top,
               color='darkgreen', arrow_length_ratio=0.15, lw=2)
-    ax.text((rho_top + rho_base) / 2 + 0.1, 0.2, (z_top + z_base) / 2 + 0.15,
+    ax.text(rho_top + 0.2 * (rho_base - rho_top), 0.12, z_top + 0.22,
             r'$B_{helix}$', fontsize=12, color='darkgreen')
 
     # eje óptico (LOS medio)
     rho0 = (rho_top + rho_base) / 2; z0 = (z_top + z_base) / 2
     ax.quiver(0, 0, 0, rho0, 0, z0, color='darkorange', arrow_length_ratio=0.1, lw=1.5)
-    ax.text(rho0 / 2 + 0.1, 0.2, z0 / 2 - 0.2, r'$R_0$, $\psi_0$', fontsize=11, color='darkorange')
+    ax.text(rho0 / 2 - 0.45, -0.2, z0 / 2 - 0.2, r'$R_0$, $\psi_0$', fontsize=11, color='darkorange')
 
     # ángulo β
     ax.text(rho_top + 0.1, 0.1, z_top - 0.3, r'$\beta$', fontsize=13, color='darkgreen')
@@ -381,7 +382,7 @@ def fig05_snell_geometry():
     ax.axhline(0, color='#5a3a1a', lw=2.5)
 
     # etiquetas de medio
-    ax.text(5.5, 3.5, 'Medio 1\n(Aire)\n$n_1=1$\n$v_1=c$',
+    ax.text(5.5, 4.6, 'Medio 1\n(Aire)\n$n_1=1$\n$v_1=c$',
             ha='right', va='top', fontsize=10, color=C['sky'],
             bbox=dict(boxstyle='round', fc='white', ec=C['sky'], alpha=0.8))
     ax.text(5.5, -3.5, 'Medio 2\n(Suelo)\n$n_2=\sqrt{\\varepsilon_r}$\n$v_2=c/n_2$',
@@ -454,10 +455,10 @@ def fig05_snell_geometry():
     ax.text(mid_soil2_x + 0.1, mid_soil2_z, r'$d_2^{RX}$', fontsize=11, color=C['green'], rotation=-30)
 
     # ley de Snell
-    ax.text(0, -3.5,
+    ax.text(-3.9, -3.98,
             r'Ley de Snell: $n_1\sin\theta_i = n_2\sin\theta_t$' + '\n' +
             r'Camino óptico: $R_{OP} = d_1^{TX} + n_2\,d_2^{TX} + n_2\,d_2^{RX} + d_1^{RX}$',
-            ha='left', fontsize=10.5,
+            ha='left', va='bottom', fontsize=10.5,
             bbox=dict(boxstyle='round', fc='lightyellow', ec='#999', alpha=0.9))
 
     ax.set_title('Geometría de Propagación Biestática en Dos Medios\n'
@@ -796,7 +797,7 @@ def fig11_offaxis_correction():
 
     # target off-axis
     ax.plot(xP, 0, '*', ms=16, color=C['target'], zorder=5)
-    ax.text(xP + 0.1, 0.15, r'$P=(x_P,0,z_P)$', fontsize=10, color=C['target'])
+    ax.text(xP + 0.1, -0.35, r'$P=(x_P,0,z_P)$', fontsize=10, color=C['target'])
 
     # near-range y far-range
     nr_x = rho0; nr_y = 0  # near-range (α=0)
@@ -915,6 +916,7 @@ def fig12_validation():
     ax.set_ylabel(r'$\delta_{xy}$ [mm]')
     ax.set_title(r'Resolución Horizontal $\delta_{xy}$ (grilla fina, 2 mm)', fontsize=12)
     ax.legend(fontsize=10); ax.grid(axis='y', alpha=0.4)
+    ax.set_ylim(0, 13)
 
     plt.tight_layout()
     save('fig12_validation.pdf')

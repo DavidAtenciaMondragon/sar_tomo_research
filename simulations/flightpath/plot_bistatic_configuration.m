@@ -51,15 +51,17 @@ view(45, 20)
 axis tight
 set(gca, 'Box', 'on', 'FontSize', 10)
 
-% Crear carpeta para figuras si no existe
-if ~exist('figuras_articulo', 'dir')
-    mkdir('figuras_articulo');
+% Crear carpeta de salida si no existe
+output_dir = fullfile('io', 'plan_vuelo');
+if ~exist(output_dir, 'dir')
+    mkdir(output_dir);
 end
 
-% Guardar figura para el artículo
-print('figuras_articulo/bistatic_configuration_3d', '-depsc', '-r300')
-print('figuras_articulo/bistatic_configuration_3d', '-dpng', '-r300')
-fprintf('\nFigura 3D guardada como bistatic_configuration_3d.eps y .png en carpeta figuras_articulo/\n')
+% Guardar figura en io/plan_vuelo/
+output_base = fullfile(output_dir, 'bistatic_configuration_3d');
+print(output_base, '-depsc', '-r300')
+print(output_base, '-dpng', '-r300')
+fprintf('\nFigura 3D guardada como bistatic_configuration_3d.eps y .png en carpeta io/plan_vuelo/\n')
 
 hold off
 

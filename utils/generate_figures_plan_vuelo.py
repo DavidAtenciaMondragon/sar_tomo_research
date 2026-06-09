@@ -264,9 +264,16 @@ def fig04_bistatic_radar():
     RX = np.array([8.5, 3.5])
 
     def arrow(ax, A, B, col, lw=2, style='->', label=None, **kw):
-        dx, dy = B - A
-        ax.annotate('', xy=B, xytext=A,
-                    arrowprops=dict(arrowstyle=style, color=col, lw=lw, **kw))
+        # Dibuja primero el segmento completo para garantizar visibilidad.
+        ax.plot([A[0], B[0]], [A[1], B[1]], '-', color=col, lw=lw, zorder=6)
+
+        # Flecha corta sobre el segmento para indicar dirección sin ocultar extremos.
+        t0, t1 = 0.55, 0.78
+        P0 = A + t0 * (B - A)
+        P1 = A + t1 * (B - A)
+        ax.annotate('', xy=P1, xytext=P0,
+                    arrowprops=dict(arrowstyle=style, color=col, lw=lw, **kw),
+                    zorder=7)
         if label:
             mid = (A + B) / 2
             ax.text(mid[0], mid[1] + 0.2, label, ha='center', fontsize=10, color=col,
@@ -299,18 +306,18 @@ def fig04_bistatic_radar():
         ax.text(pt[0] + offset[0], pt[1] + offset[1], lab, fontsize=11, color=col, fontweight='bold')
 
     # Llaves con R_T y R_R
-    ax.annotate('', xy=(Q1[0], -0.6), xytext=(TX[0], -0.6),
+        ax.annotate('', xy=(Q1[0], 0.0), xytext=(TX[0], 0.0),
                 arrowprops=dict(arrowstyle='<->', color=C['tx'], lw=1.5))
-    ax.annotate('', xy=(P[0], -0.6), xytext=(Q1[0], -0.6),
+        ax.annotate('', xy=(P[0], 0.0), xytext=(Q1[0], 0.0),
                 arrowprops=dict(arrowstyle='<->', color=C['tx'], lw=1.5))
-    ax.text((TX[0] + P[0]) / 2, -1.0,
+        ax.text((TX[0] + P[0]) / 2, -0.45,
             r'$R_T = R_1 + R_2$', ha='center', fontsize=11, color=C['tx'], fontweight='bold')
 
-    ax.annotate('', xy=(Q2[0], -0.6), xytext=(P[0], -0.6),
+        ax.annotate('', xy=(Q2[0], 0.0), xytext=(P[0], 0.0),
                 arrowprops=dict(arrowstyle='<->', color=C['rx'], lw=1.5))
-    ax.annotate('', xy=(RX[0], -0.6), xytext=(Q2[0], -0.6),
+        ax.annotate('', xy=(RX[0], 0.0), xytext=(Q2[0], 0.0),
                 arrowprops=dict(arrowstyle='<->', color=C['rx'], lw=1.5))
-    ax.text((P[0] + RX[0]) / 2, -1.0,
+        ax.text((P[0] + RX[0]) / 2, -0.45,
             r'$R_R = R_3 + R_4$', ha='center', fontsize=11, color=C['rx'], fontweight='bold')
 
     # Transmitancias en interfaz
@@ -324,7 +331,7 @@ def fig04_bistatic_radar():
             fontsize=13, bbox=dict(boxstyle='round', fc='lightyellow', ec='orange', lw=1.5))
 
     ax.set_xlim(-0.3, 10.5)
-    ax.set_ylim(-1.6, 5.8)
+    ax.set_ylim(-3.2, 5.8)
     ax.set_aspect('equal')
     ax.axis('off')
     ax.set_title('Ecuación de Radar Biestático con Refracción en Dos Medios',
