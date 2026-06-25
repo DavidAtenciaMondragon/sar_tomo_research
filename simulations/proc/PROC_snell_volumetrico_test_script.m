@@ -21,10 +21,9 @@ if ~exist(figOutputDir, 'dir')
     mkdir(figOutputDir);
 end
 
-end
-
 rawInputDir = fullfile(projectDir, 'io', 'snell_volumetrico', 'raw');
-annDataDir = fullfile(projectDir, 'io', 'snell_volumetrico', 'ANNdata');
+annDataDir  = fullfile(projectDir, 'io', 'snell_volumetrico', 'ANNdata');
+
 if ~exist(annDataDir, 'dir')
     mkdir(annDataDir);
 end

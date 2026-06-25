@@ -54,11 +54,11 @@ strRadarTx.lamb = strSystem.VelocidadeLuz/strRadarTx.FreqPortadora; % Compriment
 
 % Transmissor
 [PxT, PyT, PzT] = funcao_espiral(strRadarTx.NumVoltasEsp, strRadarTx.RaioMenorEsp, strRadarTx.RaioMaiorEsp,...
-    strRadarTx.AltMaiorEsp,strRadarTx.AltMenorEsp, strRadarTx.Vt, strRadarTx.PRF);
+    strRadarTx.AltMaiorEsp,strRadarTx.AltMenorEsp, strRadarTx.Vt, strRadarTx.PRF,0);
 
 % Receptor
 [PxR, PyR, PzR] = funcao_espiral(strRadarRx.NumVoltasEsp, strRadarRx.RaioMenorEsp, strRadarRx.RaioMaiorEsp,...
-    strRadarRx.AltMaiorEsp,strRadarRx.AltMenorEsp, strRadarRx.Vt, strRadarRx.PRF);
+    strRadarRx.AltMaiorEsp,strRadarRx.AltMenorEsp, strRadarRx.Vt, strRadarRx.PRF,0);
 
 % Plot Trajectory
 
@@ -73,7 +73,7 @@ plot3(PxR, PyR, PzR,'r')
 surf(Xg,Yg,Zg,'EdgeColor','none','FaceColor',[1 0 1],'FaceAlpha',0.1)
 
 if strSystem.EscenarioExterno
-    load('C:\Users\David\Desktop\Nuevo_Doctorado\bistatic_sar\utils\linePoints_targetMask.mat');
+    load('utils\linePoints_targetMask.mat');
     [X,Y,Z] = meshgrid(xAxis,yAxis,zAxis);
     
 else
