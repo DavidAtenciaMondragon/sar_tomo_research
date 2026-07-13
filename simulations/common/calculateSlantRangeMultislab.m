@@ -44,7 +44,9 @@ depthTarget = -z0;
 cumDepth    = cumsum(d_layers(:)');
 L = find(cumDepth >= depthTarget, 1, 'first');
 if isempty(L)
-    error('La profundidad del target (%.3f m) excede el espesor total de las capas definidas (%.3f m).', depthTarget, cumDepth(end));
+    % La ultima capa es semi-infinita: el target puede estar arbitrariamente
+    % profundo dentro de ella, independientemente del d declarado en el JSON.
+    L = numel(d_layers);
 end
 
 if L == 1

@@ -1,0 +1,672 @@
+\documentclass[11pt, a4paper]{article}
+
+%% ─── Codificación e idioma ───────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish, es-nodecimaldot, es-noshorthands]{babel}
+
+%% ─── Tipografía ──────────────────────────────────────────────────────────────
+\usepackage{lmodern}
+\usepackage{microtype}
+
+%% ─── Geometría de página ─────────────────────────────────────────────────────
+\usepackage[top=2.5cm, bottom=2.5cm, left=3cm, right=3cm]{geometry}
+
+%% ─── Matemáticas ─────────────────────────────────────────────────────────────
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+%% ─── Figuras y tablas ────────────────────────────────────────────────────────
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{float}
+
+%% ─── Listas ──────────────────────────────────────────────────────────────────
+\usepackage{enumitem}
+\setlist[itemize]{noitemsep, topsep=4pt}
+\setlist[enumerate]{noitemsep, topsep=4pt}
+
+%% ─── Hipervínculos ───────────────────────────────────────────────────────────
+\usepackage[hidelinks, colorlinks=true, linkcolor=blue!70!black,
+            citecolor=blue!70!black, urlcolor=blue!70!black]{hyperref}
+
+%% ─── Colores auxiliares ──────────────────────────────────────────────────────
+\definecolor{gris}{gray}{0.92}
+
+%% ─── Captions ────────────────────────────────────────────────────────────────
+\captionsetup{font=small, labelfont=bf, labelsep=period}
+
+%% ─── Comandos de conveniencia ────────────────────────────────────────────────
+\newcommand{\Rx}{\mathrm{Rx}}
+\newcommand{\Tx}{\mathrm{Tx}}
+\newcommand{\rRx}{\mathbf{r}_{\Rx}}
+\newcommand{\dxy}{\delta_{xy}}
+\newcommand{\dz}{\delta_z}
+\newcommand{\gdeg}{\ensuremath{^{\circ}}}
+
+%% ─── Metadatos ───────────────────────────────────────────────────────────────
+\title{\textbf{Análisis de Funciones de Costo para el Optimizador\\
+       de Energía/Resolución en SAR Biestático Helicoidal}}
+\author{Nota técnica — doctorado SAR}
+\date{\today}
+
+% =============================================================================
+\begin{document}
+% =============================================================================
+
+\maketitle
+\thispagestyle{empty}
+
+\noindent\textbf{Contexto:} SAR biestático helicoidal para detección subsuperficial
+— optimización de la posición del receptor (Rx) en el plano horizontal.
+\vspace{6pt}
+
+\noindent\rule{\linewidth}{0.4pt}
+
+% =============================================================================
+\section{Introducción y motivación}
+% =============================================================================
+
+El sistema SAR biestático helicoidal opera con el transmisor (Tx) en una trayectoria
+circular fija y el receptor (Rx) en una posición configurable. La posición del Rx
+determina simultáneamente dos objetivos de calidad de imagen que están en conflicto:
+
+\begin{itemize}
+  \item \textbf{Energía recibida} $P_r$: máxima en el ángulo de Brewster
+    $\theta_B = \arctan(n_2/n_1)$, donde la transmitancia TM de la interfaz
+    suelo–aire es máxima (reflexión nula).
+
+  \item \textbf{Resolución espacial} $(\dxy, \dz)$: controlada por la geometría
+    biestática — la resolución lateral mejora cuando el ángulo azimutal entre Tx y Rx
+    (medido desde el blanco) $\Delta\phi$ se aleja de cero, pero el ángulo de Brewster
+    ocurre a una geometría que no coincide necesariamente con la resolución óptima.
+\end{itemize}
+
+La función de costo escalariza este problema biobjetivo en un único escalar a minimizar.
+La elección de la función de costo no es neutral: afecta la forma del paisaje de
+optimización, la unicidad del mínimo, la sensibilidad al parámetro de compromiso
+$\alpha$, y el condicionamiento del algoritmo de búsqueda.
+
+Este documento propone y analiza cinco funciones de costo candidatas con fundamento
+en la teoría de optimización multiobjetivo, evaluadas mediante simulación analítica
+en una geometría representativa del sistema SAR.
+
+% =============================================================================
+\section{Definición formal del problema}
+% =============================================================================
+
+\subsection{Espacio de búsqueda y parámetros del sistema}
+
+Sea $\rRx = (x_{\Rx}, y_{\Rx}, z_{\Rx})$ la posición del receptor, con
+$z_{\Rx} = 100\,\mathrm{m}$ fijo y $(x_{\Rx}, y_{\Rx}) \in [-270,\,270]^2\,\mathrm{m}$.
+Los parámetros del sistema de referencia se listan en la Tabla~\ref{tab:params}.
+
+\begin{table}[H]
+  \centering
+  \caption{Parámetros del sistema SAR de referencia.}
+  \label{tab:params}
+
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    \textbf{Parámetro} & \textbf{Valor} & \textbf{Descripción} \\
+    \midrule
+    $f_0$        & 10\,GHz  & Frecuencia portadora \\
+    $B$          & 50\,MHz  & Ancho de banda de barrido \\
+    $n_1$        & 1{,}0    & Índice de refracción del aire \\
+    $n_2$        & 2{,}0    & Índice del suelo ($\varepsilon_r = 4$) \\
+    $\theta_B$   & 63{,}43\gdeg & Ángulo de Brewster TM \\
+    $z_{\Tx}$   & 100\,m   & Altitud del Tx \\
+    $\rho_{\Tx}$& 160\,m   & Distancia radial del Tx al eje \\
+    $B_\mathrm{hel}$ & 47{,}17\,m & Apertura de la hélice \\
+    $z_P$        & 5\,m     & Profundidad del blanco \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Los dos objetivos elementales}
+
+\paragraph{Objetivo de potencia.}
+La potencia recibida en $\rRx$ sigue la ecuación del radar biestático con
+refracción TM:
+
+\begin{equation}
+  P_r(\rRx) = \frac{P_t \, G_t \, G_r \, \sigma \, T_1 \, T_2(\rRx) \, \lambda_0^2}
+                   {(4\pi)^3 \, R_T^2 \, R_R^2(\rRx)}
+  \label{eq:Pr}
+\end{equation}
+
+donde $T_1$ es la transmitancia TM en el trayecto Tx$\to$blanco (constante para Tx fijo),
+$T_2(\rRx)$ es la transmitancia en el trayecto Rx$\to$blanco, y $R_R$ es la longitud
+del camino refractado desde Rx hasta el blanco. Ambas cantidades se calculan resolviendo
+la condición de Fermat por bisección vectorizada sobre el parámetro de rayo
+$p = n_1\sin\theta_{\mathrm{inc}}$.
+
+\paragraph{Objetivo de resolución.}
+Las resoluciones derivadas del análisis $k$-espacio del sistema biestático son:
+
+\begin{align}
+  \dz &= \frac{c}{2\,W_z}, \qquad
+  W_z = n_2 B \cos\theta_{t,0}
+        + \frac{c \, B_\mathrm{hel} \sin\psi_0 \cos\psi_0}
+               {\lambda_0 \, R_0 \, n_2 \cos\theta_{t,0}}
+  \label{eq:dz} \\[6pt]
+  \dxy &= \frac{0{,}60\,\lambda_0}{\pi \sin\psi_0 \cdot |\cos(\Delta\phi/2)|}
+  \label{eq:dxy}
+\end{align}
+
+donde $\psi_0$ es el ángulo de elevación del Rx,
+$\theta_{t,0} = \arcsin(\sin\psi_0/n_2)$ el ángulo refractado en el suelo,
+$R_0$ la distancia oblicua Rx–superficie, y $\Delta\phi$ el ángulo azimutal
+biestático entre Tx y Rx respecto al blanco.
+
+\subsection{Términos objetivos adimensionales}
+
+Para las funciones de costo se definen dos términos escalares adimensionales:
+
+\begin{align}
+  f_1(\rRx) &= -\log_{10} P_r(\rRx) \geq 0
+  && \text{(pérdida de potencia, a minimizar)}
+  \label{eq:f1} \\
+  f_2(\rRx) &= \log_{10}\!\bigl[\dxy(\rRx)\cdot\dz(\rRx)\bigr]
+  && \text{(producto de resoluciones, a minimizar)}
+  \label{eq:f2}
+\end{align}
+
+Minimizar $f_1$ equivale a maximizar la potencia recibida; minimizar $f_2$ equivale
+a minimizar el volumen de celda de resolución. El conflicto entre ambos objetivos
+genera una frontera de Pareto no trivial en el espacio $(f_1, f_2)$.
+
+% =============================================================================
+\section{Funciones de costo candidatas}
+% =============================================================================
+
+Se proponen cinco funciones de costo con diferentes propiedades teóricas. Cada una
+corresponde a una estrategia distinta de escalarización del problema biobjetivo.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$J_1$}{J1} — Suma ponderada logarítmica (referencia)}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{equation}
+  \boxed{J_1(\rRx;\,\alpha) = (1-\alpha)\,f_1 + \alpha\,f_2}
+  \label{eq:J1}
+\end{equation}
+
+\textbf{Interpretación:} escalarización por suma ponderada en escala logarítmica.
+El parámetro $\alpha \in [0,1]$ pondera la importancia relativa de la resolución
+frente a la potencia.
+
+\textbf{Propiedades:}
+\begin{itemize}
+  \item Lineal en $f_1$ y $f_2$ $\Rightarrow$ diferenciable en todo el dominio válido.
+  \item Ambos términos tienen magnitudes comparables: $f_1 \approx 14$–$18$,
+    $f_2 \approx -3$–$-1{,}5$ (la escala logarítmica garantiza conmensurabilidad
+    sin normalización explícita).
+  \item $\alpha = 0$: solución puramente de potencia (ángulo de Brewster).
+  \item $\alpha = 1$: solución puramente de resolución ($\Delta\phi \to \pi$,
+    caso degenerado).
+  \item Valor recomendado: $\alpha^* \approx 0{,}30$.
+  \item \textbf{Limitación:} la suma ponderada solo puede generar puntos en las partes
+    convexas de la frontera de Pareto; las regiones no convexas quedan inaccesibles
+    para toda combinación de $\alpha$~\cite{miettinen1998}.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$J_2$}{J2} — Suma ponderada lineal normalizada}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{equation}
+  J_2(\rRx;\,\alpha) = (1-\alpha)\,\tilde{f}_1 + \alpha\,\tilde{f}_2
+  \label{eq:J2}
+\end{equation}
+
+donde $\tilde{f}_k = (f_k - f_k^{\min}) / (f_k^{\max} - f_k^{\min})$ es la
+normalización min-max de cada objetivo sobre el dominio de búsqueda.
+
+\textbf{Propiedades:}
+\begin{itemize}
+  \item Ambas funciones normalizadas a $[0,1]$: conmensurabilidad garantizada a priori.
+  \item Diferenciable (la normalización es una transformación afín).
+  \item \textbf{Limitación crítica:} la normalización min-max depende del dominio de
+    búsqueda. Si la cuadrícula cambia, la función de costo cambia aunque la física no
+    lo haga, lo que viola el principio de invariancia del optimizador.
+  \item En escala lineal, $P_r$ varía varios órdenes de magnitud (~$10^{-17}$ a
+    $10^{-14}$\,W); en $\tilde{f}_1$ normalizado, la mayor parte de los puntos se
+    acumula cerca de cero con sólo el vecindario de Brewster destacando, produciendo
+    regiones de gradiente casi nulo (\emph{plateau regions}).
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$J_3$}{J3} — Escalarización de Tchebyshev (minimax ponderado)}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{equation}
+  J_3(\rRx;\,\alpha) = \max\!\bigl[(1-\alpha)\,\tilde{f}_1,\;\alpha\,\tilde{f}_2\bigr]
+  \label{eq:J3}
+\end{equation}
+
+con la misma normalización min-max que $J_2$.
+
+\textbf{Interpretación:} minimiza la peor desviación ponderada de los objetivos
+normalizados respecto a sus valores mínimos individuales. Es la escalarización de
+Tchebyshev clásica~\cite{messac2003}, equivalente a la norma $\ell_\infty$ en el
+espacio de objetivos normalizados.
+
+\textbf{Propiedades:}
+\begin{itemize}
+  \item \textbf{Ventaja clave sobre $J_1$:} puede generar puntos en partes no convexas
+    de la frontera de Pareto, gracias a la operación de máximo.
+  \item No diferenciable donde $(1-\alpha)\tilde{f}_1 = \alpha\tilde{f}_2$: el paisaje
+    de optimización tiene aristas, lo que complica métodos basados en gradiente.
+  \item La función de Tchebyshev con parámetro de utopía cero garantiza que cada
+    minimizador sea eficiente en el sentido de Pareto, independientemente de la
+    forma de la frontera.
+  \item Variante aumentada: $J_3^{+} = J_3 + \rho\,(\tilde{f}_1 + \tilde{f}_2)$
+    con $\rho \ll 1$ es diferenciable y preserva la cobertura completa de
+    Pareto~\cite{messac2003}.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$J_4$}{J4} — Distancia euclídea al punto ideal (sin~$\alpha$)}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{equation}
+  J_4(\rRx) = \sqrt{\tilde{f}_1^{\,2} + \tilde{f}_2^{\,2}}
+  \label{eq:J4}
+\end{equation}
+
+\textbf{Interpretación:} minimiza la distancia euclídea al origen del espacio de
+objetivos normalizados, que corresponde al punto ideal (utopía). No requiere parámetro
+de compromiso.
+
+\textbf{Propiedades:}
+\begin{itemize}
+  \item Genera un único punto del frente de Pareto: el más equitativo en el espacio
+    normalizado.
+  \item Diferenciable en casi toda parte (excepto en el origen, no alcanzable).
+  \item Útil como función de referencia cuando no se dispone de información sobre la
+    preferencia relativa entre objetivos.
+  \item \textbf{Limitación:} la elección del punto de referencia (origen vs.\ punto
+    utopía vs.\ punto anti-utopía) cambia sustancialmente el minimizador, requiriendo
+    calibración adicional.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$J_5$}{J5} — Logarítmica con penalización hacia $\theta_B$}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{equation}
+  J_5(\rRx;\,\alpha,\,\gamma)
+  = (1-\alpha)\,f_1 + \alpha\,f_2
+    + \gamma\,\bigl(\theta_R - \theta_B\bigr)^2
+  \label{eq:J5}
+\end{equation}
+
+donde $\theta_R(\rRx)$ es el ángulo de incidencia del rayo Rx$\to$blanco en la
+interfaz aire–suelo, y $\theta_B = \arctan(n_2/n_1)$ el ángulo de Brewster.
+
+\textbf{Interpretación:} aumenta $J_1$ con un término de penalización cuadrático que
+acerca la solución óptima al ángulo de Brewster. Actúa como restricción blanda:
+para $\gamma \to \infty$, la solución converge a la curva $\theta_R = \theta_B$.
+
+\textbf{Propiedades:}
+\begin{itemize}
+  \item Diferenciable: combina la suavidad de $J_1$ con la penalización cuadrática.
+  \item Para $\gamma = 0$ se recupera exactamente $J_1$.
+  \item Introduce un tercer hiperparámetro $\gamma \geq 0$, lo que complica la
+    calibración respecto a $J_1$.
+  \item La penalización es físicamente motivada, pero forzar $\theta_R \to \theta_B$
+    puede ser redundante: $J_1$ ya captura el efecto del ángulo de Brewster a través
+    de $f_1 = -\log_{10}P_r$, dado que $T_2(\theta_R)$ presenta un máximo agudo
+    en $\theta_B$.
+\end{itemize}
+
+% =============================================================================
+\section{Análisis comparativo}
+% =============================================================================
+
+\subsection{Paisajes de optimización}
+
+La Figura~\ref{fig:landscapes} muestra los paisajes de los objetivos elementales
+y de las cuatro funciones de costo en el plano $(x_{\Rx}, y_{\Rx})$ para
+$\alpha = 0{,}30$ y $\gamma = 5\,\mathrm{rad}^{-2}$.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{../utils/fig_cf01_landscapes.pdf}
+  \caption{Paisajes de los objetivos elementales ($f_1$, $f_2$) y de las cuatro
+    funciones de costo ($J_1$, $J_2$, $J_3$, $J_5$) para $\alpha=0{,}30$.
+    Estrella dorada: posición del Tx.
+    Cruz blanca: proyección del blanco en superficie.
+    Círculo blanco: posición óptima del Rx (mínimo de cada función).}
+  \label{fig:landscapes}
+\end{figure}
+
+\textbf{Observaciones:}
+\begin{enumerate}
+  \item El paisaje de $f_1$ (potencia) exhibe un anillo de alta transmitancia alrededor
+    del blanco, correspondiente al ángulo de Brewster $\theta_B = 63{,}4\gdeg$. El pico
+    de transmitancia TM es angosto (${\sim}5\gdeg$) y concentra el gradiente de $P_r$ en
+    esa región angular.
+
+  \item El paisaje de $f_2$ (resolución) muestra que la resolución lateral $\dxy$
+    mejora a medida que el ángulo azimutal $\Delta\phi$ entre Tx y Rx se aleja de
+    cero, con mínimo en $\Delta\phi = 180\gdeg$ (Rx diametralmente opuesto al Tx).
+    La resolución axial $\dz$ depende principalmente de la distancia radial $\rho_{\Rx}$.
+
+  \item Los mínimos de $J_1$ y $J_5$ son similares en ubicación, con $J_5$ desplazando
+    ligeramente el óptimo hacia la curva de Brewster. El paisaje de $J_3$ (Tchebyshev)
+    muestra aristas características de la operación $\max$, con mínimo en una región
+    más compacta.
+
+  \item $J_2$ (lineal normalizada) exhibe un paisaje más plano fuera de la vecindad
+    del ángulo de Brewster, lo que dificulta la convergencia de métodos de gradiente.
+\end{enumerate}
+
+\subsection{Fronteras de Pareto}
+
+La Figura~\ref{fig:pareto} muestra las fronteras de Pareto trazadas por cada función
+al variar $\alpha \in [0,1]$ con paso fino.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{../utils/fig_cf02_pareto_fronts.pdf}
+  \caption{Fronteras de Pareto en el espacio de objetivos $(f_1, f_2)$.
+    Cada punto corresponde al óptimo de la función para un valor de $\alpha$.
+    El punto ideal (estrella negra) es el mínimo simultáneo teórico de ambos objetivos.
+    El rombo ($J_4$) es el punto de mínima distancia euclídea al punto ideal.}
+  \label{fig:pareto}
+\end{figure}
+
+\textbf{Observaciones:}
+\begin{enumerate}
+  \item $J_1$ genera una curva de Pareto relativamente suave. Pequeñas variaciones de
+    $\alpha$ en $[0{,}2,\,0{,}4]$ producen desplazamientos significativos en la posición
+    óptima del Rx, indicando alta sensibilidad en esa región.
+
+  \item $J_3$ (Tchebyshev) traza una curva de Pareto diferente: cubre partes del frente
+    que $J_1$ no puede alcanzar con ningún $\alpha$ (regiones no convexas), confirmando
+    la ventaja teórica de la escalarización de Tchebyshev~\cite{das1997}.
+
+  \item $J_2$ traza una curva cuya posición relativa depende del dominio de normalización,
+    haciendo la comparación directa con $J_1$ y $J_3$ no independiente del dominio.
+
+  \item $J_4$ (distancia euclídea) produce un único punto ubicado cerca del codo de la
+    curva de Pareto de $J_1$, coherente con el objetivo de mínima distancia al punto ideal.
+\end{enumerate}
+
+\subsection{Sensibilidad al parámetro \texorpdfstring{$\alpha$}{alpha}}
+
+La Figura~\ref{fig:alpha} muestra la posición óptima del Rx (distancia radial y azimut)
+como función de $\alpha$.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{../utils/fig_cf03_alpha_sensitivity.pdf}
+  \caption{(a) Distancia radial $\rho_{\Rx}^*$ del Rx óptimo al blanco vs.\ $\alpha$.
+    (b) Azimut $\phi_{\Rx}^*$ del Rx óptimo vs.\ $\alpha$.
+    Se comparan $J_1$, $J_2$ y $J_3$.}
+  \label{fig:alpha}
+\end{figure}
+
+\textbf{Observaciones:}
+\begin{enumerate}
+  \item Para $J_1$, la distancia radial óptima $\rho_{\Rx}^*$ varía de forma monótona
+    suave con $\alpha$: para $\alpha \to 0$ el Rx tiende hacia el anillo de Brewster
+    ($\rho \propto z_{\Rx}\tan\theta_B \approx 200\,\mathrm{m}$); para $\alpha \to 1$
+    el Rx se desplaza radialmente en busca de mejor resolución axial.
+
+  \item El azimut $\phi_{\Rx}^*$ de $J_1$ varía también de forma continua: para $\alpha$
+    pequeño, el Rx se ubica en el lado del anillo de Brewster opuesto al Tx; para
+    $\alpha$ grande, la resolución lateral domina y el Rx tiende a $\Delta\phi \to 180\gdeg$.
+
+  \item $J_3$ exhibe saltos abruptos (discontinuidades) en $\rho_{\Rx}^*$ y $\phi_{\Rx}^*$
+    a ciertos valores de $\alpha$. Esto es consecuencia de la operación $\max$: al cambiar
+    cuál de las dos ramas domina, el argmín puede saltar a otra región del dominio.
+    Esta característica es una propiedad inherente de la escalarización de Tchebyshev,
+    no un artefacto numérico.
+
+  \item La región $\alpha \in [0{,}25,\,0{,}35]$ es la de mayor variabilidad para $J_1$,
+    correspondiendo a la transición entre el régimen dominado por Brewster y el dominado
+    por la geometría biestática.
+\end{enumerate}
+
+\subsection{Condicionamiento del gradiente}
+
+La Figura~\ref{fig:grad} muestra la norma del gradiente $\|\nabla J\|$ a lo largo
+de un perfil horizontal y el mapa de $\|\nabla J_1\|$.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{../utils/fig_cf04_gradient_norm.pdf}
+  \caption{(a) $\|\nabla J\|$ normalizado a lo largo del perfil $y_{\Rx}=0$ para
+    $\alpha=0{,}30$. (b) Mapa de $\|\nabla J_1\|$ con isolíneas de $J_1$ superpuestas.}
+  \label{fig:grad}
+\end{figure}
+
+\textbf{Observaciones:}
+\begin{enumerate}
+  \item $J_1$ tiene gradiente significativo en toda la región de interés, incluyendo
+    zonas alejadas del mínimo. Esto favorece la convergencia de métodos de gradiente
+    descendente desde posiciones iniciales diversas.
+
+  \item $J_2$ exhibe regiones amplias con gradiente casi nulo, especialmente lejos del
+    ángulo de Brewster (\emph{plateau regions}~\cite{nocedal2006}), lo que dificulta
+    la convergencia de métodos locales de primera derivada.
+
+  \item $J_3$ presenta gradiente alto pero con discontinuidades locales en las aristas
+    de la operación $\max$. El panel~(b) muestra cómo los gradientes más altos de
+    $J_1$ se concentran en el anillo de Brewster, coherente con la fuerte variación
+    de $T_2(\theta_R)$ en esa región angular.
+
+  \item El gradiente de $J_1$ es más suave y consistente. Su número de condición
+    $\kappa = \|\nabla^2 J\|_F \,/\, \lambda_{\min}(\nabla^2 J)$ es más favorable
+    que el de $J_2$, lo que se traduce en mejor tasa de convergencia para métodos
+    cuasi-Newton o Newton-Raphson.
+\end{enumerate}
+
+\subsection{Efecto de la penalización de Brewster (\texorpdfstring{$J_5$}{J5})}
+
+La Figura~\ref{fig:brewster} analiza el efecto del parámetro de penalización $\gamma$
+en la función $J_5$.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{../utils/fig_cf05_brewster_penalty.pdf}
+  \caption{(a) Ángulo de incidencia $\theta_R^*$ en el Rx óptimo vs.\ $\gamma$,
+    con la asíntota $\theta_B$ (línea discontinua). (b) Pérdida de potencia $f_1$
+    y logaritmo del producto de resolución $f_2$ en el Rx óptimo vs.\ $\gamma$.}
+  \label{fig:brewster}
+\end{figure}
+
+\textbf{Observaciones:}
+\begin{enumerate}
+  \item Para $\gamma = 0$, $J_5 \equiv J_1$. Al aumentar $\gamma$, el Rx óptimo se
+    desplaza hacia la posición donde $\theta_R = \theta_B$. La convergencia es rápida
+    para $\gamma < 5\,\mathrm{rad}^{-2}$ y satura para $\gamma > 10\,\mathrm{rad}^{-2}$.
+
+  \item Panel~(b): el aumento de $\gamma$ reduce $f_1$ (Brewster maximiza $P_r$) pero
+    aumenta $f_2$ (la posición de Brewster no es la de resolución óptima), confirmando
+    el sesgo físicamente justificado pero costoso en resolución.
+
+  \item El rango $\gamma \in [1,\,5]\,\mathrm{rad}^{-2}$ ofrece un compromiso razonable:
+    el Rx converge a ${\sim}85\%$ del camino hacia $\theta_B$ con degradación de
+    resolución inferior al $15\%$ respecto al caso $\gamma = 0$.
+\end{enumerate}
+
+% =============================================================================
+\section{Tabla comparativa}
+% =============================================================================
+
+\begin{table}[H]
+  \centering
+  \caption{Comparación de las cinco funciones de costo candidatas.}
+  \label{tab:comparison}
+  \renewcommand{\arraystretch}{1.35}
+
+  \begin{tabular}{@{} p{4.8cm} c c c c c @{}}
+    \toprule
+    \textbf{Propiedad}
+      & $J_1$ & $J_2$ & $J_3$ & $J_4$ & $J_5$ \\
+    \midrule
+    Escala
+      & Log. & Lineal & Lineal & Lineal & Log. \\
+    Diferenciable
+      & Sí & Sí & No & Sí & Sí \\
+    Parámetros
+      & $\alpha$ & $\alpha$ & $\alpha$ & — & $\alpha,\gamma$ \\
+    Cubre frente no convexo
+      & No & No & \textbf{Sí} & Parcial & No \\
+    Normalización dependiente del dominio
+      & No & \textbf{Sí} & \textbf{Sí} & \textbf{Sí} & No \\
+    Condicionamiento numérico
+      & \textbf{Bueno} & Pobre & Moderado & Moderado & Bueno \\
+    Paisaje unimodal
+      & \textbf{Sí} & Sí & Sí & Sí & \textbf{Sí} \\
+    Interpretación física directa
+      & \textbf{Sí} & Moderada & Moderada & Baja & Sí \\
+    Calibración requerida
+      & $\alpha$ & $\alpha$+escala & $\alpha$+escala & Escala & $\alpha,\gamma$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% =============================================================================
+\section{Discusión}
+% =============================================================================
+
+\subsection{Ventajas de la formulación logarítmica (\texorpdfstring{$J_1$}{J1})}
+
+La función de costo actual $J_1$ exhibe una propiedad notable que no es inmediatamente
+obvia: la escala logarítmica actúa como normalizador intrínseco. Dado que $P_r$ varía
+en varios órdenes de magnitud a lo largo del dominio de búsqueda, su representación
+logarítmica comprime la variabilidad de modo que $f_1 \in [14,\,18]$ y
+$f_2 \in [-3,\,-1{,}5]$ resultan magnitudes comparables sin normalización explícita.
+Esto elimina la dependencia del dominio de búsqueda que afecta a $J_2$, $J_3$ y $J_4$.
+
+Adicionalmente, la función logarítmica es cóncava: garantiza que los puntos de mayor
+potencia (ángulo de Brewster) estén suficientemente separados en el espacio de costo
+para generar gradiente apreciable, mientras que variaciones pequeñas de $P_r$ lejos
+de $\theta_B$ contribuyen modestamente a $f_1$.
+
+\subsection{Cuándo conviene explorar \texorpdfstring{$J_3$}{J3} (Tchebyshev)}
+
+Si el análisis de la frontera de Pareto revela que la geometría del sistema produce
+una frontera no convexa — lo cual puede ocurrir cuando la transmitancia TM exhibe
+múltiples máximos locales (e.g., en estructuras multicapa con capas resonantes de
+media longitud de onda) — entonces $J_1$ no puede alcanzar todos los puntos eficientes
+en el sentido de Pareto. En esos escenarios, la escalarización $J_3$ es preferible,
+aunque a costa de un paisaje no diferenciable que requiere métodos de búsqueda global
+(algoritmos genéticos, \emph{simulated annealing}) o métodos de subgradiente.
+
+Para el sistema de dos capas (aire–suelo) aquí analizado, la frontera de Pareto es
+convexa o suavemente no convexa, por lo que $J_1$ es suficiente.
+
+\subsection{Uso de \texorpdfstring{$J_5$}{J5} como restricción blanda}
+
+La función $J_5$ es conceptualmente interesante como herramienta de diseño: permite
+explorar el compromiso entre la importancia de operar en el ángulo de Brewster y la
+pérdida de resolución que esto conlleva. Sin embargo, para el optimizador de producción
+introduce una complejidad adicional (selección de $\gamma$) sin ventaja clara sobre la
+elección directa de $\alpha$ pequeño, que ya privilegia $f_1 = -\log_{10}P_r$.
+
+Una alternativa más rigurosa al uso de $J_5$ es la formulación $\varepsilon$-constrained:
+
+\begin{equation}
+  \min_{\rRx} \; f_2(\rRx) \quad
+  \text{sujeto a} \quad f_1(\rRx) \leq f_1^{\max}
+  \label{eq:eps_constrained}
+\end{equation}
+
+donde $f_1^{\max}$ es un umbral de pérdida de potencia aceptable. Esta formulación
+garantiza que la potencia mínima requerida sea estrictamente satisfecha en lugar de
+ser penalizada suavemente.
+
+% =============================================================================
+\section{Conclusiones y recomendación}
+% =============================================================================
+
+Con base en el análisis teórico y las simulaciones presentadas, se establecen las
+siguientes conclusiones:
+
+\begin{enumerate}
+  \item \textbf{La función logarítmica $J_1$ es la opción óptima} para el sistema SAR
+    biestático helicoidal de dos capas (aire–suelo). Su conmensurabilidad intrínseca,
+    buena diferenciabilidad y paisaje unimodal la hacen compatible con métodos de
+    optimización local eficientes. El valor recomendado $\alpha^* = 0{,}30$ equilibra
+    potencia y resolución en la región de mayor sensibilidad de la frontera de Pareto.
+
+  \item \textbf{La escalarización de Tchebyshev $J_3$} debe considerarse si el sistema
+    se extiende a medios multicapa con capas resonantes, donde la frontera de Pareto
+    puede ser no convexa. Se recomienda entonces la variante aumentada con
+    $\rho = 10^{-3}$ para recuperar diferenciabilidad.
+
+  \item \textbf{La función lineal normalizada $J_2$} no se recomienda para uso en
+    producción por su dependencia del dominio de búsqueda y su condicionamiento
+    numérico pobre. Puede ser útil como verificación cualitativa de la convexidad del
+    frente de Pareto.
+
+  \item \textbf{La penalización de Brewster $J_5$} con $\gamma \in [1,5]\,\mathrm{rad}^{-2}$
+    ofrece un mecanismo físicamente interpretable para priorizar la transmitancia TM,
+    pero se recomienda sustituirla por la formulación $\varepsilon$-constrained~%
+    \eqref{eq:eps_constrained} cuando la pérdida de potencia mínima sea un requisito
+    de diseño estricto.
+
+  \item Para la extensión a sistemas multicapa ($N > 2$ capas), la formulación de $J_1$
+    se generaliza directamente: basta reemplazar $T_2(\theta_R)$ con la transmitancia
+    total del \emph{stack} ABCD evaluada en el ángulo refractado desde Rx. La función
+    matemática no cambia; sólo cambia el modelo de propagación subyacente.
+\end{enumerate}
+
+% =============================================================================
+%  BIBLIOGRAFÍA
+% =============================================================================
+\begin{thebibliography}{9}
+
+\bibitem{miettinen1998}
+K.~Miettinen,
+\textit{Nonlinear Multiobjective Optimization}.
+Springer, 1998, cap.~3.
+
+\bibitem{messac2003}
+A.~Messac, A.~Ismail-Yahaya, and C.~A.~Mattson,
+``The normalized normal constraint method for generating the Pareto frontier,''
+\textit{Struct.\ Multidisc.\ Optim.}, vol.~25, no.~2, pp.~86--98, 2003.
+
+\bibitem{nocedal2006}
+J.~Nocedal and S.~J.~Wright,
+\textit{Numerical Optimization}, 2nd~ed.
+Springer, 2006, pp.~30--35.
+
+\bibitem{das1997}
+I.~Das and J.~E.~Dennis,
+``A closer look at drawbacks of minimizing weighted sums of objectives
+for Pareto set generation in multicriteria optimization problems,''
+\textit{Struct.\ Optim.}, vol.~14, pp.~63--69, 1997.
+
+\bibitem{moreira2013}
+A.~Moreira \textit{et al.},
+``A tutorial on synthetic aperture radar,''
+\textit{IEEE Geosci.\ Remote Sens.\ Mag.}, vol.~1, no.~1, pp.~6--43, Mar.~2013.
+
+\end{thebibliography}
+
+\bigskip
+\noindent\rule{\linewidth}{0.4pt}
+
+\noindent\small
+\textbf{Script:} \texttt{utils/generate\_figures\_cost\_analysis.py}
+\begin{itemize}[noitemsep, topsep=2pt, leftmargin=1.5em]
+  \item[] \texttt{utils/fig\_cf01\_landscapes.pdf}
+  \item[] \texttt{utils/fig\_cf02\_pareto\_fronts.pdf}
+  \item[] \texttt{utils/fig\_cf03\_alpha\_sensitivity.pdf}
+  \item[] \texttt{utils/fig\_cf04\_gradient\_norm.pdf}
+  \item[] \texttt{utils/fig\_cf05\_brewster\_penalty.pdf}
+\end{itemize}
+
+\end{document}

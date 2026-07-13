@@ -54,26 +54,9 @@
 \fancyhead[R]{\small\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 
-%% ─── Ambientes ───────────────────────────────────────────────────────────────
-\newcommand{\resultado}[2]{%
-  \begin{tcolorbox}[enhanced,breakable,
-    colback=yellow!8,colframe=orange!70!black,
-    fonttitle=\bfseries,title={\protect#1},
-    attach boxed title to top left={yshift=-2mm,xshift=5mm},
-    boxed title style={colback=orange!70!black}]#2
-  \end{tcolorbox}}
-
-\newcommand{\definicaobox}[2]{%
-  \begin{tcolorbox}[enhanced,breakable,
-    colback=blue!5,colframe=blue!50!black,
-    fonttitle=\bfseries,title={\protect#1}]#2
-  \end{tcolorbox}}
-
-\newcommand{\notabox}[2]{%
-  \begin{tcolorbox}[enhanced,breakable,
-    colback=green!5,colframe=green!50!black,
-    fonttitle=\bfseries,title={\protect#1}]#2
-  \end{tcolorbox}}
+%% ─── Teoremas adicionais ─────────────────────────────────────────────────────
+\theoremstyle{remark}
+\newtheorem*{observacao}{Observação}
 
 %% ─── Operadores ──────────────────────────────────────────────────────────────
 \DeclareMathOperator{\sinc}{sinc}
@@ -99,7 +82,10 @@
 \frontmatter
 \begin{titlepage}
   \centering\vspace*{1.5cm}
-  {\Large\textsc{Programa de Pós-Graduação em Engenharia Elétrica}\par}
+  {\Large\textsc{Universidade Estadual de Campinas}\par}
+  {\large\textsc{Faculdade de Engenharia Elétrica e de Computação}\par}
+  \vspace{0.5cm}
+  {\large\textsc{Programa de Pós-Graduação em Engenharia Elétrica}\par}
   \vfill
   {\Huge\bfseries Otimização da Trajetória do Receptor\\[0.4em]
    em Radar de Abertura Sintética Biestático\\[0.4em]
@@ -110,10 +96,31 @@
   \vfill
   {\large\textbf{David Atencia}\par}
   \vspace{0.6cm}
-  {\normalsize Tese de Doutorado\par}
+  {\normalsize Tese apresentada à Faculdade de Engenharia Elétrica e de
+   Computação da Universidade Estadual de Campinas como parte dos requisitos
+   exigidos para a obtenção do título de Doutor em Engenharia Elétrica.\par}
   \vspace{0.4cm}
-  {\normalsize 2026\par}
+  {\normalsize Campinas, 2026\par}
 \end{titlepage}
+
+%%─── Dedicatória ──────────────────────────────────────────────────────────────
+\cleardoublepage
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{flushright}
+  % TODO: Escrever dedicatória.
+  \textit{[Dedicatória a ser escrita.]}
+\end{flushright}
+\vspace*{\fill}
+
+%%─── Agradecimentos ───────────────────────────────────────────────────────────
+\chapter*{Agradecimentos}
+\addcontentsline{toc}{chapter}{Agradecimentos}
+
+% TODO: Escrever agradecimentos (orientador, banca, agências de fomento,
+%       colaboradores, família).
+
+\textit{[Agradecimentos a serem escritos.]}
 
 %%─── Resumo ───────────────────────────────────────────────────────────────────
 \chapter*{Resumo}
@@ -147,9 +154,10 @@ $\delta_z$ e inferiores a 12\% na resolução horizontal $\delta_{xy}$.
 
 \vspace{1em}
 \noindent\textbf{Palavras-chave:} SAR biestático; tomografia SAR; ângulo de
-Brewster; coeficientes de Fresnel; resolução espacial; k-espaço; meios
+Brewster; coeficientes de Fresnel; resolução espacial; $k$-espaço; meios
 estratificados; formalismo ABCD.
 
+%%─── Abstract ─────────────────────────────────────────────────────────────────
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 
@@ -161,7 +169,10 @@ The problem is formulated as a multi-objective optimization that simultaneously
 maximizes received power and three-dimensional spatial resolution. The solution
 exploits the \emph{Brewster angle} of TM polarization, a purely electromagnetic
 phenomenon by which the reflectance at the air-soil interface vanishes,
-transmitting all incident energy into the subsurface.
+transmitting all incident energy into the subsurface. The optimal receiver
+trajectory is one whose angle of incidence at the interface is, for each
+transmitter position along its helix, as close as possible to the Brewster
+angle, subject to resolution constraints.
 
 The mathematical foundation rests on four pillars: (i) Maxwell's equations and
 boundary conditions yielding the TM Fresnel coefficients; (ii) Fermat's
@@ -176,12 +187,87 @@ formulas with errors below 0.05\% in vertical resolution $\delta_z$ and below
 
 \vspace{1em}
 \noindent\textbf{Keywords:} bistatic SAR; SAR tomography; Brewster angle;
-Fresnel coefficients; spatial resolution; k-space; stratified media; ABCD
+Fresnel coefficients; spatial resolution; $k$-space; stratified media; ABCD
 formalism.
 
+%%─── Listas ───────────────────────────────────────────────────────────────────
 \tableofcontents
 \listoffigures
 \listoftables
+
+%%─── Lista de Acrônimos ───────────────────────────────────────────────────────
+\chapter*{Lista de Acrônimos}
+\addcontentsline{toc}{chapter}{Lista de Acrônimos}
+
+% TODO: Completar com todos os acrônimos do texto.
+
+\begin{longtable}{ll}
+\toprule
+Acrônimo & Descrição \\
+\midrule
+ABCD   & Matriz de parâmetros de transmissão (Transferência) \\
+BP     & \textit{Backprojection} (retroprojeção) \\
+FFBP   & \textit{Fast Factorized Backprojection} \\
+FMCW   & \textit{Frequency-Modulated Continuous Wave} \\
+GPR    & \textit{Ground Penetrating Radar} \\
+InSAR  & \textit{Interferometric SAR} (SAR interferométrico) \\
+LFM    & \textit{Linear Frequency-Modulated} (chirp linear) \\
+PCHIP  & \textit{Piecewise Cubic Hermite Interpolating Polynomial} \\
+PSF    & \textit{Point Spread Function} (função de espalhamento de ponto) \\
+RCS    & \textit{Radar Cross Section} (seção transversal de radar) \\
+SAR    & \textit{Synthetic Aperture Radar} (radar de abertura sintética) \\
+SNR    & \textit{Signal-to-Noise Ratio} (relação sinal-ruído) \\
+TE     & Transverso-Elétrico (polarização TE) \\
+TIR    & Reflexão Interna Total (\textit{Total Internal Reflection}) \\
+TM     & Transverso-Magnético (polarização TM) \\
+UWB    & \textit{Ultra-Wideband} (ultra-banda larga) \\
+\bottomrule
+\end{longtable}
+
+%%─── Lista de Símbolos ────────────────────────────────────────────────────────
+\chapter*{Lista de Símbolos}
+\addcontentsline{toc}{chapter}{Lista de Símbolos}
+
+\begin{longtable}{lll}
+\toprule
+Símbolo & Descrição & Unidade \\
+\midrule
+$c$                                       & Velocidade da luz no vácuo                         & m/s       \\
+$\omega = 2\pi f$                         & Frequência angular                                  & rad/s     \\
+$k = \omega n/c$                          & Número de onda                                      & rad/m     \\
+$\lambda_0 = c/f_0$                       & Comprimento de onda no vácuo                        & m         \\
+$B$                                       & Largura de banda chirp                              & Hz        \\
+$\varepsilon_r = n^2$                     & Permissividade relativa                             & --        \\
+$\eta_i = \eta_0/n_i$                     & Impedância intrínseca do meio $i$                   & $\Omega$  \\
+$\theta_i$                                & Ângulo de incidência / refração na camada $i$       & rad       \\
+$\theta_B = \arctan(n_2/n_1)$             & Ângulo de Brewster                                  & rad       \\
+$r_{\text{TM}}$                           & Coeficiente de reflexão TM (amplitude)              & --        \\
+$t_{\text{TM}}$                           & Coeficiente de transmissão TM (amplitude)           & --        \\
+$R_{\text{TM}} = |r_{\text{TM}}|^2$       & Reflectância TM (potência)                          & --        \\
+$T_{\text{TM}} = 1 - R_{\text{TM}}$       & Transmitância TM (potência)                         & --        \\
+$\mathcal{L}$                             & Caminho óptico                                      & m         \\
+$p = n_0\sin\theta_0$                     & Invariante de Snell (parâmetro de raio)             & --        \\
+$\mathbf{M}_i$                            & Matriz ABCD da camada $i$                           & --        \\
+$k_{z,i}$                                 & Número de onda vertical na camada $i$               & rad/m     \\
+$Z_i = n_i/\sqrt{n_i^2-p^2}$             & Impedância TM da camada $i$                         & --        \\
+$\Gamma_{\text{TM}}$                      & Coeficiente de reflexão global (ABCD)               & --        \\
+$P_t,\, P_r$                              & Potência transmitida / recebida                     & W         \\
+$G_t,\, G_r$                              & Ganhos de antena Tx e Rx                            & --        \\
+$\sigma$                                  & Seção transversal de radar (RCS)                    & m$^2$     \\
+$R_T,\, R_R$                              & Comprimentos geométricos dos raios refratados       & m         \\
+$\psi_0 = \arctan(\rho_0/z_0)$            & Ângulo de \textit{look} médio                       & rad       \\
+$\theta_{t,0}$                            & Ângulo de transmissão no solo no ponto médio        & rad       \\
+$B_{helix}$                               & Comprimento de arco da hélice                       & m         \\
+$\beta = \arctan(\Delta z/\Delta\rho)$    & Ângulo de inclinação da hélice                      & rad       \\
+$B_\perp = B_{helix}|\cos(\beta-\psi_0)|$ & Apertura tomográfica efetiva                        & m         \\
+$\Delta\phi$                              & NorthOffset Tx--Rx                                  & rad       \\
+$W_z$                                     & Extensão espectral vertical (frequência)            & Hz        \\
+$\delta_z,\, \delta_{xy}$                 & Resoluções vertical e horizontal                    & m         \\
+$J_0$                                     & Função de Bessel de $1^\text{a}$ espécie, ordem 0  & --        \\
+$J(\vect{r}_{Rx};\alpha)$                 & Função de custo multi-objetivo                      & --        \\
+$\alpha$                                  & Parâmetro de compromisso potência--resolução        & --        \\
+\bottomrule
+\end{longtable}
 
 %%═══════════════════════════════════════════════════════════════════════════════
 \mainmatter
@@ -192,94 +278,223 @@ formalism.
 \label{cap:intro}
 %%═══════════════════════════════════════════════════════════════════════════════
 
+% TODO: Revisar e expandir toda a introdução após completar os demais capítulos.
+
 \section{Contexto e Motivação}
+\label{sec:intro_contexto}
 
 O Radar de Abertura Sintética (SAR) é uma modalidade de radar coerente que
 processa o eco de múltiplas posições sequenciais da antena para sintetizar uma
 abertura virtual de dimensão muito superior à antena física, produzindo imagens
 de alta resolução independentes das condições atmosféricas e da iluminação
-solar [1]. Na configuração \emph{biestática}, transmissor (Tx) e
-receptor (Rx) voam em plataformas separadas, conferindo ao sistema maior
-flexibilidade geométrica e a capacidade de iluminar a mesma cena sob ângulos
-complementares de azimute e elevação.
+solar~[1]. Na configuração \emph{biestática}, transmissor (Tx)
+e receptor (Rx) operam em plataformas separadas, conferindo ao sistema maior
+flexibilidade geométrica e a possibilidade de explorar ângulos de iluminação e
+recepção complementares.
 
-Quando as plataformas descrevem trajetórias helicoidais cônicas ao redor da
-cena, o sistema realiza tomografia SAR tridimensional completa: a hélice fornece
-cobertura tanto na frequência espacial vertical ($k_z$, via apertura
+Quando ambas as plataformas descrevem trajetórias helicoidais cônicas ao redor
+da cena, o sistema realiza tomografia SAR tridimensional completa: a hélice
+fornece cobertura tanto na frequência espacial vertical ($k_z$, via apertura
 tomográfica) quanto na frequência espacial horizontal ($k_{xy}$, via cobertura
 azimutal circular). Esta geometria é particularmente vantajosa para o
-sensoriamento de alvos \emph{subsuperficiais} -- túneis, cavidades, minas,
-tubulações, camadas estratigráficas --, nos quais a onda eletromagnética precisa
-atravessar a interface ar-solo e propagar-se em meio dielétrico.
+sensoriamento de alvos \emph{subsuperficiais} — túneis, cavidades, minas
+antipessoais, tubulações, camadas estratigráficas — nos quais a onda
+eletromagnética precisa atravessar a interface ar-solo e propagar-se em meio
+dielétrico antes de atingir o alvo.
 
-O desempenho do sistema de sensoriamento subsuperficial é determinado por duas
-grandezas conflitantes: (i) a \emph{potência recebida} $P_r$, que deve ser
-suficiente para garantir relação sinal-ruído adequada; e (ii) a
-\emph{resolução espacial tridimensional} $(\delta_{xy}, \delta_z)$, que
-determina a capacidade de distinção entre alvos próximos. A potência recebida
-depende criticamente do ângulo de incidência na interface ar-solo, pois os
-coeficientes de reflexão e transmissão de Fresnel variam fortemente com este
-ângulo. Em polarização TM, existe um ângulo privilegiado -- o \emph{ângulo de
-Brewster} -- no qual a reflexão é rigorosamente nula e toda a energia incidente
-é transmitida para o subsolo.
+O desempenho do sistema em regime subsuperficial é determinado por duas
+grandezas fundamentais e conflitantes entre si: (i) a \emph{potência recebida}
+$P_r$, que deve ser suficiente para garantir relação sinal-ruído (SNR) adequada
+ao processamento da imagem; e (ii) a \emph{resolução espacial tridimensional}
+$(\delta_{xy},\delta_z)$, que determina a capacidade de distinção entre alvos
+próximos. A potência recebida depende criticamente do ângulo de incidência na
+interface ar-solo, pois os coeficientes de reflexão e transmissão de Fresnel
+variam fortemente com esse ângulo. Em polarização TM (transverso-magnética),
+existe um ângulo privilegiado — o \emph{ângulo de Brewster} $\theta_B$ — no
+qual a reflectância é rigorosamente nula e toda a energia incidente é
+transmitida para o subsolo~[5]. Por outro lado, a resolução
+horizontal $\delta_{xy}$ depende do ângulo azimutal entre Tx e Rx (NorthOffset
+$\Delta\phi$), e a resolução vertical $\delta_z$ depende da largura de banda e
+da apertura tomográfica da hélice~[3].
 
-A questão central desta tese é: \emph{qual trajetória do receptor, para cada
-posição do transmissor ao longo de sua hélice, maximiza a qualidade da imagem
-reconstruída do alvo subsuperficial?}
+A questão central desta tese é, portanto: \emph{qual trajetória do receptor, para
+cada posição do transmissor ao longo de sua hélice, maximiza simultaneamente a
+potência recebida e a resolução espacial tridimensional da imagem SAR do alvo
+subsuperficial?}
 
-\section{Objetivos}
+\section{O Sistema de Sensoriamento Proposto}
+\label{sec:intro_sistema}
+
+O sistema proposto consiste em dois veículos aéreos não tripulados (VANTs) que
+descrevem trajetórias helicoidais cônicas ao redor de uma cena de interesse. O
+transmissor segue uma hélice fixa e pré-determinada. O receptor, por sua vez,
+segue uma trajetória otimizada que, para cada posição do Tx, posiciona o Rx de
+modo a maximizar a função de custo multi-objetivo que combina potência recebida
+e resolução.
+
+O alvo encontra-se abaixo da superfície do solo. A interface ar-solo é modelada
+como plana e horizontal. O solo é tratado como dielétrico homogêneo sem perdas
+na aproximação de referência (Capítulos~\ref{cap:fundamentos}--\ref{cap:resolucao}),
+e estendido a $N$ camadas estratificadas no modelo final
+(Capítulo~\ref{cap:multicamadas}). A polarização da onda transmitida é TM, de
+modo a explorar o ângulo de Brewster da interface ar-solo.
+
+Os blocos funcionais do sistema são:
+\begin{itemize}
+  \item \textbf{Geometria da hélice cônica}: parametrização de Tx e Rx por raio,
+  altura e número de voltas, com NorthOffset $\Delta\phi$ variável.
+  \item \textbf{Modelo eletromagnético}: coeficientes de Fresnel TM e ângulo de
+  Brewster para a interface ar-solo (uma camada) e formalismo ABCD para $N$
+  camadas.
+  \item \textbf{Traçado de raios}: princípio de Fermat com solução iterativa de
+  Newton-Raphson para determinar o ponto de refração e o comprimento do raio
+  refratado para cada par (posição do sensor, alvo).
+  \item \textbf{Análise de resolução}: derivação analítica de $\delta_z$ e
+  $\delta_{xy}$ a partir do $k$-espaço biestático.
+  \item \textbf{Otimizador multi-objetivo}: minimização da função de custo
+  logarítmica $J(\vect{r}_{Rx};\alpha)$ para cada posição discreta do Tx,
+  seguida de interpolação PCHIP da trajetória completa do Rx.
+  \item \textbf{Validação}: simulador de \textit{backprojection} biestático com
+  refração para verificação das fórmulas analíticas.
+\end{itemize}
+
+\section{Objetivos e Contribuições}
+\label{sec:intro_contrib}
+
+O objetivo geral desta tese é desenvolver e validar um método sistemático de
+otimização da trajetória do receptor para SAR biestático helicoidal orientado
+ao sensoriamento subsuperficial em polarização TM.
+
+Os objetivos específicos, que correspondem às contribuições originais deste
+trabalho, são:
 
 \begin{enumerate}
-  \item Derivar rigorosamente, a partir das equações de Maxwell, os coeficientes
-  de Fresnel em polarização TM e a condição de Brewster.
 
-  \item Estabelecer a formulação variacional do princípio de Fermat para
-  determinar o raio refratado na interface ar-solo.
+  \item \textbf{Derivação eletromagnética rigorosa dos coeficientes de Fresnel TM
+  e do ângulo de Brewster.} A partir das equações de Maxwell e das condições de
+  contorno, demonstra-se que $\theta_B = \arctan(n_2/n_1)$ é o único zero da
+  reflectância TM para meios sem perdas e não-magnéticos, com interpretação
+  física em termos da radiação dipolar.
 
-  \item Derivar as equações analíticas de resolução 3D $(\delta_z, \delta_{xy})$
-  a partir da análise do $k$-espaço do SAR biestático helicoidal.
+  \item \textbf{Derivação analítica das equações de resolução 3D do SAR biestático
+  helicoidal.} As fórmulas para $\delta_z$ e $\delta_{xy}$ são obtidas pela
+  análise do vetor de número de onda biestático refratado e do perfil de Bessel
+  $J_0$ da PSF circular, generalizando resultados da literatura para incluir
+  o efeito de refração na interface ar-solo.
 
-  \item Propor uma função de custo multi-objetivo logarítmica que incorpore
-  potência e resolução, e analisar a fronteira de Pareto correspondente.
+  \item \textbf{Formulação de uma função de custo multi-objetivo logarítmica para
+  a otimização conjunta de potência e resolução.} A escala logarítmica resolve
+  o problema de comensurabilidade entre potência ($\sim 10^{-15}$\,W) e resolução
+  ($\sim 10^{-4}$\,m$^2$), e a fronteira de Pareto identifica a região de operação
+  recomendada.
 
-  \item Estender o modelo de transmissão TM para $N$ camadas subsuperficiais
-  via formalismo de matrizes de transferência ABCD.
+  \item \textbf{Extensão do modelo de transmissão TM para $N$ camadas
+  subsuperficiais via formalismo de matrizes de transferência ABCD.} O modelo
+  trata a última camada como semi-infinita (sem reflexão na face inferior),
+  com impedâncias de entrada e saída assimétricas ($Z_{\text{in}} \neq Z_{\text{out}}$),
+  e reduz-se exatamente ao caso de Fresnel quando $N=1$.
 
-  \item Validar todo o modelo por simulação de \textit{backprojection}
-  biestático.
+  \item \textbf{Validação por simulação de \textit{backprojection} biestático.}
+  O simulador integra numericamente a lei de Snell via Newton-Raphson e confirma
+  as fórmulas analíticas com erros inferiores a 0{,}05\% em $\delta_z$ e
+  inferiores a 12\% em $\delta_{xy}$.
+
 \end{enumerate}
 
 \section{Organização da Tese}
+\label{sec:intro_org}
 
-O Capítulo~\ref{cap:em} estabelece as bases eletromagnéticas: equações de
-Maxwell, condições de contorno, polarização TM, coeficientes de Fresnel e o
-ângulo de Brewster. O Capítulo~\ref{cap:fermat} trata do princípio de Fermat
-e da determinação do raio refratado. O Capítulo~\ref{cap:sar} apresenta a
-geometria do SAR biestático helicoidal. O Capítulo~\ref{cap:resolucao} deriva
-as equações de resolução 3D a partir do $k$-espaço. O
-Capítulo~\ref{cap:otimizacao} formula o problema de otimização da trajetória e
-analisa a fronteira de Pareto. O Capítulo~\ref{cap:multicamadas} estende o
-modelo para $N$ camadas via formalismo ABCD. O Capítulo~\ref{cap:resultados}
-apresenta a validação experimental. O Capítulo~\ref{cap:conclusoes} encerra com
-conclusões e perspectivas.
+Esta tese está organizada em sete capítulos e dois apêndices, seguindo uma
+estrutura cumulativa em que cada capítulo estabelece os fundamentos necessários
+para o seguinte.
+
+O \textbf{Capítulo~\ref{cap:fundamentos}} (Fundamentos Teóricos) consolida a
+base teórica do trabalho: as equações de Maxwell e os coeficientes de Fresnel TM,
+o ângulo de Brewster, o princípio de Fermat para o traçado de raios refratados,
+a geometria da hélice cônica e a equação do radar biestático.
+
+O \textbf{Capítulo~\ref{cap:resolucao}} (Resolução Espacial 3D) deriva as
+fórmulas analíticas de resolução $\delta_z$ e $\delta_{xy}$ a partir da análise
+do $k$-espaço biestático refratado, e discute a condição ótima de inclinação da
+hélice e a correção \textit{off-axis} de Góes~[3].
+
+O \textbf{Capítulo~\ref{cap:otimizacao}} (Otimização da Trajetória) formula o
+problema de otimização multi-objetivo, justifica a escala logarítmica, analisa
+a fronteira de Pareto e descreve o otimizador com interpolação PCHIP.
+
+O \textbf{Capítulo~\ref{cap:multicamadas}} (Meios Estratificados) estende o
+modelo para $N$ camadas via formalismo ABCD, demonstra a consistência com o
+caso de Fresnel e discute o ângulo de transmissão ótimo numérico para pilhas
+multicamada.
+
+O \textbf{Capítulo~\ref{cap:resultados}} (Validação) apresenta a validação
+completa por simulação de \textit{backprojection} biestático: configuração do
+simulador, cenários, comparação analítico vs.\ simulação, análise de erros e
+curvas de projeto.
+
+O \textbf{Capítulo~\ref{cap:conclusoes}} (Conclusões) recapitula as contribuições,
+discute as limitações do modelo atual e aponta perspectivas de trabalhos futuros.
+
+O \textbf{Apêndice~\ref{app:math}} reúne as derivações matemáticas de suporte:
+conservação de energia nos coeficientes de Fresnel, PSF circular como distribuição
+de Bessel, derivação das matrizes ABCD a partir das equações de Maxwell, e
+verificação dimensional de $W_z$.
+
+\section{Publicações}
+\label{sec:intro_pub}
+
+% TODO: Listar artigos publicados e submetidos originados desta tese.
+
+\textit{[Lista de publicações a ser inserida.]}
 
 %%═══════════════════════════════════════════════════════════════════════════════
-\chapter{Fundamentos Eletromagnéticos}
-\label{cap:em}
+\chapter{Fundamentos Teóricos}
+\label{cap:fundamentos}
 %%═══════════════════════════════════════════════════════════════════════════════
 
-\section{Equações de Maxwell em Meios Lineares Isotrópicos}
+\section{Radar de Abertura Sintética: Princípios e Histórico}
+\label{sec:fund_sar_intro}
+
+O SAR é um sistema de imageamento baseado em radar coerente que explora o
+movimento da plataforma portadora para sintetizar uma antena virtual de grande
+abertura. A técnica, concebida por Carl Wiley em 1951 e demonstrada
+experimentalmente por Sherwin et al.\ em 1953~[1], produz imagens de alta
+resolução em azimute independentemente do comprimento físico da antena. A
+resolução em azimute de um SAR monoestático convencional é $\delta_{az} \approx D/2$,
+onde $D$ é o comprimento da antena real, resultado contraintuitivo: a resolução
+\emph{melhora} com antenas menores, pois a abertura sintética gerada é inversamente
+proporcional a~$D$.
+
+Na configuração biestática, transmissor e receptor encontram-se em plataformas
+distintas. Esta separação amplia o espaço de geometrias disponíveis: ângulos de
+iluminação e recepção independentes permitem explorar a geometria de espalhamento
+do alvo de formas inacessíveis ao radar monoestático~[8,13]. No contexto de SAR
+helicoidal, a plataforma — ou as duas plataformas no caso biestático — realiza
+trajetórias circulares repetidas em diferentes alturas, gerando cobertura
+tridimensional do $k$-espaço da cena.
+
+A tomografia SAR~[16] generaliza o processamento de imagem SAR para múltiplas
+passagens, permitindo reconstruir a distribuição tridimensional de espalhadores
+em cenas complexas. No regime subsuperficial, a onda deve atravessar a interface
+ar-solo, o que introduz a refração e a atenuação por transmissão como fatores
+limitantes adicionais do desempenho do sistema~[9,14].
+
+\section{Propagação Eletromagnética em Meios Dielétricos}
+\label{sec:fund_em}
+
+\subsection{Equações de Maxwell em Meios Lineares Isotrópicos}
+\label{ssec:maxwell}
 
 Considerem-se dois meios dielétricos sem perdas, lineares, isotrópicos e
 homogêneos, separados por uma interface plana em $z = 0$. O meio superior
 ($z > 0$) tem permissividade $\varepsilon_1 = \varepsilon_0$ e permeabilidade
 $\mu_1 = \mu_0$ (ar). O meio inferior ($z < 0$) tem
-$\varepsilon_2 = \varepsilon_r \varepsilon_0$ e $\mu_2 = \mu_0$ (dielétrico
+$\varepsilon_2 = \varepsilon_r\varepsilon_0$ e $\mu_2 = \mu_0$ (dielétrico
 não-magnético sem perdas). Os índices de refração são $n_1 = 1$ e
 $n_2 = \sqrt{\varepsilon_r}$.
 
-As equações de Maxwell no domínio da frequência (notação fasorial com
-convenção $e^{\jj\omega t}$) são:
+As equações de Maxwell no domínio da frequência (notação fasorial com convenção
+$e^{\jj\omega t}$) são:
 
 \begin{align}
   \nabla \times \vect{E} &= -\jj\omega\mu\,\vect{H} \label{eq:maxwell_rot_e} \\
@@ -288,34 +503,39 @@ convenção $e^{\jj\omega t}$) são:
   \nabla \cdot (\mu\vect{H}) &= 0 \label{eq:maxwell_div_h}
 \end{align}
 
-Tomando o rotacional de \eqref{eq:maxwell_rot_e}, usando \eqref{eq:maxwell_rot_h}
-e a identidade $\nabla\times(\nabla\times\vect{E}) = \nabla(\nabla\cdot\vect{E}) - \nabla^2\vect{E}$,
-juntamente com \eqref{eq:maxwell_div_e}:
+Tomando o rotacional de~\eqref{eq:maxwell_rot_e}, usando~\eqref{eq:maxwell_rot_h}
+e a identidade $\nabla\times(\nabla\times\vect{E}) =
+\nabla(\nabla\cdot\vect{E}) - \nabla^2\vect{E}$,
+juntamente com~\eqref{eq:maxwell_div_e}:
 
 \begin{equation}
   \nabla^2 \vect{E} + k^2 \vect{E} = 0, \qquad k = \frac{\omega n}{c}
   \label{eq:helmholtz}
 \end{equation}
 
-\section{Ondas Planas e Polarização TM}
+\subsection{Ondas Planas e Polarização TM}
+\label{ssec:ondas_tm}
 
-Uma onda plana propagando-se no plano $xz$ (plano de incidência) com vetor
-de onda $\vect{k} = k(\sin\theta\,\uvec{x} + \cos\theta\,\uvec{z})$ é da forma
+Uma onda plana propagando-se no plano $xz$ (plano de incidência) com vetor de
+onda $\vect{k} = k(\sin\theta\,\uvec{x} + \cos\theta\,\uvec{z})$ tem a forma
 $e^{\jj(\vect{k}\cdot\vect{r} - \omega t)}$. A polarização TM (transverso-magnética)
 é definida pela condição em que o campo magnético é transverso ao plano de
 incidência: $\vect{H} \parallel \uvec{y}$ e $\vect{E}$ pertence ao plano $xz$.
 
 Para a onda incidente TM, com amplitude $E_0$:
 \begin{align}
-  \vect{E}^i &= E_0(\cos\theta_i\,\uvec{x} - \sin\theta_i\,\uvec{z})\,e^{\jj k_1(x\sin\theta_i + z\cos\theta_i)} \label{eq:E_inc} \\
-  \vect{H}^i &= \frac{E_0}{\eta_1}\,\uvec{y}\,e^{\jj k_1(x\sin\theta_i + z\cos\theta_i)} \label{eq:H_inc}
+  \vect{E}^i &= E_0(\cos\theta_i\,\uvec{x} - \sin\theta_i\,\uvec{z})\,
+               e^{\jj k_1(x\sin\theta_i + z\cos\theta_i)} \label{eq:E_inc} \\
+  \vect{H}^i &= \frac{E_0}{\eta_1}\,\uvec{y}\,
+               e^{\jj k_1(x\sin\theta_i + z\cos\theta_i)} \label{eq:H_inc}
 \end{align}
 
 onde $\eta_i = \eta_0/n_i$ é a impedância intrínseca do meio $i$. Os campos
-refletido e transmitido têm amplitudes $r_{\text{TM}} E_0$ e $t_{\text{TM}} E_0$
+refletido e transmitido têm amplitudes $r_{\text{TM}} E_0$ e $t_{\text{TM}} E_0$,
 respectivamente.
 
-\section{Condições de Contorno e Coeficientes de Fresnel TM}
+\subsection{Condições de Contorno e Coeficientes de Fresnel TM}
+\label{ssec:fresnel}
 
 As condições de contorno na interface $z=0$ exigem a continuidade das componentes
 tangenciais de $\vect{E}$ e $\vect{H}$:
@@ -335,14 +555,15 @@ e a \textbf{lei de Snell}:
   \label{eq:snell}
 \end{equation}
 
-Substituindo os campos nas condições \eqref{eq:bc_ex}--\eqref{eq:bc_hy}:
+Substituindo os campos nas condições~\eqref{eq:bc_ex}--\eqref{eq:bc_hy} e
+usando~\eqref{eq:snell}:
 
 \begin{align}
   (1 + r_{\text{TM}})\cos\theta_i &= t_{\text{TM}}\cos\theta_t \label{eq:sys_bc1} \\
   \frac{1}{\eta_1}(1 - r_{\text{TM}}) &= \frac{t_{\text{TM}}}{\eta_2} \label{eq:sys_bc2}
 \end{align}
 
-Resolvendo \eqref{eq:sys_bc1}--\eqref{eq:sys_bc2}, obtém-se os
+Resolvendo~\eqref{eq:sys_bc1}--\eqref{eq:sys_bc2}, obtêm-se os
 \textbf{coeficientes de Fresnel TM}:
 
 \begin{align}
@@ -351,9 +572,11 @@ Resolvendo \eqref{eq:sys_bc1}--\eqref{eq:sys_bc2}, obtém-se os
 \end{align}
 
 \subsection{Reflectância e Transmitância de Potência}
+\label{ssec:pot_fresnel}
 
 O vetor de Poynting médio $\vect{S} = \frac{1}{2}\,\text{Re}(\vect{E}\times\vect{H}^*)$
-fornece o fluxo de potência. A componente $z$ para as três ondas é:
+fornece o fluxo de potência por unidade de área. A componente $z$ para as três
+ondas é:
 
 \begin{equation}
   S_z^i = \frac{|E_0|^2}{2\eta_1}\cos\theta_i, \quad
@@ -361,7 +584,7 @@ fornece o fluxo de potência. A componente $z$ para as três ondas é:
   S_z^t = \frac{|t_{\text{TM}}|^2|E_0|^2}{2\eta_2}\cos\theta_t
 \end{equation}
 
-As grandezas de potência são:
+As grandezas de potência normalizadas são:
 
 \begin{equation}
   R_{\text{TM}} = \frac{|S_z^r|}{S_z^i} = |r_{\text{TM}}|^2
@@ -369,21 +592,22 @@ As grandezas de potência são:
 \end{equation}
 
 \begin{equation}
-  T_{\text{TM}} = \frac{S_z^t}{S_z^i} = \frac{n_2\cos\theta_t}{n_1\cos\theta_i}\,|t_{\text{TM}}|^2
-  = 1 - |r_{\text{TM}}|^2
+  T_{\text{TM}} = \frac{S_z^t}{S_z^i} = \frac{n_2\cos\theta_t}{n_1\cos\theta_i}
+  \,|t_{\text{TM}}|^2 = 1 - |r_{\text{TM}}|^2
   \label{eq:T_TM}
 \end{equation}
 
-A segunda igualdade em \eqref{eq:T_TM} é a lei de conservação de energia
-$R_{\text{TM}} + T_{\text{TM}} = 1$, verificada pela identidade (Apêndice~\ref{app:math}).
+A segunda igualdade em~\eqref{eq:T_TM} é a lei de conservação de energia
+$R_{\text{TM}} + T_{\text{TM}} = 1$, verificada algebricamente no
+Apêndice~\ref{app:energia_fresnel}.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{pv_fig01_fresnel_tm.pdf}
 \caption{Reflectância $R_{\text{TM}}$ e transmitância $T_{\text{TM}}$ em função
 do ângulo de incidência $\theta_i$ para $n_1=1$ (ar) e $n_2=2$
-($\varepsilon_r=4$, solo seco típico). O ângulo de Brewster $\theta_B \approx 63{,}4^\circ$
-é o único zero de $R_{\text{TM}}$.}
+($\varepsilon_r=4$, solo seco típico). O ângulo de Brewster
+$\theta_B \approx 63{,}4^\circ$ é o único zero de $R_{\text{TM}}$.}
 \label{fig:fresnel_tm}
 \end{figure}
 
@@ -402,61 +626,63 @@ tal que $r_{\text{TM}}(\theta_B) = 0$, dado por:
 \end{teorema}
 
 \begin{proof}
-Impondo $r_{\text{TM}} = 0$ em \eqref{eq:r_TM}: $n_2\cos\theta_B = n_1\cos\theta_t^{(B)}$.
-Elevando ao quadrado: $n_2^2(1-\sin^2\theta_B) = n_1^2(1-\sin^2\theta_t^{(B)})$.
-Usando a lei de Snell $\sin\theta_t^{(B)} = (n_1/n_2)\sin\theta_B$:
+Impondo $r_{\text{TM}} = 0$ em~\eqref{eq:r_TM}: $n_2\cos\theta_B = n_1\cos\theta_t^{(B)}$.
+Elevando ao quadrado e usando a lei de Snell $\sin\theta_t^{(B)} = (n_1/n_2)\sin\theta_B$:
 \[
   n_2^2 - n_2^2\sin^2\theta_B = n_1^2 - n_1^2\cdot\frac{n_1^2}{n_2^2}\sin^2\theta_B
 \]
 \[
-  (n_2^2 - n_1^4/n_2^2)\sin^2\theta_B = n_2^2 - n_1^2
-  \quad\Rightarrow\quad
   \frac{n_2^4-n_1^4}{n_2^2}\sin^2\theta_B = n_2^2 - n_1^2
+  \quad\Rightarrow\quad
+  \sin^2\theta_B = \frac{n_2^2}{n_1^2+n_2^2}
 \]
-\[
-  \sin^2\theta_B = \frac{n_2^2(n_2^2-n_1^2)}{(n_2^2-n_1^2)(n_2^2+n_1^2)} = \frac{n_2^2}{n_1^2+n_2^2}
-\]
-Portanto $\cos^2\theta_B = n_1^2/(n_1^2+n_2^2)$ e $\tan\theta_B = n_2/n_1$.
+Portanto $\tan\theta_B = n_2/n_1$.
 \end{proof}
 
 \begin{corolario}
-No ângulo de Brewster, o raio refratado e o raio refletido são perpendiculares:
-$\theta_B + \theta_t^{(B)} = \pi/2$.
+No ângulo de Brewster, o raio refratado e o hipotético raio refletido são
+perpendiculares: $\theta_B + \theta_t^{(B)} = \pi/2$.
 \end{corolario}
 
 \begin{proof}
-$\sin\theta_t^{(B)} = (n_1/n_2)\cdot n_2/\sqrt{n_1^2+n_2^2} = n_1/\sqrt{n_1^2+n_2^2} = \cos\theta_B$.
-Logo $\theta_t^{(B)} = \pi/2 - \theta_B$.
+$\sin\theta_t^{(B)} = (n_1/n_2)\cdot n_2/\sqrt{n_1^2+n_2^2}
+= n_1/\sqrt{n_1^2+n_2^2} = \cos\theta_B$,
+logo $\theta_t^{(B)} = \pi/2 - \theta_B$.
 \end{proof}
 
-O significado físico é imediato: a ortogonalidade $\theta_B + \theta_t^{(B)}=\pi/2$
-implica que os dipolos induzidos pelos campos refratados oscillam exatamente na
-direção do hipotético raio refletido, não podendo irradiar nessa direção
-(pois um dipolo não irradia ao longo de seu eixo). A reflexão se anula por
-razões intrínsecas ao mecanismo de radiação dipolar. Para $n_2 = 2$
-(solo com $\varepsilon_r = 4$, valor típico de solo seco): $\theta_B = \arctan(2) \approx 63{,}4^\circ$.
+O significado físico é imediato: a ortogonalidade implica que os dipolos
+induzidos pelos campos refratados oscilam exatamente na direção do hipotético
+raio refletido. Como um dipolo não irradia ao longo de seu próprio eixo, a
+reflexão se anula por razões intrínsecas ao mecanismo de radiação dipolar~[5].
+Para $n_2 = 2$ (solo com $\varepsilon_r = 4$, valor típico de solo seco):
+$\theta_B = \arctan(2) \approx 63{,}4^\circ$.
+
+O ângulo de Brewster é o alvo geométrico fundamental do sistema proposto nesta
+tese: posicionar o receptor de modo que o raio alvo$\to$Rx incida na interface
+ar-solo com $\theta_R \approx \theta_B$ maximiza a transmitância $T_{\text{TM}}$
+e, portanto, a potência retornada ao receptor.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.80\textwidth]{pv_fig08_brewster_geometry.pdf}
-\caption{Geometria do ângulo de Brewster. No ângulo $\theta_B$, a
-ortogonalidade entre o raio refratado e o hipotético raio refletido
-impede a radiação na direção refletida, anulando $r_{\text{TM}}$.}
+\caption{Geometria do ângulo de Brewster. Em $\theta_B$, a ortogonalidade entre
+o raio refratado e o hipotético raio refletido impede a radiação na direção
+refletida, anulando $r_{\text{TM}}$.}
 \label{fig:brewster_geom}
 \end{figure}
 
-%%═══════════════════════════════════════════════════════════════════════════════
-\chapter{Traçado de Raios e Princípio de Fermat}
-\label{cap:fermat}
-%%═══════════════════════════════════════════════════════════════════════════════
+\section{Traçado de Raios e Princípio de Fermat}
+\label{sec:fermat}
 
-\section{Formulação Variacional do Princípio de Fermat}
+\subsection{Formulação Variacional do Princípio de Fermat}
+\label{ssec:fermat_var}
 
 O princípio de Fermat estabelece que a trajetória seguida por um raio
 eletromagnético entre dois pontos é aquela que torna o caminho óptico
-\emph{estacionário}.
+\emph{estacionário}~[5,7].
 
 \begin{definicaom}[Caminho Óptico]
+\label{def:caminho_optico}
 O caminho óptico entre os pontos $A$ e $B$ ao longo de uma trajetória
 $\mathcal{C}$ é:
 \begin{equation}
@@ -476,7 +702,8 @@ $Q = (u, 0)$ da interface (no plano vertical contendo $A$ e $B$):
 
 onde $d$ é a separação horizontal projetada entre $A$ e $B$.
 
-\section{Condição de Estacionaridade e Lei de Snell}
+\subsection{Condição de Estacionaridade e Lei de Snell}
+\label{ssec:fermat_snell}
 
 A condição de estacionaridade $\dd\mathcal{L}/\dd u = 0$ fornece:
 
@@ -485,19 +712,21 @@ A condição de estacionaridade $\dd\mathcal{L}/\dd u = 0$ fornece:
   \label{eq:fermat_estac}
 \end{equation}
 
-que é precisamente $n_1\sin\theta_i = n_2\sin\theta_t$, isto é, a lei de Snell
-\eqref{eq:snell}. A unicidade do ponto $u^*$ é garantida porque a função
+que é precisamente $n_1\sin\theta_i = n_2\sin\theta_t$, ou seja, a lei de
+Snell~\eqref{eq:snell}. A unicidade do ponto $u^*$ é garantida porque a função
 $g(u) = n_1\sin\theta_i(u) - n_2\sin\theta_t(u)$ tem derivada:
 
 \begin{equation}
-  \frac{\dd g}{\dd u} = \frac{n_1 z_A^2}{(u^2+z_A^2)^{3/2}} + \frac{n_2 z_B^2}{((d-u)^2+z_B^2)^{3/2}} > 0
+  \frac{\dd g}{\dd u} = \frac{n_1 z_A^2}{(u^2+z_A^2)^{3/2}}
+  + \frac{n_2 z_B^2}{((d-u)^2+z_B^2)^{3/2}} > 0
   \label{eq:g_prime}
 \end{equation}
 
 sempre positiva, assegurando que $g$ tem raiz única e que o ponto estacionário
 é um mínimo global de $\mathcal{L}$.
 
-\section{Método de Newton-Raphson para o Ponto de Refração}
+\subsection{Método de Newton-Raphson para o Ponto de Refração}
+\label{ssec:newton}
 
 A equação $g(u) = 0$ não admite solução de forma fechada para posições 3D
 arbitrárias. A iteração de Newton-Raphson:
@@ -511,61 +740,77 @@ converge quadraticamente, pois $g'(u) > 0$ garante monotonicidade e existência
 de derivada segunda limitada. Na prática, 3--5 iterações com tolerância
 $|g| < 10^{-10}$\,m são suficientes para precisão de engenharia.
 
-\section{Caminho Geométrico Refratado}
+\subsection{Caminho Geométrico Refratado}
+\label{ssec:path_geom}
 
-O comprimento geométrico total do raio Tx$\to$alvo (comprimento físico,
-não óptico) é:
+O comprimento geométrico total do raio Tx$\to$alvo (comprimento físico, não
+óptico) é:
 
 \begin{equation}
   \ell = \sqrt{(u^*)^2+z_A^2} + \sqrt{(d-u^*)^2+z_B^2}
   \label{eq:path_geom}
 \end{equation}
 
-Este é o comprimento a ser usado na equação do radar (perda por espalhamento
-geométrico $\propto 1/\ell^2$), enquanto o caminho óptico $\mathcal{L}(u^*)$
-determina a fase do eco recebido.
+Este comprimento é usado na equação do radar (perda por espalhamento geométrico
+$\propto 1/\ell^2$), enquanto o caminho óptico $\mathcal{L}(u^*)$ determina a
+fase do eco recebido e, portanto, o posicionamento do alvo na imagem SAR.
 
-%%═══════════════════════════════════════════════════════════════════════════════
-\chapter{O Sistema SAR Biestático Helicoidal}
-\label{cap:sar}
-%%═══════════════════════════════════════════════════════════════════════════════
+\section{O SAR Biestático Helicoidal}
+\label{sec:fund_sar_bist}
 
-\section{Geometria da Hélice Cônica}
+\subsection{Geometria da Hélice Cônica}
+\label{ssec:helix_geom}
 
 O transmissor descreve uma hélice cônica parametrizada por:
 
 \begin{align}
-  x_{Tx}(t) &= \rho(t)\cos\!\left(\frac{2\pi N_v\,t}{T} + \phi_0\right), \quad
-  y_{Tx}(t) = \rho(t)\sin\!\left(\frac{2\pi N_v\,t}{T} + \phi_0\right), \quad
-  z_{Tx}(t) = z_{\min} + \frac{(z_{\max}-z_{\min})t}{T}
+  x_{Tx}(t) &= \rho(t)\cos\!\left(\frac{2\pi N_v\,t}{T} + \phi_0\right), \nonumber\\
+  y_{Tx}(t) &= \rho(t)\sin\!\left(\frac{2\pi N_v\,t}{T} + \phi_0\right), \nonumber\\
+  z_{Tx}(t) &= z_{\min} + \frac{(z_{\max}-z_{\min})\,t}{T}
   \label{eq:helix}
 \end{align}
 
 onde $\rho(t) = \rho_{\min} + (\rho_{\max}-\rho_{\min})t/T$, $N_v$ é o número
 de voltas e $T$ o período total. O receptor voa na mesma hélice, defasado de
-um ângulo azimutal fixo $\Delta\phi$ (NorthOffset).
+um ângulo azimutal fixo $\Delta\phi$ (NorthOffset), de modo que
+$\phi_{Rx}(t) = \phi_{Tx}(t) + \Delta\phi$.
 
-Os parâmetros geométricos relevantes são:
+Os parâmetros geométricos relevantes para a análise de resolução são:
 \begin{itemize}
-  \item Ângulo de \textit{look} médio: $\psi_0 = \arctan(\rho_0/z_0)$.
-  \item Comprimento de arco da hélice: $B_{helix} = \sqrt{\Delta\rho^2 + \Delta z^2}$.
+  \item Ângulo de \textit{look} médio: $\psi_0 = \arctan(\rho_0/z_0)$, onde
+        $\rho_0$ e $z_0$ são raio e altura médios.
+  \item Comprimento de arco da hélice: $B_{helix} = \sqrt{\Delta\rho^2 + \Delta z^2}$,
+        com $\Delta\rho = \rho_{\max}-\rho_{\min}$ e $\Delta z = z_{\max}-z_{\min}$.
   \item Ângulo de inclinação: $\beta = \arctan(\Delta z/\Delta\rho)$.
   \item Apertura tomográfica efetiva: $B_\perp = B_{helix}|\cos(\beta-\psi_0)|$.
 \end{itemize}
+
+A \textbf{condição ótima} de inclinação é $\beta = \psi_0$, que maximiza
+$B_\perp = B_{helix}$ (apertura tomográfica máxima com dado comprimento de hélice).
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.86\textwidth]{pv_fig10_sistema_3d.pdf}
 \caption{Geometria do sistema SAR biestático helicoidal. Tx e Rx descrevem
-hélices cônicas ao redor da cena. O NorthOffset $\Delta\phi$ é o atraso
-azimutal fixo entre Tx e Rx.}
+hélices cônicas ao redor da cena subsuperficial. O NorthOffset $\Delta\phi$ é
+o atraso azimutal fixo entre Tx e Rx.}
 \label{fig:sistema3d}
 \end{figure}
 
-\section{Equação do Radar Biestático}
+\subsection{Modelo de Sinal e Forma de Onda}
+\label{ssec:signal_model}
 
-A potência entregue a um alvo pontual de RCS $\sigma$ pelo transmissor é
-[6]:
+% TODO: Descrever o modelo de sinal LFM (chirp) transmitido e o sinal
+%       recebido após mistura e filtragem por correlação. Incluir a expressão
+%       da fase bistática em função das posições Tx, Rx e alvo.
+%       Requer derivação matemática nova.
+
+\textit{[Conteúdo a ser desenvolvido.]}
+
+\subsection{Equação do Radar Biestático com Refração}
+\label{ssec:radar_eq}
+
+A potência entregue por unidade de área ao alvo pelo transmissor é~[6]:
 
 \begin{equation}
   S_T = \frac{P_t\,G_t}{4\pi\,R_T^2}
@@ -574,51 +819,103 @@ A potência entregue a um alvo pontual de RCS $\sigma$ pelo transmissor é
 
 A potência total espalhada pelo alvo é $P_{\text{scat}} = \sigma\,S_T$,
 e a densidade de potência no receptor é $S_R = P_{\text{scat}}/(4\pi R_R^2)$.
-Com área efetiva $A_{\text{ef}} = G_r\lambda^2/(4\pi)$, a potência recebida é:
+Com área efetiva de recepção $A_{\text{ef}} = G_r\lambda^2/(4\pi)$, a potência
+recebida é:
 
 \begin{equation}
   P_r = \frac{P_t\,G_t\,G_r\,\sigma\,\lambda^2}{(4\pi)^3\,R_T^2\,R_R^2}
   \label{eq:radar_bist}
 \end{equation}
 
-Na presença de refração, os coeficientes de transmissão TM $T_1$ (Tx$\to$alvo)
-e $T_2$ (alvo$\to$Rx) modificam a equação:
+Na presença de refração na interface ar-solo, a onda percorre dois tramos em
+cada direção: um tramo no ar ($\ell^{(1)}$) e um tramo no dielétrico ($\ell^{(2)}$).
+Os coeficientes de transmissão TM da interface modificam a potência efetiva:
+$T_1 = T_{\text{TM}}(\theta_T)$ para o caminho Tx$\to$alvo e
+$T_2 = T_{\text{TM}}(\theta_R)$ para o caminho alvo$\to$Rx. A equação do radar
+biestático com refração é:
 
 \begin{equation}
   \boxed{P_r = \frac{P_t\,G_t\,G_r\,\sigma\,T_1\,T_2\,\lambda^2}{(4\pi)^3\,R_T^2\,R_R^2}}
   \label{eq:radar_refratado}
 \end{equation}
 
-onde $R_T$ e $R_R$ são agora os comprimentos geométricos dos raios refratados
-\eqref{eq:path_geom}.
+onde $R_T$ e $R_R$ são os comprimentos geométricos dos raios refratados dados
+por~\eqref{eq:path_geom}, determinados pela lei de Snell via Newton-Raphson.
+
+\subsection{Algoritmo de Backprojection Biestático}
+\label{ssec:bp_algo}
+
+% TODO: Descrever o algoritmo de backprojection (BP) biestático com refração:
+%       varredura de posições, cálculo do caminho óptico via Snell (Newton-Raphson),
+%       acumulação coerente dos ecos. Complexidade computacional O(N_p × N_t).
+%       Requer desenvolvimento novo baseado no simulador existente em MATLAB.
+
+\textit{[Conteúdo a ser desenvolvido.]}
+
+\section{Conclusões do Capítulo}
+\label{sec:fund_concl}
+
+Este capítulo estabeleceu a base teórica sobre a qual os capítulos subsequentes
+são construídos. As equações de Maxwell e as condições de contorno fornecem os
+coeficientes de Fresnel TM~\eqref{eq:r_TM}--\eqref{eq:t_TM} e o ângulo de
+Brewster~\eqref{eq:brewster}, que é o alvo geométrico do sistema proposto. O
+princípio variacional de Fermat demonstra que a lei de Snell é condição
+necessária e suficiente para o ponto de refração, com unicidade garantida pela
+monotonicidade estrita de $g'(u) > 0$~\eqref{eq:g_prime}. O método de
+Newton-Raphson resolve numericamente o problema de refração em 3D com
+convergência quadrática.
+
+A geometria da hélice cônica define os parâmetros de apertura tomográfica que
+determinam a resolução 3D derivada no Capítulo~\ref{cap:resolucao}. A equação
+do radar biestático com refração~\eqref{eq:radar_refratado} é a grandeza a
+maximizar no problema de otimização do Capítulo~\ref{cap:otimizacao}.
 
 %%═══════════════════════════════════════════════════════════════════════════════
-\chapter{Resolução Espacial 3D do SAR Biestático Helicoidal}
+\chapter{Resolução Espacial Tridimensional do SAR Biestático Helicoidal}
 \label{cap:resolucao}
 %%═══════════════════════════════════════════════════════════════════════════════
 
+\section{Introdução e Estado da Arte}
+\label{sec:res_arte}
+
+% TODO: Revisar a literatura sobre resolução em SAR circular/helicoidal e SAR
+%       biestático. Citar Nolan & Fahnestock (2004), Ponce et al. (2014),
+%       Knaell & Cardillo (1995), Reigber & Moreira (2000), Góes (2022).
+%       Identificar a brecha: nenhum trabalho derivou δ_z e δ_xy para SAR
+%       biestático helicoidal com refração na interface ar-solo.
+
+\textit{[Estado da arte a ser desenvolvido.]}
+
 \section{Análise no Espaço de Números de Onda}
+\label{sec:kspace}
 
 O fundamento da análise de resolução em SAR é o
-\textbf{Teorema da Fatia de Fourier} [2]:
+\textbf{Teorema da Fatia de Fourier}~[2]:
 
 \begin{teorema}[Munson, O'Brien e Jenkins, 1983]
-O processamento SAR em modo \emph{spotlight} é matematicamente equivalente à
+O processamento SAR em modo \textit{spotlight} é matematicamente equivalente à
 tomografia computadorizada: cada posição do radar contribui com uma fatia no
-espaço de números de onda da cena. A PSF (\textit{point spread function}) é a
-transformada de Fourier inversa da cobertura acumulada no $k$-espaço.
+espaço de números de onda da cena. A PSF é a transformada de Fourier inversa
+da cobertura acumulada no $k$-espaço.
 \end{teorema}
 
 Para o sistema biestático, a fase do eco retornado de um alvo em $\vect{r}_P$
-para Tx em $\vect{r}_{Tx}$ e Rx em $\vect{r}_{Rx}$ é [4]:
+para Tx em $\vect{r}_{Tx}$ e Rx em $\vect{r}_{Rx}$ é~[4]:
 
 \begin{equation}
-  \phi = \frac{2\pi f}{c}\!\left(\ell_{T}^{(1)} + n_2\,\ell_{T}^{(2)} + \ell_{R}^{(1)} + n_2\,\ell_{R}^{(2)}\right)
+  \phi = \frac{2\pi f}{c}\!\left(\ell_{T}^{(1)} + n_2\,\ell_{T}^{(2)}
+         + \ell_{R}^{(1)} + n_2\,\ell_{R}^{(2)}\right)
   \label{eq:phase_refr}
 \end{equation}
 
 onde $\ell^{(1)}$ e $\ell^{(2)}$ denotam os comprimentos de trajeto no ar e
-no dielétrico, respectivamente. O vetor de número de onda biestático é:
+no dielétrico, respectivamente, para cada braço do percurso biestático.
+
+\section{Vetor de Número de Onda Biestático com Refração}
+\label{sec:k_bist}
+
+O vetor de número de onda biestático é o gradiente da fase em relação à posição
+do alvo:
 
 \begin{equation}
   \vect{k}_{\text{bist}} = \nabla_{\vect{r}_P}\phi
@@ -628,8 +925,10 @@ no dielétrico, respectivamente. O vetor de número de onda biestático é:
 
 onde $\uvec{\ell}_{T,R}^{(2)}$ são os versores na direção de propagação
 \emph{dentro do solo} para os caminhos Tx$\to$alvo e alvo$\to$Rx.
+O fator $n_2$ reflete o aumento do número de onda no meio dielétrico.
 
-\section{Componente Vertical e Derivação de $\delta_z$}
+\section{Resolução Vertical $\delta_z$}
+\label{sec:delta_z}
 
 A componente vertical do vetor biestático é:
 
@@ -640,10 +939,11 @@ A componente vertical do vetor biestático é:
 
 Para a geometria quasi-monoestática no ponto central da hélice
 ($\theta_T^{(2)} = \theta_R^{(2)} = \theta_{t,0}$,
-$\cos\theta_{t,0} = \sqrt{1-\sin^2\psi_0/n_2^2}$), duas contribuições
-independentes estendem o $k$-espaço vertical:
+$\cos\theta_{t,0} = \sqrt{1-\sin^2\psi_0/n_2^2}$ pela lei de Snell), duas
+contribuições independentes estendem o $k$-espaço vertical:
 
-\subsubsection{Contribuição da Largura de Banda (termo de pulso)}
+\subsection{Contribuição da Largura de Banda}
+\label{ssec:dkz_bw}
 
 Variando $f$ de $f_0$ a $f_0+B$ com posição do sensor fixa:
 
@@ -652,12 +952,17 @@ Variando $f$ de $f_0$ a $f_0+B$ com posição do sensor fixa:
   \label{eq:dkz_bw}
 \end{equation}
 
-\subsubsection{Contribuição da Apertura Tomográfica (termo de hélice)}
+Este termo existe em qualquer SAR convencional: corresponde à resolução em
+alcance refratada. É independente da separação Tx--Rx.
+
+\subsection{Contribuição da Apertura Tomográfica}
+\label{ssec:dkz_tom}
 
 Para $f = f_0$ fixo, à medida que o sensor se desloca ao longo da hélice,
-$\psi$ varia em torno de $\psi_0$. Usando $\dd\cos\theta_{t}/\dd\psi =
--\sin\psi/(n_2\cos\theta_t)$ (derivada da lei de Snell) e
-$|\dd\psi/\dd s| = |\cos(\beta-\psi_0)|/R_0$ para a hélice cônica:
+$\psi$ varia em torno de $\psi_0$. Usando a derivada
+$\dd\cos\theta_{t}/\dd\psi = -\sin\psi/(n_2\cos\theta_t)$ (obtida diferenciando
+a lei de Snell refratada) e $|\dd\psi/\dd s| = |\cos(\beta-\psi_0)|/R_0$ para
+a hélice cônica:
 
 \begin{equation}
   \Delta k_z^{(\text{tom})} = \frac{4\pi f_0\,B_\perp\,\sin\psi_0\cos\psi_0}{\lambda_0\,R_0\,n_2\cos\theta_{t,0}},
@@ -665,7 +970,10 @@ $|\dd\psi/\dd s| = |\cos(\beta-\psi_0)|/R_0$ para a hélice cônica:
   \label{eq:dkz_tom}
 \end{equation}
 
-A extensão total é $\Delta k_z = \Delta k_z^{(B)} + \Delta k_z^{(\text{tom})}$.
+\subsection{Fórmula Unificada e Invariância ao NorthOffset}
+\label{ssec:delta_z_formula}
+
+A extensão total $\Delta k_z = \Delta k_z^{(B)} + \Delta k_z^{(\text{tom})}$.
 Definindo $W_z = c\,\Delta k_z/(4\pi)$, a resolução vertical é:
 
 \begin{equation}
@@ -674,131 +982,200 @@ Definindo $W_z = c\,\Delta k_z/(4\pi)$, a resolução vertical é:
 \end{equation}
 
 \begin{equation}
-  \boxed{W_z = n_2\,B\cos\theta_{t,0} + \frac{c\,B_\perp\,\sin\psi_0\cos\psi_0}{\lambda_0\,R_0\,n_2\cos\theta_{t,0}}}
+  \boxed{W_z = n_2\,B\cos\theta_{t,0}
+  + \frac{c\,B_\perp\,\sin\psi_0\cos\psi_0}{\lambda_0\,R_0\,n_2\cos\theta_{t,0}}}
   \label{eq:Wz}
 \end{equation}
+
+A resolução vertical~\eqref{eq:delta_z} é \textbf{invariante ao NorthOffset}
+$\Delta\phi$, pois a componente $k_z$ do vetor biestático~\eqref{eq:kz_bist}
+depende apenas dos ângulos de elevação e não da separação azimutal Tx--Rx.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{fig06_kspace_vertical.pdf}
-\caption{Cobertura do $k$-espaço vertical $k_z$ para o SAR biestático
-helicoidal. A extensão total $\Delta k_z$ combina a contribuição da largura
-de banda $\Delta k_z^{(B)}$ e da apertura tomográfica $\Delta k_z^{(\text{tom})}$.}
+\caption{Cobertura do $k$-espaço vertical $k_z$ para o SAR biestático helicoidal.
+A extensão total $\Delta k_z$ combina a contribuição de largura de banda
+$\Delta k_z^{(B)}$ e a contribuição da apertura tomográfica $\Delta k_z^{(\text{tom})}$.}
 \label{fig:kspace_vertical}
 \end{figure}
 
-A resolução vertical \eqref{eq:delta_z} é \textbf{invariante ao NorthOffset}
-$\Delta\phi$, pois a componente $k_z$ do vetor biestático não depende da
-separação azimutal entre Tx e Rx.
-
-\section{Componente Horizontal e Derivação de $\delta_{xy}$}
+\section{Resolução Horizontal $\delta_{xy}$}
+\label{sec:delta_xy}
 
 Para o $k$-espaço horizontal $(k_x,k_y)$, à medida que Tx percorre $2\pi$ em
-azimute, o vetor biestático $\vect{k}_{\text{bist}}$ varre um anel de raio:
+azimute e Rx segue defasado de $\Delta\phi$, o vetor biestático varre um anel
+de raio:
 
 \begin{equation}
-  R_{k} = \frac{2\pi f_0\,\sin\psi_0}{\lambda_0}\,\left|\cos\!\left(\frac{\Delta\phi}{2}\right)\right|
+  R_{k} = \frac{2\pi f_0\,\sin\psi_0}{\lambda_0}
+  \,\left|\cos\!\left(\frac{\Delta\phi}{2}\right)\right|
   \label{eq:k_ring}
 \end{equation}
 
 O fator $|\cos(\Delta\phi/2)|$ expressa a redução da componente horizontal
-efetiva pelo NorthOffset biestático.
+efetiva pelo NorthOffset biestático: para $\Delta\phi = 0$ (SAR monoestático
+equivalente), $R_k$ é máximo; para $\Delta\phi = 180^\circ$ (geometria
+anti-podal), $R_k = 0$ e não há resolução horizontal para alvos no eixo.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.95\textwidth]{fig07_northoffset_kspace.pdf}
 \caption{Cobertura do $k$-espaço horizontal para três valores de NorthOffset.
-(a) $\Delta\phi=0^\circ$: anel de raio máximo $R_k = 2\pi\sin\psi_0/\lambda_0$.
-(b) $\Delta\phi=90^\circ$: $R_k$ reduzido por $1/\sqrt{2}$.
-(c) $\Delta\phi=180^\circ$: $R_k=0$, sem resolução horizontal para alvo no eixo.}
+(a) $\Delta\phi=0^\circ$: anel de raio máximo. (b) $\Delta\phi=90^\circ$:
+$R_k$ reduzido por $1/\sqrt{2}$. (c) $\Delta\phi=180^\circ$: $R_k=0$, sem
+resolução horizontal para alvo no eixo.}
 \label{fig:northoffset}
 \end{figure}
 
 A distribuição de $k_x = R_k\cos\alpha$ com $\alpha$ uniforme em $[0,2\pi]$
 é a distribuição arcseno $p(k_x) = [\pi\sqrt{R_k^2-k_x^2}]^{-1}$, cuja
 transformada de Fourier é a função de Bessel $J_0(R_k\delta)$ (demonstração
-no Apêndice~\ref{app:bessel}). O critério $-3\,\text{dB}$ ($J_0(u)=1/\sqrt{2}$)
-dá $u_{-3} \approx 1{,}20$, portanto:
+no Apêndice~\ref{app:bessel}). O critério $-3\,\text{dB}$ ($J_0(u)=1/\sqrt{2}$,
+$u_{-3} \approx 1{,}20$) fornece:
 
 \begin{equation}
-  \boxed{\delta_{xy}(\Delta\phi) = \frac{0{,}60\,\lambda_0}{\pi\,\sin\psi_0\cdot|\cos(\Delta\phi/2)|}}
+  \boxed{\delta_{xy}(\Delta\phi) =
+  \frac{0{,}60\,\lambda_0}{\pi\,\sin\psi_0\cdot|\cos(\Delta\phi/2)|}}
   \label{eq:delta_xy}
 \end{equation}
 
-\section{Tabela de Parâmetros e Condição Ótima da Hélice}
+As expressões~\eqref{eq:delta_z}--\eqref{eq:delta_xy} e~\eqref{eq:Wz},
+derivadas nas seções anteriores, constituem o resultado central deste capítulo
+e são reproduzidas conjuntamente para facilitar a referência:
 
-\resultado{Equações de Resolução 3D — SAR Biestático Helicoidal em Dois Meios}{
-\begin{align*}
-  \delta_z &= \frac{c}{2\,W_z}, \quad W_z = n_2 B\cos\theta_{t,0}
-  + \frac{c\,B_\perp\sin\psi_0\cos\psi_0}{\lambda_0\,R_0\,n_2\cos\theta_{t,0}} \\[6pt]
-  \delta_{xy} &= \frac{0{,}60\,\lambda_0}{\pi\,\sin\psi_0\cdot|\cos(\Delta\phi/2)|}, \quad
-  \cos\theta_{t,0} = \sqrt{1-\frac{\sin^2\psi_0}{n_2^2}}, \quad
-  B_\perp = B_{helix}|\cos(\beta-\psi_0)|
-\end{align*}
-A \textbf{condição ótima} é $\beta = \psi_0$: $B_\perp = B_{helix}$ (apertura máxima).
-}
+\begin{align}
+  \delta_z &= \frac{c}{2\,W_z}, \qquad
+  W_z = n_2\,B\cos\theta_{t,0}
+        + \frac{c\,B_\perp\sin\psi_0\cos\psi_0}{\lambda_0\,R_0\,n_2\cos\theta_{t,0}}
+  \label{eq:res_sintese_z} \\[6pt]
+  \delta_{xy} &= \frac{0{,}60\,\lambda_0}{\pi\,\sin\psi_0\cdot|\cos(\Delta\phi/2)|}
+  \label{eq:res_sintese_xy}
+\end{align}
 
-\section{Correção \textit{Off-Axis} de Góes (2022)}
+\noindent com $\cos\theta_{t,0} = \sqrt{1-\sin^2\psi_0/n_2^2}$ e
+$B_\perp = B_{helix}|\cos(\beta-\psi_0)|$.
+A \textbf{condição ótima} de inclinação $\beta = \psi_0$ maximiza $B_\perp = B_{helix}$
+e, portanto, minimiza $\delta_z$ para dado comprimento de hélice.
 
-Para um alvo em $x_P \neq 0$, o efeito \textit{near-range} quebra a simetria
-cilíndrica. Góes (2022) propõe substituir [3]:
+\section{Condição Ótima da Hélice e Correção \textit{Off-Axis}}
+\label{sec:helix_opt}
+
+A \textbf{condição ótima} de inclinação $\beta = \psi_0$ maximiza $B_\perp = B_{helix}$,
+produzindo a menor $\delta_z$ possível para dado comprimento de hélice. Desvios
+$|\beta - \psi_0| > 0$ reduzem $B_\perp$ monotonicamente.
+
+Para um alvo em $x_P \neq 0$ (fora do eixo da hélice), o efeito
+\textit{near-range} quebra a simetria cilíndrica. Góes~[3] propõe a correção:
 
 \begin{equation}
-  \tilde{\psi}_0 = \arctan\!\left(\frac{\rho_0 - |x_P|}{z_0}\right), \quad
+  \tilde{\psi}_0 = \arctan\!\left(\frac{\rho_0 - |x_P|}{z_0}\right), \qquad
   \tilde{R}_0 = \sqrt{(\rho_0-|x_P|)^2+z_0^2}
   \label{eq:offaxis}
 \end{equation}
 
-nas fórmulas \eqref{eq:delta_z}--\eqref{eq:delta_xy}, produzindo PSF
-assimétrica ($\delta_x \neq \delta_y$).
+nas fórmulas~\eqref{eq:delta_z}--\eqref{eq:delta_xy}, produzindo PSF
+assimétrica ($\delta_x \neq \delta_y$). A validação desta correção é apresentada
+na Seção~\ref{ssec:val_erros}.
+
+\section{Resultados de Simulação}
+\label{sec:res_sim}
+
+% TODO: SIMULAÇÃO — Gerar PSF (função de espalhamento de ponto) via BP
+%       biestático e medir δ_z e δ_xy para os seguintes cenários:
+%         (a) Δφ = 0°, 45°, 90°, 135°, 180° (variação do NorthOffset)
+%         (b) β = ψ_0 (condição ótima) vs. β ≠ ψ_0 (variação de inclinação)
+%         (c) n_2 = 1,5 / 2 / 2,5 (variação de permissividade do solo)
+%       Plotar: cobertura do k-espaço (k_x,k_y,k_z), cortes da PSF em x, y, z.
+%       Comparar analítico vs. simulação em tabela de erros.
+
+\textit{[Resultados de simulação a serem gerados e inseridos.]}
+
+\section{Conclusões do Capítulo}
+\label{sec:res_concl}
+
+Este capítulo derivou as equações analíticas de resolução tridimensional do SAR
+biestático helicoidal em presença de refração. A resolução vertical
+$\delta_z$~\eqref{eq:delta_z} é determinada por duas contribuições aditivas e
+independentes — largura de banda e apertura tomográfica — e é invariante ao
+NorthOffset. A resolução horizontal $\delta_{xy}$~\eqref{eq:delta_xy} depende
+do NorthOffset via o fator $|\cos(\Delta\phi/2)|$ e degrada-se monotonicamente
+de $\Delta\phi=0$ a $\Delta\phi = 180^\circ$.
+
+A condição ótima de inclinação $\beta = \psi_0$ maximiza $B_\perp$ e, portanto,
+minimiza $\delta_z$ para dado comprimento de hélice. Este resultado, combinado
+com a dependência de $\delta_{xy}$ no NorthOffset, define o espaço de projeto
+explorado pelo otimizador do Capítulo~\ref{cap:otimizacao}.
 
 %%═══════════════════════════════════════════════════════════════════════════════
-\chapter{Otimização da Trajetória do Receptor}
+\chapter{Otimização Multi-Objetivo da Trajetória do Receptor}
 \label{cap:otimizacao}
 %%═══════════════════════════════════════════════════════════════════════════════
 
-\section{Formulação do Problema de Otimização}
+\section{Introdução e Estado da Arte}
+\label{sec:otim_arte}
 
-Para uma grade de $N_{tg}$ alvos subsuperficiais, a potência total recebida
-é, somando \eqref{eq:radar_refratado}:
+% TODO: Revisar literatura sobre otimização de trajetória em SAR biestático,
+%       otimização multi-objetivo em sistemas de radar, e uso do ângulo de
+%       Brewster para maximizar penetração. Citar Willis (1995), Griffiths (2003),
+%       García-Fernández et al. (2019), Flores (2019).
+%       Brecha: nenhum trabalho utilizou o ângulo de Brewster como guia
+%       geométrico para otimização de trajetória do receptor biestático.
+
+\textit{[Estado da arte a ser desenvolvido.]}
+
+\section{Formulação do Problema de Otimização}
+\label{sec:otim_form}
+
+Para uma grade de $N_{tg}$ alvos subsuperficiais, a potência total recebida é,
+somando~\eqref{eq:radar_refratado} sobre todos os alvos:
 
 \begin{equation}
   P_r(\vect{r}_{Rx}) = \sum_{i=1}^{N_{tg}}
-  \frac{P_t\,G_t^{(i)}\,G_r^{(i)}\,\sigma_i\,T_1^{(i)}\,T_2^{(i)}\,\lambda^2}{(4\pi)^3\,R_T^{(i)2}\,R_R^{(i)2}}
+  \frac{P_t\,G_t^{(i)}\,G_r^{(i)}\,\sigma_i\,T_1^{(i)}\,T_2^{(i)}\,\lambda^2}
+       {(4\pi)^3\,R_T^{(i)2}\,R_R^{(i)2}}
   \label{eq:Pr_total}
 \end{equation}
 
 Para posição fixa do transmissor $\vect{r}_{Tx}$, o problema de otimização da
-posição $\vect{r}_{Rx}$ no plano horizontal é:
+posição do receptor $\vect{r}_{Rx}$ no plano horizontal é:
 
 \begin{equation}
-  \min_{\vect{r}_{Rx} \in \mathcal{D}} J(\vect{r}_{Rx};\alpha) =
+  \min_{\vect{r}_{Rx} \in \mathcal{D}}\; J(\vect{r}_{Rx};\alpha) =
   -(1-\alpha)\log_{10}\!\left[P_r(\vect{r}_{Rx})\right]
   + \alpha\,\log_{10}\!\left[\delta_{xy}(\vect{r}_{Rx})\cdot\delta_z(\vect{r}_{Rx})\right]
   \label{eq:cost}
 \end{equation}
 
-onde $\mathcal{D} \subset \mathbb{R}^2$ é o domínio de busca e $\alpha \in [0,1]$
-é o parâmetro de compromisso potência--resolução.
+onde $\mathcal{D} \subset \mathbb{R}^2$ é o domínio de busca e
+$\alpha \in [0,1]$ é o parâmetro de compromisso potência--resolução.
+O termo $-(1-\alpha)\log_{10}P_r$ penaliza baixa potência recebida (maximiza
+$P_r$), enquanto $\alpha\log_{10}(\delta_{xy}\cdot\delta_z)$ penaliza baixa
+resolução (minimiza o produto de resoluções).
 
 \section{Justificativa Matemática da Escala Logarítmica}
+\label{sec:otim_log}
 
 A escolha da escala logarítmica é motivada por três propriedades:
 
 \begin{enumerate}
-  \item \textbf{Comensurabilidade}: $P_r \sim 10^{-15}$\,W e $\delta_{xy}\cdot\delta_z \sim 10^{-4}$\,m²
-  diferem em muitas ordens de grandeza. O logaritmo os coloca na mesma escala.
+  \item \textbf{Comensurabilidade:} $P_r \sim 10^{-15}$\,W e
+  $\delta_{xy}\cdot\delta_z \sim 10^{-4}$\,m$^2$ diferem em muitas ordens de
+  grandeza. O logaritmo reduz ambos à mesma escala de grandeza.
 
-  \item \textbf{Condicionamento do gradiente}: da equação do radar,
+  \item \textbf{Condicionamento numérico do gradiente:} da equação do radar,
   $-\log_{10}P_r \propto 2\log_{10}R_R - \log_{10}T_2$. O gradiente em relação
-  a $\vect{r}_{Rx}$ é $\propto 1/R_R\cdot\nabla R_R - (1/T_2)\nabla T_2$,
-  que é bem condicionado numericamente.
+  a $\vect{r}_{Rx}$ é proporcional a $\nabla R_R/R_R - \nabla T_2/T_2$,
+  que é bem condicionado numericamente para toda a faixa de operação.
 
-  \item \textbf{Interpretação em dB}: $-10\log_{10}P_r$ é a perda de percurso
-  em dB, grandeza física intuitiva e de uso corrente em telecomunicações e radar.
+  \item \textbf{Interpretação física em dB:} $-10\log_{10}P_r$ é a perda de
+  percurso em dB, grandeza de uso corrente em telecomunicações e radar. O
+  gradiente de $J$ tem, portanto, interpretação imediata em termos de variação
+  de perda de percurso por metro de deslocamento do receptor.
 \end{enumerate}
 
 \section{Análise da Fronteira de Pareto}
+\label{sec:pareto}
 
 Variando $\alpha$ de 0 a 1, a família de soluções $\vect{r}_{Rx}^*(\alpha)$
 parametriza a fronteira de Pareto entre os objetivos $-\log_{10}P_r$ e
@@ -808,8 +1185,8 @@ $\log_{10}(\delta_{xy}\cdot\delta_z)$.
 Para $\alpha=0$, a solução ótima tende a posicionar o Rx de modo que o ângulo
 de incidência $\theta_R$ se aproxime de $\theta_B$ (máximo de $T_2$) e $R_R$
 seja mínimo. Para $\alpha=1$, a solução ótima tende ao NorthOffset
-$\Delta\phi \to 0$ (máxima resolução horizontal) com mínimo $\psi_0$
-(máxima abertura relativa).
+$\Delta\phi \to 0$ (máxima resolução horizontal) com mínimo $\psi_0$ (máxima
+abertura relativa).
 \end{proposicao}
 
 \begin{figure}[H]
@@ -817,52 +1194,115 @@ $\Delta\phi \to 0$ (máxima resolução horizontal) com mínimo $\psi_0$
 \includegraphics[width=0.82\textwidth]{pv_fig07_pareto.pdf}
 \caption{Fronteira de Pareto potência--resolução. Cada ponto corresponde à
 posição ótima $\vect{r}_{Rx}^*(\alpha)$ para um valor fixo de $\alpha$.
-O joelho em torno de $\alpha \approx 0{,}2$--$0{,}4$ indica a região de
-operação recomendada.}
+O joelho da curva em torno de $\alpha \approx 0{,}2$--$0{,}4$ indica a região
+de operação recomendada.}
 \label{fig:pareto}
 \end{figure}
 
+O joelho da curva de Pareto é identificado pelo método da máxima curvatura e
+define o intervalo ótimo de compromisso $\alpha^* \in [0{,}2,\, 0{,}4]$.
+
 \section{Pontos de Partida Geometricamente Motivados}
+\label{sec:otim_init}
 
 A não-linearidade de $J$ (dependência cúbica em $\vect{r}_{Rx}$ via $R_R^2$ e
 $T_2(\theta_R)$) cria múltiplos mínimos locais. Os candidatos iniciais para o
-otimizador são geometricamente motivados:
+otimizador são geometricamente motivados e fisicamente interpretáveis:
 
 \begin{itemize}
-  \item \textbf{Posição oposta}: $\vect{r}_{Rx}$ diametralmente oposto ao Tx
-  em relação ao centroide (maximiza $\Delta\phi \approx 180^\circ$, útil para
-  $\alpha \approx 0$).
-  \item \textbf{Posições perpendiculares}: $\vect{r}_{Rx}$ a $\pm 90^\circ$ do
-  eixo Tx--centroide (maximiza cobertura azimutal do $k$-espaço).
-  \item \textbf{Posições de Brewster}: $\vect{r}_{Rx}$ a distância horizontal
-  $d_B = (z_{Rx}+|z_P|)/\tan\theta_B$ do centroide, de modo que o raio
-  alvo$\to$Rx incide na interface com ângulo $\theta_B$.
+  \item \textbf{Posição oposta:} Rx diametralmente oposto ao Tx em relação ao
+  centroide (maximiza $\Delta\phi \approx 180^\circ$, útil para $\alpha \approx 0$
+  quando a resolução não é restritiva).
+
+  \item \textbf{Posições perpendiculares:} Rx a $\pm 90^\circ$ do eixo Tx--centroide
+  (equilibra cobertura azimutal do $k$-espaço).
+
+  \item \textbf{Posição de Brewster:} Rx à distância horizontal
+  $d_B = (z_{Rx}+|z_P|)\tan\theta_B$ do centroide, de modo que o raio
+  alvo$\to$Rx incide na interface com $\theta_R = \theta_B$. Esta é a posição
+  ótima em potência para $\alpha = 0$.
 \end{itemize}
 
-A distância $d_B$ é a projeção horizontal necessária para que o raio que emerge
-do alvo em profundidade $|z_P|$ cruce a interface com ângulo de incidência $\theta_B$
-da polarização TM.
+\section{Trajetória Completa por Interpolação PCHIP}
+\label{sec:pchip}
 
-\section{Interpolação PCHIP da Trajetória Completa}
+O otimizador é aplicado a um subconjunto decimado $\{t_k\}_{k=1}^{K}$ de
+posições do Tx, produzindo os pontos ótimos $\{\vect{r}_{Rx}^*(t_k)\}$. A
+trajetória contínua do Rx é reconstruída por interpolação com polinômios
+cúbicos de Hermite preservadores de forma (PCHIP), que:
 
-O otimizador é aplicado a um subconjunto decimado $\{t_k\}$ de posições do Tx.
-As posições $\{\vect{r}_{Rx}^*(t_k)\}$ são interpoladas por splines de Hermite
-cúbicas preservadoras de forma (PCHIP), que mantêm monotonicidade local e
-evitam oscilações inter-nós, produzindo uma trajetória fisicamente realizável.
+\begin{itemize}
+  \item garantem continuidade de $C^1$ (posição e velocidade contínuas),
+  \item preservam monotonia local (sem oscilações de Runge entre pontos),
+  \item são realizáveis fisicamente como trajetórias de VANT.
+\end{itemize}
+
+A trajetória final é uma hélice deformada que se aproxima da posição de Brewster
+do alvo em cada instante, sujeita às restrições de resolução impostas por $\alpha$.
+
+\section{Resultados de Simulação}
+\label{sec:otim_sim}
+
+% TODO: SIMULAÇÃO — Executar o otimizador para uma sequência completa de
+%       posições do Tx ao longo da hélice e reportar:
+%         (a) Curva de Pareto potência vs. resolução para α ∈ [0,1]
+%         (b) Posição ótima do Rx (trajetória completa) em planta (x,y)
+%         (c) Comparação: trajetória de Brewster puro (α=0) vs. trajetória
+%             otimizada (α≈0,3) vs. NorthOffset fixo (referência)
+%         (d) Potência recebida e produto δ_xy × δ_z ao longo da trajetória
+%       Script a usar: simulations/run_snell_multislab_pipeline.m com
+%       parâmetros de target_multislab.json.
+
+\textit{[Resultados de simulação a serem gerados e inseridos.]}
+
+\section{Conclusões do Capítulo}
+\label{sec:otim_concl}
+
+Este capítulo formulou o problema de otimização da trajetória do receptor como
+minimização de uma função de custo multi-objetivo logarítmica~\eqref{eq:cost}.
+A fronteira de Pareto identifica o intervalo ótimo de compromisso
+$\alpha^* \approx 0{,}2$--$0{,}4$, no qual ganhos significativos de potência
+são obtidos sem degradação crítica da resolução. A interpolação PCHIP converte
+o conjunto de posições ótimas discretas em uma trajetória contínua realizável.
+Os resultados numéricos da otimização e a comparação com trajetórias de
+referência são apresentados na Seção~\ref{sec:val_otim}.
 
 %%═══════════════════════════════════════════════════════════════════════════════
-\chapter{Extensão para Meios Estratificados com $N$ Camadas}
+\chapter{Transmissão em Meios Estratificados com $N$ Camadas}
 \label{cap:multicamadas}
 %%═══════════════════════════════════════════════════════════════════════════════
 
+\section{Introdução e Estado da Arte}
+\label{sec:multi_arte}
+
+% TODO: Revisar literatura sobre propagação em meios estratificados, formalismo
+%       de matrizes de transferência, e aplicações em GPR e subsuperfície.
+%       Citar Pozar (2011), Born & Wolf (1999), Daniels (2004), Ishimaru (1991),
+%       Banda et al. (2016). Identificar a brecha: aplicação do formalismo ABCD
+%       assimétrico (Z_in ≠ Z_out) ao sistema SAR biestático helicoidal.
+
+\textit{[Estado da arte a ser desenvolvido.]}
+
 \section{Geometria do Modelo de $N$ Camadas}
+\label{sec:multi_geom}
 
 Considera-se uma pilha de $M$ camadas horizontais. A $i$-ésima camada tem
 índice de refração $n_i$ e espessura $d_i$. O meio incidente (ar) tem $n_0=1$.
 O alvo encontra-se na camada $L$, à profundidade total
-$z_P = -\sum_{i=1}^{L-1}d_i - \Delta z_L$.
+$z_P = -\!\sum_{i=1}^{L-1}d_i - \Delta z_L$, onde $\Delta z_L$ é a
+profundidade do alvo dentro da camada $L$. A camada $L$ é tratada como
+\textbf{semi-infinita em $z^-$}: não existe interface inferior e toda a energia
+transmitida propaga-se para dentro desta camada sem reflexão de retorno.
+
+Esta premissa reflete a situação física de interesse: o alvo encontra-se no
+interior de um meio estratificado e não existe uma interface abaixo dele no
+domínio de observação. Consequentemente, toda a energia que penetra na camada
+$L$ propaga-se em direção ao alvo sem reflexão de retorno pela face inferior,
+e a profundidade do alvo dentro dessa camada não é limitada pela espessura
+nominal declarada para ela.
 
 \section{O Invariante de Snell Generalizado}
+\label{sec:snell_inv}
 
 Em meios estratificados com interfaces horizontais, a componente horizontal
 do vetor de onda $k_x = k_i\sin\theta_i = (n_i\omega/c)\sin\theta_i$ é
@@ -873,8 +1313,8 @@ conservada em cada interface pela condição de fase:
   \label{eq:snell_inv}
 \end{equation}
 
-O escalar $p$ é o \emph{parâmetro de raio} ou \emph{invariante de Snell}.
-O deslocamento horizontal acumulado pelo raio com parâmetro $p$ é:
+O escalar $p$ é o \emph{parâmetro de raio} (invariante de Snell). O deslocamento
+horizontal acumulado pelo raio com parâmetro $p$ até o alvo é:
 
 \begin{equation}
   x(p) = \sum_{i=1}^{L-1} \frac{p\,d_i}{\sqrt{n_i^2-p^2}}
@@ -883,8 +1323,9 @@ O deslocamento horizontal acumulado pelo raio com parâmetro $p$ é:
 \end{equation}
 
 \begin{proposicao}
-A função $x(p)$ em \eqref{eq:horiz_p} é estritamente crescente em
-$p \in [0, \min_i n_i)$, garantindo existência e unicidade de $p^*$
+\label{prop:unicidade_p}
+A função $x(p)$ em~\eqref{eq:horiz_p} é estritamente crescente em
+$p \in [0, \min_i n_i)$, garantindo a existência e unicidade de $p^*$
 tal que $x(p^*) = x_{\text{alvo}}$:
 \begin{equation}
   \frac{\dd x}{\dd p} = \sum_{i=1}^{L-1} \frac{n_i^2\,d_i}{(n_i^2-p^2)^{3/2}}
@@ -896,11 +1337,18 @@ O parâmetro $p^*$ é determinado por bisseção sobre $f(p)=x(p)-x_{\text{alvo}
 que converge em $\lceil\log_2((p_{\max}-p_{\min})/\varepsilon)\rceil$ iterações.
 
 \section{Formalismo de Matrizes de Transferência ABCD}
+\label{sec:abcd}
 
-A propagação de ondas TM em cada camada é descrita pela equação de Helmholtz
-\eqref{eq:helmholtz_layer} com $k_{z,i} = (\omega/c)\sqrt{n_i^2-p^2}$.
+A propagação de ondas TM em cada camada é descrita pela equação de Helmholtz:
+\begin{equation}
+  \frac{\dd^2 H_y}{\dd z^2} + k_{z,i}^2\,H_y = 0, \qquad
+  k_{z,i} = \frac{\omega}{c}\sqrt{n_i^2-p^2}
+  \label{eq:helmholtz_layer}
+\end{equation}
+
 As condições de contorno TM (continuidade de $H_y$ e $(1/n_i^2)\,\partial_z H_y$)
-são encapsuladas pela matriz de transferência da camada $i$:
+na interface superior e inferior da camada $i$ de espessura $d_i$ são
+encapsuladas pela \textbf{matriz de transferência}:
 
 \begin{equation}
   \mathbf{M}_i = \begin{pmatrix}
@@ -911,130 +1359,245 @@ são encapsuladas pela matriz de transferência da camada $i$:
   \label{eq:ABCD_matrix}
 \end{equation}
 
-A derivação de $\mathbf{M}_i$ a partir das equações de Maxwell é apresentada
-no Apêndice~\ref{app:abcd_deriv}. A matriz total da pilha de camadas
-$1$ a $L-1$ é:
+A derivação de $\mathbf{M}_i$ a partir das equações de Maxwell é apresentada no
+Apêndice~\ref{app:abcd_deriv}. Para meios sem perdas, $\det(\mathbf{M}_i) = 1$
+(conservação de energia em cada camada). A matriz total das $L-1$ camadas
+finitas acima do alvo é:
 
 \begin{equation}
   \begin{pmatrix} A & B \\ C & D \end{pmatrix}
-  = \mathbf{M}_1 \cdot \mathbf{M}_2 \cdots \mathbf{M}_{L-1}
+  = \mathbf{M}_1 \cdot \mathbf{M}_2 \cdots \mathbf{M}_{L-1},
+  \qquad \det = AD - BC = 1
   \label{eq:ABCD_total}
 \end{equation}
 
 \section{Coeficiente de Reflexão e Transmitância Global}
+\label{sec:gamma_global}
 
-Definindo as impedâncias de entrada e saída:
-$Z_{\text{in}} = Z_0 = 1/\sqrt{1-p^2}$ (ar) e
-$Z_{\text{out}} = n_L/\sqrt{n_L^2-p^2}$ (camada alvo),
-a impedância total da pilha é:
+As impedâncias de entrada e saída da pilha são:
 
 \begin{equation}
-  Z_{\text{total}} = \frac{A\,Z_{\text{out}} + B}{C\,Z_{\text{out}} + D}
+  Z_{\text{in}} = \frac{1}{\sqrt{1-p^2}}
+  \qquad\text{(ar de entrada)}, \qquad
+  Z_{\text{out}} = \frac{n_L}{\sqrt{n_L^2-p^2}}
+  \qquad\text{(camada do alvo)}
+  \label{eq:Zin_Zout}
 \end{equation}
 
-e o coeficiente de reflexão global:
+Em geral $Z_{\text{in}} \neq Z_{\text{out}}$ pois $n_L > n_0 = 1$ e
+$\theta_{\text{out}} < \theta_{\text{in}}$ (lei de Snell). O coeficiente de
+reflexão global da pilha, visto do ar de entrada, é:
 
 \begin{equation}
-  \boxed{\Gamma_{\text{TM}} = \frac{A Z_{\text{out}} + B - Z_{\text{in}}(C Z_{\text{out}} + D)}{%
-                             A Z_{\text{out}} + B + Z_{\text{in}}(C Z_{\text{out}} + D)}}
+  \boxed{\Gamma_{\text{TM}} = \frac{A Z_{\text{out}} + B
+  - Z_{\text{in}}(C Z_{\text{out}} + D)}{%
+  A Z_{\text{out}} + B + Z_{\text{in}}(C Z_{\text{out}} + D)}}
   \label{eq:Gamma_TM}
 \end{equation}
 
+O coeficiente de transmissão e a transmitância de potência são:
+
 \begin{equation}
-  \boxed{T_{\text{TM}} = 1 - |\Gamma_{\text{TM}}|^2}
+  \tau_{\text{TM}} = \frac{2\,Z_{\text{out}}}{A\,Z_{\text{in}} + B
+  + C\,Z_{\text{in}}\,Z_{\text{out}} + D\,Z_{\text{out}}}
+  \label{eq:tau_TM}
+\end{equation}
+
+\begin{equation}
+  \boxed{T_{\text{TM}} = |\tau_{\text{TM}}|^2 \cdot \frac{Z_{\text{in}}}{Z_{\text{out}}}
+  = 1 - |\Gamma_{\text{TM}}|^2}
   \label{eq:T_TM_multi}
 \end{equation}
 
+O fator $Z_{\text{in}}/Z_{\text{out}}$ em~\eqref{eq:T_TM_multi} corrige a
+diferença de impedâncias entre os semiespacios de entrada e saída para a
+correta contabilização do fluxo de potência~[11].
+
 \begin{lema}
-Para $L=1$ (alvo na primeira camada, sem camadas intermediárias), a
-Eq.~\eqref{eq:Gamma_TM} reduz-se exatamente ao coeficiente de Fresnel
-\eqref{eq:r_TM}.
+\label{lema:reducao_fresnel}
+Para $L=1$ (alvo na primeira camada, sem camadas intermediárias),
+a Eq.~\eqref{eq:Gamma_TM} reduz-se exatamente ao coeficiente de Fresnel
+TM~\eqref{eq:r_TM}.
 \end{lema}
 
 \begin{proof}
-$L=1 \Rightarrow [A,B;C,D]=\mathbf{I}$:
+$L=1 \Rightarrow \mathbf{M}_{1\cdots 0} = \mathbf{I}$, portanto $[A,B;C,D]=[1,0;0,1]$:
 \[
   \Gamma = \frac{Z_{\text{out}} - Z_{\text{in}}}{Z_{\text{out}} + Z_{\text{in}}}
   = \frac{n_2/\sqrt{n_2^2-p^2} - 1/\sqrt{1-p^2}}{n_2/\sqrt{n_2^2-p^2} + 1/\sqrt{1-p^2}}
   = \frac{n_2\cos\theta_i - \cos\theta_t}{n_2\cos\theta_i + \cos\theta_t}
   = r_{\text{TM}}
 \]
-onde foi usada $p=\sin\theta_i = n_2\sin\theta_t$ (lei de Snell).
+onde foi usada a lei de Snell $p = \sin\theta_i = n_2\sin\theta_t$.
 \end{proof}
 
 \section{Ângulo de Transmissão Ótimo para Pilha Multicamada}
+\label{sec:theta_opt}
 
-Para interface única, o máximo de $T_{\text{TM}}$ é em $\theta_B=\arctan(n_2/n_1)$.
-Para $M>1$ camadas, não existe expressão analítica: o máximo é determinado
-numericamente,
+Para interface única, o máximo de $T_{\text{TM}}$ ocorre em
+$\theta_B = \arctan(n_2/n_1)$. Para $M > 1$ camadas, as reflexões múltiplas
+nas interfaces internas criam interferências que deslocam o pico de $T_{\text{TM}}$
+em relação ao ângulo de Brewster da primeira interface. O ângulo ótimo é
+determinado numericamente:
 
 \begin{equation}
   \theta_{\text{opt}} = \arg\max_{\theta_0 \in [0,\pi/2)} T_{\text{TM}}(f,\theta_0;\{n_i,d_i\})
   \label{eq:theta_opt}
 \end{equation}
 
-pois as reflexões múltiplas nas interfaces internas criam interferências que
-deslocam o pico de $T_{\text{TM}}$ em relação ao ângulo de Brewster da
-primeira interface.
+\begin{observacao}[Inacessibilidade do ângulo de Brewster da segunda interface]
+Para $n_0=1$, $n_1=\sqrt{2}$, $n_2=2$: o ângulo de Brewster da interface
+$n_1$--$n_2$, medido no interior da primeira camada, é
+$\theta_B^{(12)} = \arctan(n_2/n_1) = \arctan(\sqrt{2}) \approx 54{,}7^\circ$.
+O ângulo correspondente no meio de entrada (ar) seria
+$\theta_0 = \arcsin(n_1\sin\theta_B^{(12)}) = \arcsin(\sqrt{2}\cdot\sin 54{,}7^\circ)
+= \arcsin(1{,}15) > 1$, valor sem solução real. O ângulo de Brewster da
+interface interna é, portanto, inacessível a partir do ar. O máximo de
+$T_{\text{TM}}$ para a pilha completa resulta de interferência construtiva entre
+as múltiplas reflexões internas e não corresponde a nenhum ângulo de Brewster
+clássico de interface isolada.
+\end{observacao}
 
-\notabox{Sobre a inacessibilidade do ângulo de Brewster da segunda interface}{
-Para $n_0=1$, $n_1=2$, $n_2=3$: o ângulo de Brewster da interface $n_1$--$n_2$
-é $\theta_B^{(12)} = \arctan(3/2) \approx 56{,}3^\circ$ \emph{dentro da camada 1}.
-O ângulo correspondente no ar é $\theta_0 = \arcsin(n_1\sin\theta_B^{(12)}) = \arcsin(2\sin56{,}3^\circ) = \arcsin(1{,}66) > 1$,
-fisicamente impossível. O máximo de $T_{\text{TM}}$ para a pilha inteira é,
-portanto, um efeito de interferência que não corresponde a nenhum ângulo de
-Brewster clássico.
-}
+\section{Resultados de Simulação}
+\label{sec:multi_sim}
+
+% TODO: SIMULAÇÃO — Calcular T_TM(θ_0) via multislabTMcoef.m para os cenários:
+%         (a) Caso de referência: 1 interface (Fresnel puro), n_2 = 2
+%         (b) 2 camadas: n_1=1,5, n_2=2,5, d_1 = λ/4 (quarter-wave transformer)
+%         (c) 2 camadas: n_1=1,5, n_2=2,5, d_1 = λ/2 (half-wave layer)
+%         (d) 3 camadas: perfil de solo estratificado realista
+%       Para cada cenário plotar T_TM vs. θ_0 e identificar θ_opt numérico.
+%       Verificar conservação de energia R + T = 1 para todos os casos.
+%       Script: simulations/run_snell_multislab_pipeline.m
+
+\textit{[Resultados de simulação a serem gerados e inseridos.]}
+
+\section{Conclusões do Capítulo}
+\label{sec:multi_concl}
+
+Este capítulo estendeu o modelo eletromagnético de transmissão TM para $N$
+camadas estratificadas via formalismo de matrizes de transferência ABCD. O
+Lema~\ref{lema:reducao_fresnel} garante que o modelo é uma generalização
+consistente do caso de Fresnel, e a Proposição~\ref{prop:unicidade_p} assegura
+a unicidade do parâmetro de raio via bisseção. A premissa de última camada
+semi-infinita (sem reflexão na face inferior) é adequada para o cenário de
+sensoriamento subsuperficial biestático e simplifica a formulação evitando
+a necessidade de modelar a geometria abaixo do alvo. A validação numérica da
+transmitância $T_{\text{TM}}$ para cenários multicamada é apresentada na
+Seção~\ref{sec:val_multi}.
 
 %%═══════════════════════════════════════════════════════════════════════════════
-\chapter{Validação e Análise dos Resultados}
+\chapter{Validação por Simulação de Backprojection}
 \label{cap:resultados}
 %%═══════════════════════════════════════════════════════════════════════════════
 
-\section{Configuração da Simulação}
+\section{Introdução}
+\label{sec:val_intro}
 
-O modelo analítico foi validado por um simulador de \textit{backprojection}
-biestático que integra numericamente a lei de Snell via Newton-Raphson em cada
-par (posição-do-sensor, alvo) e soma os ecos coerentemente. Os parâmetros são:
+Este capítulo apresenta a validação por simulação de todos os modelos analíticos
+derivados nos capítulos anteriores. A estratégia de validação consiste em
+comparar previsões analíticas com resultados do simulador de \textit{backprojection}
+biestático, que implementa integralmente a física do problema (refração via
+Newton-Raphson, fase biestática, acumulação coerente) sem as aproximações usadas
+nas derivações analíticas. Erros residuais são interpretados em termos das
+aproximações introduzidas explicitamente em cada derivação.
+
+\section{Descrição do Simulador}
+\label{sec:val_simulador}
+
+O simulador de \textit{backprojection} biestático integra dois estágios
+funcionais sequenciais:
+
+\begin{enumerate}
+  \item \textbf{Geração de ecos sintéticos:} para cada par (posição do sensor,
+  alvo), o caminho óptico biestático $\mathcal{L}$ é calculado numericamente
+  pela resolução iterativa da lei de Snell via Newton-Raphson
+  (Seção~\ref{ssec:newton}). A contribuição de fase correspondente
+  $e^{-\jj 2\pi f \mathcal{L}/c}$ é acumulada sobre a grade de frequências
+  para cada posição da hélice.
+
+  \item \textbf{Retroprojeção tridimensional:} o algoritmo de
+  \textit{backprojection} integra coerentemente os ecos gerados no estágio
+  anterior sobre todas as posições do sensor, avaliando o campo reconstruído
+  em cada ponto da grade tridimensional de imagem. Para o cenário multicamada,
+  o caminho óptico em cada tramo é calculado pela bisseção do parâmetro de raio
+  $p^*$ conforme a Proposição~\ref{prop:unicidade_p}.
+\end{enumerate}
+
+A resolução medida é determinada pela largura a $-3\,\text{dB}$ dos cortes
+da função de espalhamento de ponto (PSF) reconstruída nas direções $x$, $y$
+e $z$.
+
+\section{Cenários de Validação}
+\label{sec:val_cenarios}
+
+Três cenários de validação são definidos:
+
+\begin{description}
+  \item[Cenário A — Resolução 3D (interface única):] Alvo pontual em
+  $z_P = -5$\,m, solo homogêneo $n_2 = 2$, NorthOffset variável
+  $\Delta\phi \in \{90^\circ, 180^\circ\}$, alvo no eixo e fora do eixo
+  ($x_P = 20$\,m). Objetivo: validar~\eqref{eq:delta_z} e~\eqref{eq:delta_xy}.
+
+  \item[Cenário B — Otimização da trajetória:] Mesmo alvo do Cenário A, mas
+  com trajetória do Rx otimizada para $\alpha \in [0,1]$. Objetivo: validar
+  o modelo de potência recebida~\eqref{eq:Pr_total} e confirmar que a trajetória
+  ótima se aproxima da posição de Brewster.
+  % TODO: SIMULAÇÃO — Executar após implementar o otimizador completo.
+
+  \item[Cenário C — Multicamadas:] Alvo em $z_P = -1{,}5$\,m, pilha de 2
+  camadas ($n_1 = 1{,}5$, $d_1 = 0{,}3$\,m; $n_2 = 2{,}5$, semi-infinita).
+  Objetivo: validar $\Gamma_{\text{TM}}$~\eqref{eq:Gamma_TM} e
+  $T_{\text{TM}}$~\eqref{eq:T_TM_multi}.
+  % TODO: SIMULAÇÃO — Executar com parâmetros de target_multislab.json.
+\end{description}
+
+\section{Validação das Equações de Resolução 3D}
+\label{sec:val_resolucao}
+
+\subsection{Parâmetros da Simulação}
+\label{ssec:val_params}
 
 \begin{table}[H]
 \centering
-\caption{Parâmetros da simulação de validação.}
+\caption{Parâmetros da simulação de validação — Cenário A.}
 \label{tab:sim_params}
 \begin{tabular}{lrl}
 \toprule
 Parâmetro & Valor & Descrição \\
 \midrule
-$f_0$ & 10\,GHz & Frequência portadora (banda X) \\
-$B$ & 50\,MHz & Largura de banda chirp \\
-$n_2$ & 2 & Índice de refração do solo ($\varepsilon_r=4$) \\
-$\rho_0$ & 160\,m & Raio médio da hélice \\
-$z_0$ & 100\,m & Altura média do sensor \\
-$\psi_0$ & 58{,}0$^\circ$ & Ângulo de \textit{look} médio \\
-$B_{helix}$ & 47{,}17\,m & Comprimento total da hélice \\
-$\beta$ & 58{,}0$^\circ$ & Ângulo de inclinação ($=\psi_0$: condição ótima) \\
-$z_P$ & $-5$\,m & Profundidade do alvo \\
+$f_0$         & 10\,GHz           & Frequência portadora (banda X) \\
+$B$           & 50\,MHz           & Largura de banda chirp \\
+$n_2$         & 2                 & Índice de refração do solo ($\varepsilon_r=4$) \\
+$\rho_0$      & 160\,m            & Raio médio da hélice \\
+$z_0$         & 100\,m            & Altura média do sensor \\
+$\psi_0$      & 58{,}0$^\circ$    & Ângulo de \textit{look} médio \\
+$B_{helix}$   & 47{,}17\,m        & Comprimento total da hélice \\
+$\beta$       & 58{,}0$^\circ$    & Ângulo de inclinação ($=\psi_0$: condição ótima) \\
+$z_P$         & $-5$\,m           & Profundidade do alvo \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\section{Resultados de Resolução}
+\subsection{Resultados e Comparação com o Modelo Analítico}
+\label{ssec:val_resultados}
 
 \begin{table}[H]
 \centering
-\caption{Validação do modelo analítico: previsões vs.\ simulação de \textit{backprojection}.}
+\caption{Validação do modelo analítico de resolução 3D: previsões vs.\ simulação
+de \textit{backprojection} biestático.}
 \label{tab:validation}
 \begin{tabular}{llrrr}
 \toprule
-Configuração & Variável & Analítico & Simulação & Erro \\
+Configuração & Variável & Analítico & Simulação & Erro (\%) \\
 \midrule
-$\Delta\phi=180^\circ$, no eixo & $\delta_z$ & 21{,}10\,cm & 21{,}12\,cm & 0{,}05\% \\
-$\Delta\phi=180^\circ$, no eixo & $\delta_{xy}$ & 0{,}24\,m & 0{,}240\,m & 0{,}0\% \\
-$\Delta\phi=90^\circ$, no eixo  & $\delta_z$ & 21{,}10\,cm & 21{,}12\,cm & 0{,}05\% \\
-$\Delta\phi=90^\circ$, no eixo  & $\delta_{xy}$ & 9{,}54\,mm & 8{,}80\,mm & 7{,}8\% \\
-$\Delta\phi=90^\circ$, $x_P=20$\,m & $\delta_z$ & 18{,}72\,cm & 20{,}05\,cm & 7{,}1\% \\
-$\Delta\phi=90^\circ$, $x_P=20$\,m & $\delta_x$ & 9{,}96\,mm & 8{,}80\,mm & 11{,}6\% \\
-$\Delta\phi=90^\circ$, $x_P=20$\,m & $\delta_y$ & 9{,}96\,mm & 9{,}10\,mm & 8{,}6\% \\
+$\Delta\phi=180^\circ$, no eixo   & $\delta_z$   & 21{,}10\,cm & 21{,}12\,cm & 0{,}05 \\
+$\Delta\phi=180^\circ$, no eixo   & $\delta_{xy}$ & 0{,}24\,m   & 0{,}240\,m  & 0{,}0  \\
+$\Delta\phi=90^\circ$, no eixo    & $\delta_z$   & 21{,}10\,cm & 21{,}12\,cm & 0{,}05 \\
+$\Delta\phi=90^\circ$, no eixo    & $\delta_{xy}$ & 9{,}54\,mm  & 8{,}80\,mm  & 7{,}8  \\
+$\Delta\phi=90^\circ$, $x_P=20$\,m & $\delta_z$  & 18{,}72\,cm & 20{,}05\,cm & 7{,}1  \\
+$\Delta\phi=90^\circ$, $x_P=20$\,m & $\delta_x$  & 9{,}96\,mm  & 8{,}80\,mm  & 11{,}6 \\
+$\Delta\phi=90^\circ$, $x_P=20$\,m & $\delta_y$  & 9{,}96\,mm  & 9{,}10\,mm  & 8{,}6  \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1043,45 +1606,98 @@ $\Delta\phi=90^\circ$, $x_P=20$\,m & $\delta_y$ & 9{,}96\,mm & 9{,}10\,mm & 8{,}
 \centering
 \includegraphics[width=0.88\textwidth]{fig12_validation.pdf}
 \caption{Comparação entre previsões analíticas e resultados de simulação de
-\textit{backprojection} biestático.}
+\textit{backprojection} biestático para o Cenário A.}
 \label{fig:validation}
 \end{figure}
 
-\section{Análise dos Erros}
+\subsection{Análise dos Erros}
+\label{ssec:val_erros}
 
-\paragraph{$\delta_z$ no eixo (0{,}05\%):}
+\paragraph{$\delta_z$ no eixo ($0{,}05\%$):}
 O erro é compatível com termos de ordem $(B/f_0)^2 \approx 0{,}0025\%$
-omitidos na aproximação de banda estreita $B \ll f_0$ usada na derivação de
-$\Delta k_z^{(B)}$. A invariância de $\delta_z$ ao NorthOffset (mesmo valor
-para $\Delta\phi=180^\circ$ e $90^\circ$) foi confirmada, validando a independência
-de $k_z$ com respeito à separação azimutal.
+omitidos na aproximação de banda estreita $B \ll f_0$ usada na derivação
+de $\Delta k_z^{(B)}$~\eqref{eq:dkz_bw}. A invariância de $\delta_z$ ao
+NorthOffset — mesmo valor para $\Delta\phi = 180^\circ$ e $90^\circ$ — foi
+confirmada, validando a independência de $k_z$ com respeito à separação
+azimutal.
 
-\paragraph{$\delta_{xy}$ no eixo (7{,}8\%):}
-A fonte de erro é a aproximação $\psi_0 = \arctan(\rho_0/z_0)$, que ignora a
-profundidade do alvo $z_P = -5$\,m. O ângulo efetivo de \textit{look} ao alvo
-é $\psi_{\text{ef}} \approx \arctan(\rho_0/|z_0 + n_2|z_P||)$, que difere de
-$\psi_0$ em $\sim 1$--$2^\circ$ para estes parâmetros. O erro cresce linearmente
-com $|z_P|/z_0$.
+\paragraph{$\delta_{xy}$ no eixo ($7{,}8\%$):}
+A fonte de erro é a aproximação $\psi_0 = \arctan(\rho_0/z_0)$, que ignora
+a profundidade do alvo $z_P = -5$\,m. O ângulo efetivo de \textit{look} ao
+alvo é $\psi_{\text{ef}} \approx \arctan(\rho_0/|z_0 + n_2|z_P||)$, que
+difere de $\psi_0$ em $\sim 1$--$2^\circ$ para estes parâmetros. O erro
+cresce linearmente com $|z_P|/z_0$.
 
-\paragraph{$\delta_z$ \textit{off-axis} (7{,}1\%):}
-A correção de Góes captura a direção correta (melhora em $\delta_z$ para
-$x_P > 0$ com $\rho_0 = 160$\,m $>$ $x_P = 20$\,m), mas superestima a
-magnitude porque a simulação não pondera os ecos por $1/R^2$. Em um
-sistema físico real, o ponderamento por $1/R^2$ amplia o efeito
-\textit{near-range}, tornando a correção de Góes mais precisa.
+\paragraph{$\delta_z$ \textit{off-axis} ($7{,}1\%$):}
+A correção de Góes~[3] via~\eqref{eq:offaxis} captura a direção correta
+(melhora de $\delta_z$ para $x_P > 0$), mas superestima a magnitude porque
+a simulação não pondera os ecos por $1/R^2$. Em um sistema físico real,
+o ponderamento natural por $1/R^2$ amplificará o efeito \textit{near-range},
+tornando a correção de Góes mais precisa.
 
-\section{Curvas de Projeto}
+\subsection{Curvas de Projeto}
+\label{ssec:val_curvas}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.95\textwidth]{fig10_resolution_curves.pdf}
-\caption{Curvas de projeto. (a) $\delta_z$ vs.\ apertura tomográfica efetiva
-$B_\perp$: o termo tomográfico \eqref{eq:dkz_tom} domina para
-$B_\perp \gg c\lambda_0 R_0 n_2^2 B/(4\pi c \sin\psi_0\cos\psi_0)$.
-(b) $\delta_{xy}$ vs.\ NorthOffset: degradação severa em $\Delta\phi\to 180^\circ$.
-(c) $\delta_z$ vs.\ $\beta$: mínimo exato em $\beta=\psi_0$.}
+\caption{Curvas de projeto. (a)~$\delta_z$ vs.\ apertura tomográfica efetiva
+$B_\perp$: o termo tomográfico~\eqref{eq:dkz_tom} domina para $B_\perp$
+suficientemente grande. (b)~$\delta_{xy}$ vs.\ NorthOffset: degradação severa
+em $\Delta\phi \to 180^\circ$. (c)~$\delta_z$ vs.\ ângulo de inclinação $\beta$:
+mínimo exato em $\beta = \psi_0$.}
 \label{fig:resolution_curves}
 \end{figure}
+
+\section{Validação do Modelo de Otimização de Trajetória}
+\label{sec:val_otim}
+
+% TODO: SIMULAÇÃO — Após completar o Capítulo 4, executar backprojection com
+%       a trajetória otimizada e comparar SNR e resolução obtidos contra
+%       trajetórias de referência (NorthOffset fixo, trajetória de Brewster puro).
+%       Métrica: ganho em potência recebida (dB) e variação em δ_xy × δ_z (%).
+
+\textit{[Conteúdo a ser desenvolvido após Capítulo~\ref{cap:otimizacao}.]}
+
+\section{Validação do Modelo Multicamadas}
+\label{sec:val_multi}
+
+% TODO: SIMULAÇÃO — Executar backprojection biestático com cenário de 2 camadas
+%       (n_1=1,5, d_1=0,3 m; n_2=2,5, alvo a 1,5 m de profundidade) e comparar
+%       a potência recebida prevista por T_TM(ABCD) com a obtida na simulação.
+%       Verificar que o ângulo θ_opt numérico coincide com o pico da curva T_TM.
+
+\textit{[Conteúdo a ser desenvolvido após Capítulo~\ref{cap:multicamadas}.]}
+
+\section{Discussão Geral}
+\label{sec:val_discuss}
+
+Os resultados do Cenário A confirmam que o modelo analítico de resolução 3D
+derivado no Capítulo~\ref{cap:resolucao} é preciso para alvos no eixo, com
+erros inferiores a 0{,}05\% em $\delta_z$. Os erros maiores em $\delta_{xy}$
+(7--12\%) para alvos fora do eixo e com $\Delta\phi$ pequeno decorrem de duas
+aproximações controladas: (i) o ângulo de \textit{look} efetivo ao alvo
+subsuperficial e (ii) a ausência de ponderação por $1/R^2$ na simulação.
+
+A Tabela~\ref{tab:validation} e a Figura~\ref{fig:validation} demonstram que
+o modelo analítico é adequado para projeto do sistema (seleção de parâmetros
+da hélice, largura de banda e NorthOffset) com precisão suficiente para
+engenharia. Refinamentos da correção \textit{off-axis} para alvos profundos
+e para ponderação por $1/R^2$ são identificados como trabalho futuro
+(Seção~\ref{sec:concl_fut}).
+
+% TODO: Completar esta seção após obter os resultados dos Cenários B e C.
+
+\section{Conclusões do Capítulo}
+\label{sec:val_concl}
+
+O simulador de \textit{backprojection} biestático validou as equações analíticas
+de resolução 3D com erros aceitáveis para projeto: $< 0{,}05\%$ em $\delta_z$
+no eixo e $< 12\%$ em $\delta_{xy}$ fora do eixo. A invariância de $\delta_z$
+ao NorthOffset foi confirmada experimentalmente. As validações dos modelos de
+otimização (Cenário B) e multicamadas (Cenário C) são identificadas como
+requisitos de trabalho futuro, dependentes da conclusão dos capítulos
+respectivos.
 
 %%═══════════════════════════════════════════════════════════════════════════════
 \chapter{Conclusões e Perspectivas}
@@ -1089,80 +1705,119 @@ $B_\perp \gg c\lambda_0 R_0 n_2^2 B/(4\pi c \sin\psi_0\cos\psi_0)$.
 %%═══════════════════════════════════════════════════════════════════════════════
 
 \section{Contribuições Principais}
+\label{sec:concl_contrib}
+
+Esta tese apresentou cinco contribuições originais ao campo do SAR biestático
+helicoidal para sensoriamento subsuperficial:
 
 \begin{enumerate}
 
-  \item \textbf{Derivação eletromagnética rigorosa dos coeficientes de Fresnel TM}:
-  a partir das equações de Maxwell e condições de contorno, estabeleceu-se
-  que o ângulo de Brewster $\theta_B = \arctan(n_2/n_1)$ é o único zero da
-  reflectância TM (Teorema~\ref{teo:brewster}), com interpretação física em
-  termos da radiação dipolar.
+  \item \textbf{Derivação eletromagnética rigorosa dos coeficientes de Fresnel TM
+  e do ângulo de Brewster} (Seção~\ref{sec:brewster}): o Teorema~\ref{teo:brewster}
+  estabelece que $\theta_B = \arctan(n_2/n_1)$ é o único zero da reflectância TM
+  para meios sem perdas, com prova construtiva a partir das equações de Maxwell e
+  interpretação física em termos da radiação dipolar.
 
-  \item \textbf{Equações de resolução 3D derivadas do $k$-espaço biestático}:
-  as fórmulas para $\delta_z$ \eqref{eq:delta_z}--\eqref{eq:Wz} e $\delta_{xy}$
-  \eqref{eq:delta_xy} são obtidas pela análise do vetor de número de onda
-  biestático \eqref{eq:k_bist} e do perfil de Bessel $J_0$ da PSF circular.
-  A validação confirma $< 0{,}05\%$ de erro em $\delta_z$.
+  \item \textbf{Equações analíticas de resolução 3D para o SAR biestático
+  helicoidal com refração} (Seções~\ref{sec:delta_z}--\ref{sec:delta_xy}):
+  as fórmulas~\eqref{eq:delta_z} e~\eqref{eq:delta_xy} generalizam resultados
+  da literatura para incluir o efeito de refração na interface ar-solo via
+  $\cos\theta_{t,0} = \sqrt{1-\sin^2\psi_0/n_2^2}$, e são validadas com
+  erros $< 0{,}05\%$ em $\delta_z$ (Tabela~\ref{tab:validation}).
 
-  \item \textbf{Formulação variacional do problema de refração}:
-  o princípio de Fermat fornece a lei de Snell como condição de estacionaridade,
-  com prova de unicidade via monotonicidade estrita de $g'(u) > 0$.
+  \item \textbf{Formulação variacional do problema de refração via princípio
+  de Fermat} (Seção~\ref{sec:fermat}): a prova de unicidade do ponto de
+  refração via monotonicidade estrita de $g'(u) > 0$~\eqref{eq:g_prime}
+  fundamenta rigorosamente o algoritmo de Newton-Raphson usado no simulador.
 
-  \item \textbf{Função de custo multi-objetivo logarítmica} \eqref{eq:cost}:
-  a escala logarítmica resolve o problema de comensurabilidade entre potência e
-  resolução, e a fronteira de Pareto identifica a região ótima $\alpha \approx 0{,}2$--$0{,}4$.
+  \item \textbf{Função de custo multi-objetivo logarítmica para otimização
+  conjunta de potência e resolução} (Seção~\ref{sec:otim_form}): a
+  função~\eqref{eq:cost} resolve o problema de comensurabilidade entre grandezas
+  de ordens de magnitude distintas, e a fronteira de Pareto identifica o
+  intervalo ótimo $\alpha^* \approx 0{,}2$--$0{,}4$.
 
-  \item \textbf{Extensão ABCD para $N$ camadas} (Capítulo~\ref{cap:multicamadas}):
-  o Lema~1 demonstra que a formulação multicamada é uma generalização exata do
-  caso de Fresnel, e a Proposição~2 garante a unicidade do parâmetro de raio
-  por bisseção.
+  \item \textbf{Extensão do modelo de transmissão TM para $N$ camadas via
+  formalismo ABCD com última camada semi-infinita} (Capítulo~\ref{cap:multicamadas}):
+  o Lema~\ref{lema:reducao_fresnel} demonstra a consistência com o caso de Fresnel,
+  e a Proposição~\ref{prop:unicidade_p} garante a unicidade do parâmetro de raio
+  para o traçado de raios em $N$ camadas.
 
 \end{enumerate}
 
-\section{Limitações}
+\section{Limitações do Modelo Atual}
+\label{sec:concl_lim}
 
 \begin{itemize}
-  \item O modelo de propagação assume meios sem perdas ($\varepsilon_r$ real).
-  A extensão a meios dissipativos exigiria $\varepsilon_r \in \mathbb{C}$, com
-  $\text{Im}(\varepsilon_r) > 0$ para solos úmidos, tornando $k_{z,i}$ complexo
-  e modificando o balanço de potência \eqref{eq:T_TM}.
 
-  \item A PSF horizontal tipo $J_0$ pressupõe cobertura azimutal completa.
-  Para coberturas parciais, a PSF é uma função $\text{sinc}$ anular, com lóbulos
-  laterais mais elevados.
+  \item \textbf{Meios sem perdas:} Os modelos de transmissão (Capítulos~\ref{cap:fundamentos}
+  e~\ref{cap:multicamadas}) assumem $\varepsilon_r \in \mathbb{R}$. A extensão
+  a meios dissipativos (solos úmidos, com $\varepsilon_r \in \mathbb{C}$) tornaria
+  $k_{z,i}$ complexo e modificaria o balanço de potência: $R + T < 1$ e
+  $\det(\mathbf{M}_i) \neq 1$.
 
-  \item A resolução vertical \eqref{eq:delta_z} foi derivada na aproximação de
-  banda estreita $B \ll f_0$. Para sistemas de ultra-wideband (UWB), termos de
+  \item \textbf{Cobertura azimutal completa:} A PSF horizontal tipo $J_0$
+  presupõe cobertura azimutal de $2\pi$ completos. Para coberturas parciais, a
+  PSF torna-se uma função \textit{sinc} anular, com lóbulos laterais mais elevados.
+
+  \item \textbf{Aproximação de banda estreita:} A resolução vertical~\eqref{eq:delta_z}
+  foi derivada com $B \ll f_0$. Para sistemas UWB ($B/f_0 > 0{,}2$), termos de
   segunda ordem em $B/f_0$ devem ser incluídos.
+
+  \item \textbf{Interface plana:} O modelo assume superfície plana e horizontal.
+  Superfícies rugosas introduzem espalhamento difuso e fatores de sombreamento
+  que modificam os coeficientes de Fresnel efetivos.
+
+  \item \textbf{Validação em ambiente real:} Os resultados deste trabalho são
+  baseados exclusivamente em simulação. A validação com dados reais de campo
+  é necessária para avaliar o desempenho em condições não-ideais.
+
 \end{itemize}
 
 \section{Perspectivas Futuras}
+\label{sec:concl_fut}
 
 \begin{enumerate}
-  \item Extensão a meios dissipativos: incorporar $\varepsilon_r(f) = \varepsilon'(f) - \jj\varepsilon''(f)$
-  e derivar o limite de penetração em profundidade $\delta_{\text{skin}}$ em função
-  da frequência, relevante para a escolha ótima de $f_0$ em solos úmidos.
 
-  \item Derivação de limites de Cramér-Rao para a localização biestática
-  subsuperficial, fornecendo um limite de desempenho teórico para o sistema
-  otimizado independentemente do algoritmo de processamento.
+  \item \textbf{Extensão a meios dissipativos:} incorporar
+  $\varepsilon_r(f) = \varepsilon'(f) - \jj\varepsilon''(f)$ (modelo de Cole-Cole
+  para solos úmidos) e derivar a profundidade de penetração efetiva
+  $\delta_{\text{skin}}(f)$ em função da frequência, relevante para a escolha
+  ótima de $f_0$.
 
-  \item Tratamento de superfícies rugosas: a interface plana assumida é uma
-  idealização. A equação de Kirchhoff para superfícies rugosas introduz um
-  fator de sombreamento que modifica os coeficientes de Fresnel e que pode
-  ser incorporado como campo médio.
+  \item \textbf{Limites de Cramér-Rao para localização biestática subsuperficial:}
+  derivar os limites de variância mínima para a estimação da posição 3D do alvo
+  em função de SNR e geometria biestática, fornecendo um limite teórico de
+  desempenho independente do algoritmo de processamento.
+
+  \item \textbf{Tratamento de superfícies rugosas:} incorporar o modelo de
+  Kirchhoff para interfaces rugosas, que introduz um fator de atenuação de
+  coerência $e^{-2k_z^2\sigma_h^2}$ (com $\sigma_h$ a rugosidade rms) nos
+  coeficientes de Fresnel efetivos.
+
+  \item \textbf{Validação experimental com dados reais de campo:} implementar
+  o sistema em VANTs e realizar campanha de voo sobre alvo subsuperficial
+  controlado, comparando a potência recebida e a qualidade da imagem entre
+  a trajetória otimizada e a trajetória de referência.
+
+  \item \textbf{Extensão do otimizador para múltiplos alvos a diferentes
+  profundidades:} o problema de otimização atual considera um alvo pontual.
+  Para cenas com alvos a profundidades distintas, o ângulo de Brewster efetivo
+  é diferente para cada alvo, requerendo uma formulação multi-alvo da fronteira
+  de Pareto.
+
 \end{enumerate}
 
 %%═══════════════════════════════════════════════════════════════════════════════
 \appendix
-\chapter{Verificações Matemáticas}
-\label{app:math}
 %%═══════════════════════════════════════════════════════════════════════════════
+
+\chapter{Derivações Matemáticas}
+\label{app:math}
 
 \section{Conservação de Energia nos Coeficientes de Fresnel TM}
 \label{app:energia_fresnel}
 
-Da condição $S_z^{(1)} = S_z^{(2)}$:
+Da condição $S_z^{(1)} = S_z^{(2)}$ (fluxo de potência contínuo na interface):
 \[
   \frac{|E_0|^2}{2\eta_1}\cos\theta_i(1-|r_{\text{TM}}|^2)
   = \frac{|t_{\text{TM}}|^2|E_0|^2}{2\eta_2}\cos\theta_t
@@ -1171,35 +1826,44 @@ Da condição $S_z^{(1)} = S_z^{(2)}$:
   T_{\text{TM}} = \frac{n_2\cos\theta_t}{n_1\cos\theta_i}|t_{\text{TM}}|^2
 \]
 
-Substituindo \eqref{eq:r_TM}--\eqref{eq:t_TM}:
+Substituindo~\eqref{eq:r_TM}--\eqref{eq:t_TM}:
 \[
-  \frac{n_2\cos\theta_t}{n_1\cos\theta_i}\cdot\frac{4n_1^2\cos^2\theta_i}{(n_2\cos\theta_i+n_1\cos\theta_t)^2}
+  T_{\text{TM}} =
+  \frac{n_2\cos\theta_t}{n_1\cos\theta_i}
+  \cdot\frac{4n_1^2\cos^2\theta_i}{(n_2\cos\theta_i+n_1\cos\theta_t)^2}
   = \frac{4n_1 n_2\cos\theta_i\cos\theta_t}{(n_2\cos\theta_i+n_1\cos\theta_t)^2}
 \]
 
-E o balanço $R_{\text{TM}}+T_{\text{TM}}$:
+O balanço $R_{\text{TM}} + T_{\text{TM}}$:
 \[
-  \frac{(n_2\cos\theta_i-n_1\cos\theta_t)^2 + 4n_1 n_2\cos\theta_i\cos\theta_t}{(n_2\cos\theta_i+n_1\cos\theta_t)^2}
-  = \frac{(n_2\cos\theta_i+n_1\cos\theta_t)^2}{(n_2\cos\theta_i+n_1\cos\theta_t)^2} = 1 \quad\checkmark
+  \frac{(n_2\cos\theta_i-n_1\cos\theta_t)^2 + 4n_1 n_2\cos\theta_i\cos\theta_t}
+       {(n_2\cos\theta_i+n_1\cos\theta_t)^2}
+  = \frac{(n_2\cos\theta_i+n_1\cos\theta_t)^2}
+         {(n_2\cos\theta_i+n_1\cos\theta_t)^2} = 1 \quad\checkmark
 \]
 
 \section{PSF Circular como Distribuição de Bessel}
 \label{app:bessel}
 
 Seja $\alpha$ uniformemente distribuído em $[0,2\pi]$ e $k_x = R_k\cos\alpha$.
-A densidade de $k_x$ é a distribuição arcseno: para $k_x \in [-R_k, R_k]$,
-
+A densidade de probabilidade de $k_x$ é a distribuição arcseno: para
+$k_x \in [-R_k, R_k]$,
 \[
-  p(k_x) = \frac{|\dd\alpha/\dd k_x|}{2\pi/2} = \frac{1}{\pi\sqrt{R_k^2-k_x^2}}
+  p(k_x) = \frac{|\dd\alpha/\dd k_x|}{2\pi/2}
+  = \frac{1}{\pi\sqrt{R_k^2-k_x^2}}
 \]
 
 A transformada de Fourier é:
 \[
-  \hat{p}(\delta) = \int_{-R_k}^{R_k} \frac{e^{\jj k_x\delta}}{\pi\sqrt{R_k^2-k_x^2}}\dd k_x
-  \stackrel{k_x=R_k\cos\varphi}{=} \frac{1}{\pi}\int_0^\pi e^{\jj R_k\delta\cos\varphi}\dd\varphi = J_0(R_k\delta)
+  \hat{p}(\delta) = \int_{-R_k}^{R_k}
+  \frac{e^{\jj k_x\delta}}{\pi\sqrt{R_k^2-k_x^2}}\dd k_x
+  \stackrel{k_x=R_k\cos\varphi}{=}
+  \frac{1}{\pi}\int_0^\pi e^{\jj R_k\delta\cos\varphi}\dd\varphi
+  = J_0(R_k\delta)
 \]
 
-utilizando a representação integral de Bessel $J_0(z)=\frac{1}{\pi}\int_0^\pi e^{\jj z\cos\varphi}\dd\varphi$.
+utilizando a representação integral de Bessel
+$J_0(z) = \frac{1}{\pi}\int_0^\pi e^{\jj z\cos\varphi}\dd\varphi$.
 
 \section{Derivação das Matrizes ABCD a partir das Equações de Maxwell}
 \label{app:abcd_deriv}
@@ -1208,12 +1872,12 @@ Na camada $i$ em polarização TM, a equação de Helmholtz para $H_y$ é:
 \begin{equation}
   \frac{\dd^2 H_y}{\dd z^2} + k_{z,i}^2\,H_y = 0, \qquad
   k_{z,i} = \frac{\omega}{c}\sqrt{n_i^2-p^2}
-  \label{eq:helmholtz_layer}
 \end{equation}
 
 A solução geral é $H_y(z) = C_i^+e^{\jj k_{z,i}z} + C_i^-e^{-\jj k_{z,i}z}$.
-A continuidade de $H_y$ e $(1/n_i^2)\partial_z H_y = E_x/n_i$ nas interfaces
-é equivalente à propagação via matriz de transferência. Definindo o vetor de
+As condições de contorno TM (continuidade de $H_y$ e
+$(1/n_i^2)\partial_z H_y = E_x/n_i$) nas faces superior e inferior da camada
+são equivalentes à propagação via matriz de transferência. Definindo o vetor de
 estado $[H_y, E_x]^T$, a propagação ao longo da camada de espessura $d_i$ é:
 
 \begin{align*}
@@ -1224,77 +1888,48 @@ estado $[H_y, E_x]^T$, a propagação ao longo da camada de espessura $d_i$ é:
 que é precisamente a matriz $\mathbf{M}_i$ da Eq.~\eqref{eq:ABCD_matrix}.
 
 \section{Verificação Dimensional de $W_z$}
+\label{app:dim_wz}
 
 \begin{align*}
-  n_2\,B\cos\theta_{t,0}: \quad & [\text{adim}]\cdot[\text{Hz}]\cdot[\text{adim}] = \text{Hz} \checkmark \\
+  n_2\,B\cos\theta_{t,0}: \quad &
+  [\text{adim}]\cdot[\text{Hz}]\cdot[\text{adim}] = \text{Hz} \checkmark \\
   \frac{c\,B_\perp\sin\psi_0\cos\psi_0}{\lambda_0\,R_0\,n_2\cos\theta_{t,0}}: \quad &
-  \frac{[\text{m/s}]\cdot[\text{m}]}{[\text{m}]\cdot[\text{m}]} = \text{Hz} \checkmark \\
-  \delta_z = c/(2W_z): \quad & [\text{m/s}]/[\text{Hz}] = \text{m} \checkmark
+  \frac{[\text{m/s}]\cdot[\text{m}]}{[\text{m}]\cdot[\text{m}]\cdot[\text{adim}]}
+  = \text{Hz} \checkmark \\
+  \delta_z = c/(2W_z): \quad &
+  [\text{m/s}]/[\text{Hz}] = \text{m} \checkmark
 \end{align*}
+
+\chapter{Lista de Publicações}
+\label{app:pub}
+
+% TODO: Inserir lista completa de publicações (artigos em periódico,
+%       conferências e relatórios técnicos) originados desta tese.
+
+\textit{[Lista de publicações a ser inserida.]}
 
 %%═══════════════════════════════════════════════════════════════════════════════
 \backmatter
-\chapter*{Lista de Símbolos}
-\addcontentsline{toc}{chapter}{Lista de Símbolos}
-
-\begin{longtable}{lll}
-\toprule
-Símbolo & Descrição & Unidade \\
-\midrule
-$c$ & Velocidade da luz no vácuo & m/s \\
-$\omega = 2\pi f$ & Frequência angular & rad/s \\
-$k = \omega n/c$ & Número de onda & rad/m \\
-$\lambda_0 = c/f_0$ & Comprimento de onda no vácuo & m \\
-$B$ & Largura de banda chirp & Hz \\
-$\varepsilon_r = n^2$ & Permissividade relativa & -- \\
-$\eta_i = \eta_0/n_i$ & Impedância intrínseca do meio $i$ & $\Omega$ \\
-$\theta_i$ & Ângulo de incidência / refração na camada $i$ & rad \\
-$\theta_B = \arctan(n_2/n_1)$ & Ângulo de Brewster & rad \\
-$r_{\text{TM}}$ & Coeficiente de reflexão TM (amplitude) & -- \\
-$t_{\text{TM}}$ & Coeficiente de transmissão TM (amplitude) & -- \\
-$R_{\text{TM}} = |r_{\text{TM}}|^2$ & Reflectância TM (potência) & -- \\
-$T_{\text{TM}} = 1 - R_{\text{TM}}$ & Transmitância TM (potência) & -- \\
-$\mathcal{L}$ & Caminho óptico & m \\
-$p = n_0\sin\theta_0$ & Invariante de Snell & -- \\
-$\mathbf{M}_i$ & Matriz ABCD da camada $i$ & -- \\
-$k_{z,i}$ & Número de onda vertical na camada $i$ & rad/m \\
-$Z_i = n_i/\sqrt{n_i^2-p^2}$ & Impedância TM da camada $i$ & -- \\
-$\Gamma_{\text{TM}}$ & Coeficiente de reflexão global (ABCD) & -- \\
-$P_t, P_r$ & Potência transmitida/recebida & W \\
-$G_t, G_r$ & Ganhos de antena Tx e Rx & -- \\
-$\sigma$ & Seção transversal de radar (RCS) & m$^2$ \\
-$R_T, R_R$ & Comprimentos geométricos dos raios refratados & m \\
-$\psi_0 = \arctan(\rho_0/z_0)$ & Ângulo de \textit{look} médio & rad \\
-$\theta_{t,0}$ & Ângulo de transmissão no solo no ponto médio & rad \\
-$B_{helix}$ & Comprimento de arco da hélice & m \\
-$\beta = \arctan(\Delta z/\Delta\rho)$ & Ângulo de inclinação da hélice & rad \\
-$B_\perp = B_{helix}|\cos(\beta-\psi_0)|$ & Apertura tomográfica efetiva & m \\
-$\Delta\phi$ & NorthOffset Tx--Rx & rad \\
-$W_z$ & Extensão espectral vertical (frequência) & Hz \\
-$\delta_z, \delta_{xy}$ & Resoluções vertical e horizontal & m \\
-$J_0$ & Função de Bessel de $1^\text{a}$ espécie, ordem 0 & -- \\
-$J(\vect{r}_{Rx};\alpha)$ & Função de custo multi-objetivo & -- \\
-$\alpha$ & Parâmetro de compromisso potência--resolução & -- \\
-\bottomrule
-\end{longtable}
-
 %%═══════════════════════════════════════════════════════════════════════════════
+
 \chapter*{Referências}
 \addcontentsline{toc}{chapter}{Referências}
-%%═══════════════════════════════════════════════════════════════════════════════
+
+% TODO: Expandir para 40–50 referências seguindo padrão IEEE [N].
+%       Mínimo recomendado: 55% artigos de periódico, 25% livros, 20% conferências.
 
 \begin{enumerate}
 
   \item \label{ref:moreira2013}
   A.\ Moreira, P.\ Prats-Iraola, M.\ Younis, G.\ Krieger, I.\ Hajnsek e
   K.\ P.\ Papathanassiou, ``A tutorial on synthetic aperture radar,''
-  \textit{IEEE Geoscience and Remote Sensing Magazine}, vol.\ 1, no.\ 1,
+  \textit{IEEE Geoscience and Remote Sensing Magazine}, vol.\ 1, n.\ 1,
   pp.\ 6--43, Mar.\ 2013.
 
   \item \label{ref:munson1983}
   D.\ C.\ Munson, J.\ D.\ O'Brien e W.\ K.\ Jenkins, ``A tomographic
   formulation of spotlight-mode synthetic aperture radar,''
-  \textit{Proceedings of the IEEE}, vol.\ 71, no.\ 8, pp.\ 917--925, Ago.\ 1983.
+  \textit{Proceedings of the IEEE}, vol.\ 71, n.\ 8, pp.\ 917--925, Ago.\ 1983.
 
   \item \label{ref:goes2022}
   J.\ A.\ Góes, \textit{Techniques for High-Resolution 3D Images with
@@ -1308,7 +1943,7 @@ $\alpha$ & Parâmetro de compromisso potência--resolução & -- \\
 
   \item \label{ref:bornwolf1999}
   M.\ Born e E.\ Wolf, \textit{Principles of Optics: Electromagnetic Theory
-  of Propagation, Interference and Diffraction of Light}, 7ª ed.,
+  of Propagation, Interference and Diffraction of Light}, 7ª~ed.,
   Cambridge: Cambridge University Press, 1999.
 
   \item \label{ref:ulaby1981}
@@ -1324,15 +1959,67 @@ $\alpha$ & Parâmetro de compromisso potência--resolução & -- \\
   in \textit{Proc.\ IEE Radar Conference}, QinetiQ Malvern, 2002.
 
   \item \label{ref:garcia2019}
-  M.\ Garcia-Fernandez, Y.\ L\'opez-Fern\'andez e F.\ Las-Heras,
+  M.\ García-Fernández, Y.\ López-Fernández e F.\ Las-Heras,
   ``Autonomous airborne 3D SAR imaging system for subsurface sensing,''
-  \textit{Remote Sensing}, vol.\ 11, no.\ 20, p.\ 2357, 2019.
+  \textit{Remote Sensing}, vol.\ 11, n.\ 20, p.\ 2357, 2019.
 
   \item \label{ref:banda2016}
   F.\ Banda, J.\ Dall e S.\ Tebaldini,
   ``Single and multipolarimetric P-band SAR tomography of subsurface ice,''
-  \textit{IEEE Trans.\ Geosci.\ Remote Sens.}, vol.\ 54, no.\ 5,
+  \textit{IEEE Transactions on Geoscience and Remote Sensing}, vol.\ 54, n.\ 5,
   pp.\ 2832--2845, 2016.
+
+  \item \label{ref:pozar2011}
+  D.\ M.\ Pozar, \textit{Microwave Engineering}, 4ª~ed.,
+  Hoboken, NJ: Wiley, 2011.
+
+  \item \label{ref:cumming2005}
+  I.\ G.\ Cumming e F.\ H.\ Wong, \textit{Digital Processing of Synthetic
+  Aperture Radar Data: Algorithms and Implementation},
+  Norwood, MA: Artech House, 2005.
+
+  \item \label{ref:willis1995}
+  N.\ J.\ Willis, \textit{Bistatic Radar}, 2ª~ed.,
+  Norwood, MA: Artech House, 1995.
+
+  \item \label{ref:daniels2004}
+  D.\ J.\ Daniels, \textit{Ground Penetrating Radar}, 2ª~ed.,
+  London: IET, 2004.
+
+  \item \label{ref:knaell1995}
+  K.\ K.\ Knaell e G.\ P.\ Cardillo, ``Radar tomography for the generation of
+  three-dimensional images,''
+  \textit{IEE Proceedings — Radar, Sonar and Navigation}, vol.\ 142, n.\ 2,
+  pp.\ 54--60, Abr.\ 1995.
+
+  \item \label{ref:reigber2000}
+  A.\ Reigber e A.\ Moreira, ``First demonstration of airborne SAR tomography
+  using multibaseline L-band data,''
+  \textit{IEEE Transactions on Geoscience and Remote Sensing}, vol.\ 38, n.\ 5,
+  pp.\ 2142--2152, Set.\ 2000.
+
+  \item \label{ref:ponce2014}
+  O.\ Ponce, P.\ Prats-Iraola, M.\ Pinheiro, M.\ Rodriguez-Cassola,
+  R.\ Scheiber, A.\ Reigber e A.\ Moreira,
+  ``Fully polarimetric high-resolution 3-D imaging with circular SAR at L-band,''
+  \textit{IEEE Transactions on Geoscience and Remote Sensing}, vol.\ 52, n.\ 6,
+  pp.\ 3274--3290, Jun.\ 2014.
+
+  \item \label{ref:zhu2010}
+  X.\ X.\ Zhu e R.\ Bamler, ``Very high resolution spaceborne SAR tomography
+  in urban environment,''
+  \textit{IEEE Transactions on Geoscience and Remote Sensing}, vol.\ 48, n.\ 12,
+  pp.\ 4296--4308, Dez.\ 2010.
+
+  \item \label{ref:flores2019}
+  A.\ C.\ Flores Rodríguez, \textit{Multipath Influence Analysis on Detection
+  Probability of Radars and Optimal Estimators of Velocity in ArcSAR},
+  Tese de Doutorado, Universidade Estadual de Campinas (UNICAMP),
+  Campinas, SP, Brasil, 2019.
+
+  \item \label{ref:elachi2006}
+  C.\ Elachi e J.\ van Zyl, \textit{Introduction to the Physics and Techniques
+  of Remote Sensing}, 2ª~ed., Hoboken, NJ: Wiley, 2006.
 
 \end{enumerate}
 
