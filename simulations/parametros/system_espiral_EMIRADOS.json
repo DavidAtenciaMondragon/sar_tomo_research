@@ -2,6 +2,7 @@
     {
         "VelocidadeLuz":    3e8,
         "IndiceRefracaoSolo": 2,
+        "TangentePerdaSolo": 0.05,
         "IndiceMaximo":     256,
         "NumeroPulsos":     10000,
         "PlotarGrafico":    true,

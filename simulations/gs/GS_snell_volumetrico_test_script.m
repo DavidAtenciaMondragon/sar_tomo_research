@@ -118,6 +118,11 @@ n = strSystem.IndiceRefracaoSolo;
 c = strSystem.VelocidadeLuz;
 threshold = 1e-10;
 
+if ~isfield(strSystem, 'TangentePerdaSolo')
+    error('Falta el parametro "TangentePerdaSolo" en system%s.json', paramSuffix);
+end
+lossTangent = strSystem.TangentePerdaSolo;
+
 % Create dataset for all points in the linePoints as targets
 
 % Initialize accumulation matrix
@@ -151,11 +156,17 @@ for pointIdx = 1:size(linePoints,1)
     rngBin = 1 + round(t*strRadarRx.fs);
     phi = -(2*pi/strRadarTx.lamb)*(r1Tx + n*r2Tx + r1Rx + n*r2Rx);
 
+    % Atenuacion dielectrica por el trayecto recorrido dentro del suelo
+    % (ida en Tx + ida en Rx), no considerada en el timing/fase anteriores
+    atenTx = calculateSoilAttenuation(r2Tx, strRadarTx.FreqPortadora, n, lossTangent);
+    atenRx = calculateSoilAttenuation(r2Rx, strRadarTx.FreqPortadora, n, lossTangent);
+    atenSolo = atenTx .* atenRx;
+
     % Accumulate response for current point
     validIndices = rngBin > 0 & rngBin <= strSystem.IndiceMaximo;
     IND = sub2ind(size(auxData), rngBin(validIndices), find(validIndices));
 
-    auxData(IND) = auxData(IND) + pointRCS.*exp(1i*phi(validIndices));
+    auxData(IND) = auxData(IND) + pointRCS.*atenSolo(validIndices).*exp(1i*phi(validIndices));
 end
 
 chirp   = createCHRIP(strRadarTx);
