@@ -418,14 +418,17 @@ fórmulas analíticas de resolução $\delta_z$ e $\delta_{xy}$ a partir da aná
 do $k$-espaço biestático refratado, e discute a condição ótima de inclinação da
 hélice e a correção \textit{off-axis} de Góes~[3].
 
-O \textbf{Capítulo~\ref{cap:otimizacao}} (Otimização da Trajetória) formula o
-problema de otimização multi-objetivo, justifica a escala logarítmica, analisa
-a fronteira de Pareto e descreve o otimizador com interpolação PCHIP.
-
 O \textbf{Capítulo~\ref{cap:multicamadas}} (Meios Estratificados) estende o
-modelo para $N$ camadas via formalismo ABCD, demonstra a consistência com o
-caso de Fresnel e discute o ângulo de transmissão ótimo numérico para pilhas
-multicamada.
+modelo eletromagnético do Capítulo~\ref{cap:fundamentos} para $N$ camadas via
+formalismo ABCD, demonstra a consistência com o caso de Fresnel e discute o
+ângulo de transmissão ótimo numérico para pilhas multicamada.
+
+O \textbf{Capítulo~\ref{cap:otimizacao}} (Otimização da Trajetória) formula o
+problema de otimização multi-objetivo sobre esse modelo multicamadas,
+justifica a escala logarítmica, analisa a fronteira de Pareto, descreve o
+algoritmo numérico de otimização (multi-arranque com \texttt{fmincon}) e a
+reconstrução da trajetória por interpolação PCHIP, e apresenta um estudo de
+sensibilidade ao peso $\alpha$ e ao tamanho da grade de alvos.
 
 O \textbf{Capítulo~\ref{cap:resultados}} (Validação) apresenta a validação
 completa por simulação de \textit{backprojection} biestático: configuração do
@@ -1108,166 +1111,6 @@ com a dependência de $\delta_{xy}$ no NorthOffset, define o espaço de projeto
 explorado pelo otimizador do Capítulo~\ref{cap:otimizacao}.
 
 %%═══════════════════════════════════════════════════════════════════════════════
-\chapter{Otimização Multi-Objetivo da Trajetória do Receptor}
-\label{cap:otimizacao}
-%%═══════════════════════════════════════════════════════════════════════════════
-
-\section{Introdução e Estado da Arte}
-\label{sec:otim_arte}
-
-% TODO: Revisar literatura sobre otimização de trajetória em SAR biestático,
-%       otimização multi-objetivo em sistemas de radar, e uso do ângulo de
-%       Brewster para maximizar penetração. Citar Willis (1995), Griffiths (2003),
-%       García-Fernández et al. (2019), Flores (2019).
-%       Brecha: nenhum trabalho utilizou o ângulo de Brewster como guia
-%       geométrico para otimização de trajetória do receptor biestático.
-
-\textit{[Estado da arte a ser desenvolvido.]}
-
-\section{Formulação do Problema de Otimização}
-\label{sec:otim_form}
-
-Para uma grade de $N_{tg}$ alvos subsuperficiais, a potência total recebida é,
-somando~\eqref{eq:radar_refratado} sobre todos os alvos:
-
-\begin{equation}
-  P_r(\vect{r}_{Rx}) = \sum_{i=1}^{N_{tg}}
-  \frac{P_t\,G_t^{(i)}\,G_r^{(i)}\,\sigma_i\,T_1^{(i)}\,T_2^{(i)}\,\lambda^2}
-       {(4\pi)^3\,R_T^{(i)2}\,R_R^{(i)2}}
-  \label{eq:Pr_total}
-\end{equation}
-
-Para posição fixa do transmissor $\vect{r}_{Tx}$, o problema de otimização da
-posição do receptor $\vect{r}_{Rx}$ no plano horizontal é:
-
-\begin{equation}
-  \min_{\vect{r}_{Rx} \in \mathcal{D}}\; J(\vect{r}_{Rx};\alpha) =
-  -(1-\alpha)\log_{10}\!\left[P_r(\vect{r}_{Rx})\right]
-  + \alpha\,\log_{10}\!\left[\delta_{xy}(\vect{r}_{Rx})\cdot\delta_z(\vect{r}_{Rx})\right]
-  \label{eq:cost}
-\end{equation}
-
-onde $\mathcal{D} \subset \mathbb{R}^2$ é o domínio de busca e
-$\alpha \in [0,1]$ é o parâmetro de compromisso potência--resolução.
-O termo $-(1-\alpha)\log_{10}P_r$ penaliza baixa potência recebida (maximiza
-$P_r$), enquanto $\alpha\log_{10}(\delta_{xy}\cdot\delta_z)$ penaliza baixa
-resolução (minimiza o produto de resoluções).
-
-\section{Justificativa Matemática da Escala Logarítmica}
-\label{sec:otim_log}
-
-A escolha da escala logarítmica é motivada por três propriedades:
-
-\begin{enumerate}
-  \item \textbf{Comensurabilidade:} $P_r \sim 10^{-15}$\,W e
-  $\delta_{xy}\cdot\delta_z \sim 10^{-4}$\,m$^2$ diferem em muitas ordens de
-  grandeza. O logaritmo reduz ambos à mesma escala de grandeza.
-
-  \item \textbf{Condicionamento numérico do gradiente:} da equação do radar,
-  $-\log_{10}P_r \propto 2\log_{10}R_R - \log_{10}T_2$. O gradiente em relação
-  a $\vect{r}_{Rx}$ é proporcional a $\nabla R_R/R_R - \nabla T_2/T_2$,
-  que é bem condicionado numericamente para toda a faixa de operação.
-
-  \item \textbf{Interpretação física em dB:} $-10\log_{10}P_r$ é a perda de
-  percurso em dB, grandeza de uso corrente em telecomunicações e radar. O
-  gradiente de $J$ tem, portanto, interpretação imediata em termos de variação
-  de perda de percurso por metro de deslocamento do receptor.
-\end{enumerate}
-
-\section{Análise da Fronteira de Pareto}
-\label{sec:pareto}
-
-Variando $\alpha$ de 0 a 1, a família de soluções $\vect{r}_{Rx}^*(\alpha)$
-parametriza a fronteira de Pareto entre os objetivos $-\log_{10}P_r$ e
-$\log_{10}(\delta_{xy}\cdot\delta_z)$.
-
-\begin{proposicao}
-Para $\alpha=0$, a solução ótima tende a posicionar o Rx de modo que o ângulo
-de incidência $\theta_R$ se aproxime de $\theta_B$ (máximo de $T_2$) e $R_R$
-seja mínimo. Para $\alpha=1$, a solução ótima tende ao NorthOffset
-$\Delta\phi \to 0$ (máxima resolução horizontal) com mínimo $\psi_0$ (máxima
-abertura relativa).
-\end{proposicao}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.82\textwidth]{pv_fig07_pareto.pdf}
-\caption{Fronteira de Pareto potência--resolução. Cada ponto corresponde à
-posição ótima $\vect{r}_{Rx}^*(\alpha)$ para um valor fixo de $\alpha$.
-O joelho da curva em torno de $\alpha \approx 0{,}2$--$0{,}4$ indica a região
-de operação recomendada.}
-\label{fig:pareto}
-\end{figure}
-
-O joelho da curva de Pareto é identificado pelo método da máxima curvatura e
-define o intervalo ótimo de compromisso $\alpha^* \in [0{,}2,\, 0{,}4]$.
-
-\section{Pontos de Partida Geometricamente Motivados}
-\label{sec:otim_init}
-
-A não-linearidade de $J$ (dependência cúbica em $\vect{r}_{Rx}$ via $R_R^2$ e
-$T_2(\theta_R)$) cria múltiplos mínimos locais. Os candidatos iniciais para o
-otimizador são geometricamente motivados e fisicamente interpretáveis:
-
-\begin{itemize}
-  \item \textbf{Posição oposta:} Rx diametralmente oposto ao Tx em relação ao
-  centroide (maximiza $\Delta\phi \approx 180^\circ$, útil para $\alpha \approx 0$
-  quando a resolução não é restritiva).
-
-  \item \textbf{Posições perpendiculares:} Rx a $\pm 90^\circ$ do eixo Tx--centroide
-  (equilibra cobertura azimutal do $k$-espaço).
-
-  \item \textbf{Posição de Brewster:} Rx à distância horizontal
-  $d_B = (z_{Rx}+|z_P|)\tan\theta_B$ do centroide, de modo que o raio
-  alvo$\to$Rx incide na interface com $\theta_R = \theta_B$. Esta é a posição
-  ótima em potência para $\alpha = 0$.
-\end{itemize}
-
-\section{Trajetória Completa por Interpolação PCHIP}
-\label{sec:pchip}
-
-O otimizador é aplicado a um subconjunto decimado $\{t_k\}_{k=1}^{K}$ de
-posições do Tx, produzindo os pontos ótimos $\{\vect{r}_{Rx}^*(t_k)\}$. A
-trajetória contínua do Rx é reconstruída por interpolação com polinômios
-cúbicos de Hermite preservadores de forma (PCHIP), que:
-
-\begin{itemize}
-  \item garantem continuidade de $C^1$ (posição e velocidade contínuas),
-  \item preservam monotonia local (sem oscilações de Runge entre pontos),
-  \item são realizáveis fisicamente como trajetórias de VANT.
-\end{itemize}
-
-A trajetória final é uma hélice deformada que se aproxima da posição de Brewster
-do alvo em cada instante, sujeita às restrições de resolução impostas por $\alpha$.
-
-\section{Resultados de Simulação}
-\label{sec:otim_sim}
-
-% TODO: SIMULAÇÃO — Executar o otimizador para uma sequência completa de
-%       posições do Tx ao longo da hélice e reportar:
-%         (a) Curva de Pareto potência vs. resolução para α ∈ [0,1]
-%         (b) Posição ótima do Rx (trajetória completa) em planta (x,y)
-%         (c) Comparação: trajetória de Brewster puro (α=0) vs. trajetória
-%             otimizada (α≈0,3) vs. NorthOffset fixo (referência)
-%         (d) Potência recebida e produto δ_xy × δ_z ao longo da trajetória
-%       Script a usar: simulations/run_snell_multislab_pipeline.m com
-%       parâmetros de target_multislab.json.
-
-\textit{[Resultados de simulação a serem gerados e inseridos.]}
-
-\section{Conclusões do Capítulo}
-\label{sec:otim_concl}
-
-Este capítulo formulou o problema de otimização da trajetória do receptor como
-minimização de uma função de custo multi-objetivo logarítmica~\eqref{eq:cost}.
-A fronteira de Pareto identifica o intervalo ótimo de compromisso
-$\alpha^* \approx 0{,}2$--$0{,}4$, no qual ganhos significativos de potência
-são obtidos sem degradação crítica da resolução. A interpolação PCHIP converte
-o conjunto de posições ótimas discretas em uma trajetória contínua realizável.
-Os resultados numéricos da otimização e a comparação com trajetórias de
-referência são apresentados na Seção~\ref{sec:val_otim}.
-
-%%═══════════════════════════════════════════════════════════════════════════════
 \chapter{Transmissão em Meios Estratificados com $N$ Camadas}
 \label{cap:multicamadas}
 %%═══════════════════════════════════════════════════════════════════════════════
@@ -1487,6 +1330,389 @@ transmitância $T_{\text{TM}}$ para cenários multicamada é apresentada na
 Seção~\ref{sec:val_multi}.
 
 %%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Otimização Multi-Objetivo da Trajetória do Receptor}
+\label{cap:otimizacao}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Introdução e Estado da Arte}
+\label{sec:otim_arte}
+
+% TODO: Revisar literatura sobre otimização de trajetória em SAR biestático,
+%       otimização multi-objetivo em sistemas de radar, e uso do ângulo de
+%       Brewster para maximizar penetração. Citar Willis (1995), Griffiths (2003),
+%       García-Fernández et al. (2019), Flores (2019).
+%       Brecha: nenhum trabalho utilizou o ângulo de Brewster como guia
+%       geométrico para otimização de trajetória do receptor biestático.
+
+\textit{[Estado da arte a ser desenvolvido.]}
+
+\section{Formulação do Problema de Otimização}
+\label{sec:otim_form}
+
+Para uma grade de $N_{tg}$ alvos subsuperficiais, a potência total recebida é,
+somando~\eqref{eq:radar_refratado} sobre todos os alvos:
+
+\begin{equation}
+  P_r(\vect{r}_{Rx}) = \sum_{i=1}^{N_{tg}}
+  \frac{P_t\,G_t^{(i)}\,G_r^{(i)}\,\sigma_i\,T_1^{(i)}\,T_2^{(i)}\,\lambda^2}
+       {(4\pi)^3\,R_T^{(i)2}\,R_R^{(i)2}}
+  \label{eq:Pr_total}
+\end{equation}
+
+Para posição fixa do transmissor $\vect{r}_{Tx}$, o problema de otimização da
+posição do receptor $\vect{r}_{Rx}$ no plano horizontal é:
+
+\begin{equation}
+  \min_{\vect{r}_{Rx} \in \mathcal{D}}\; J(\vect{r}_{Rx};\alpha) =
+  -(1-\alpha)\log_{10}\!\left[P_r(\vect{r}_{Rx})\right]
+  + \alpha\,\log_{10}\!\left[\delta_{xy}(\vect{r}_{Rx})\cdot\delta_z(\vect{r}_{Rx})\right]
+  \label{eq:cost}
+\end{equation}
+
+onde $\mathcal{D} \subset \mathbb{R}^2$ é o domínio de busca e
+$\alpha \in [0,1]$ é o parâmetro de compromisso potência--resolução.
+O termo $-(1-\alpha)\log_{10}P_r$ penaliza baixa potência recebida (maximiza
+$P_r$), enquanto $\alpha\log_{10}(\delta_{xy}\cdot\delta_z)$ penaliza baixa
+resolução (minimiza o produto de resoluções).
+
+\section{Justificativa Matemática da Escala Logarítmica}
+\label{sec:otim_log}
+
+A escolha da escala logarítmica é motivada por três propriedades:
+
+\begin{enumerate}
+  \item \textbf{Comensurabilidade:} $P_r \sim 10^{-15}$\,W e
+  $\delta_{xy}\cdot\delta_z \sim 10^{-4}$\,m$^2$ diferem em muitas ordens de
+  grandeza. O logaritmo reduz ambos à mesma escala de grandeza.
+
+  \item \textbf{Condicionamento numérico do gradiente:} da equação do radar,
+  $-\log_{10}P_r \propto 2\log_{10}R_R - \log_{10}T_2$. O gradiente em relação
+  a $\vect{r}_{Rx}$ é proporcional a $\nabla R_R/R_R - \nabla T_2/T_2$,
+  que é bem condicionado numericamente para toda a faixa de operação.
+
+  \item \textbf{Interpretação física em dB:} $-10\log_{10}P_r$ é a perda de
+  percurso em dB, grandeza de uso corrente em telecomunicações e radar. O
+  gradiente de $J$ tem, portanto, interpretação imediata em termos de variação
+  de perda de percurso por metro de deslocamento do receptor.
+\end{enumerate}
+
+\section{Análise da Fronteira de Pareto}
+\label{sec:pareto}
+
+Variando $\alpha$ de 0 a 1, a família de soluções $\vect{r}_{Rx}^*(\alpha)$
+parametriza a fronteira de Pareto entre os objetivos $-\log_{10}P_r$ e
+$\log_{10}(\delta_{xy}\cdot\delta_z)$.
+
+\begin{proposicao}
+Para $\alpha=0$, a solução ótima tende a posicionar o Rx de modo que o ângulo
+de incidência $\theta_R$ se aproxime de $\theta_B$ (máximo de $T_2$) e $R_R$
+seja mínimo. Para $\alpha=1$, a solução ótima tende ao NorthOffset
+$\Delta\phi \to 0$ (máxima resolução horizontal) com mínimo $\psi_0$ (máxima
+abertura relativa).
+\end{proposicao}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{pv_fig07_pareto.pdf}
+\caption{Fronteira de Pareto potência--resolução. Cada ponto corresponde à
+posição ótima $\vect{r}_{Rx}^*(\alpha)$ para um valor fixo de $\alpha$.
+O joelho da curva em torno de $\alpha \approx 0{,}2$--$0{,}4$ indica a região
+de operação recomendada.}
+\label{fig:pareto}
+\end{figure}
+
+O joelho da curva de Pareto é identificado pelo método da máxima curvatura e
+define o intervalo ótimo de compromisso $\alpha^* \in [0{,}2,\, 0{,}4]$.
+
+\section{Pontos de Partida Geometricamente Motivados}
+\label{sec:otim_init}
+
+A não-linearidade de $J$ (dependência cúbica em $\vect{r}_{Rx}$ via $R_R^2$ e
+$T_2(\theta_R)$) cria múltiplos mínimos locais. Os candidatos iniciais para o
+otimizador são geometricamente motivados e fisicamente interpretáveis:
+
+\begin{itemize}
+  \item \textbf{Posição oposta:} Rx diametralmente oposto ao Tx em relação ao
+  centroide (maximiza $\Delta\phi \approx 180^\circ$, útil para $\alpha \approx 0$
+  quando a resolução não é restritiva).
+
+  \item \textbf{Posições perpendiculares:} Rx a $\pm 90^\circ$ do eixo Tx--centroide
+  (equilibra cobertura azimutal do $k$-espaço).
+
+  \item \textbf{Posição de Brewster:} Rx à distância horizontal
+  $d_B = (z_{Rx}+|z_P|)\tan\theta_B$ do centroide, de modo que o raio
+  alvo$\to$Rx incide na interface com $\theta_R = \theta_B$. Esta é a posição
+  ótima em potência para $\alpha = 0$.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\textwidth]{pv_fig06_multistart.pdf}
+\caption{Candidatos de arranque \textit{multi-start} em planta $(x,y)$:
+posição oposta (1), perpendiculares (2--3) e região de Brewster com
+perturbação aleatória (4--5), em torno do centroide dos alvos e dentro da
+região de busca de raio $r_s$.}
+\label{fig:multistart}
+\end{figure}
+
+\section{Algoritmo Numérico de Otimização}
+\label{sec:otim_algo}
+
+Para cada posição do transmissor $\vect{r}_{Tx}(t_k)$ ao longo da trajetória
+helicoidal, a posição ótima do receptor $\vect{r}_{Rx}^*(t_k)$ que resolve o
+problema~\eqref{eq:cost} é obtida por um procedimento de otimização local com
+múltiplos arranques (\textit{multi-start}), estruturado nas seguintes etapas:
+
+\begin{enumerate}
+  \item \textbf{Decimação da trajetória do Tx.} A hélice completa (milhares
+  de amostras, ditadas pela PRF) é subamostrada por um fator de $180$,
+  retendo apenas $K$ posições $\{t_k\}$ suficientes para capturar a variação
+  lenta da geometria Tx--alvo ao longo do voo. Isso reduz o custo
+  computacional de $O(N_{Tx})$ para $O(N_{Tx}/180)$ otimizações completas,
+  sem perda de fidelidade — a trajetória completa do Rx é recuperada por
+  interpolação (Seção~\ref{sec:pchip}).
+
+  \item \textbf{Pré-cálculo por posição de Tx.} Para cada $t_k$ calculam-se,
+  uma única vez, as quantidades que não dependem de $\vect{r}_{Rx}$: os
+  ganhos de antena do transmissor para cada alvo $G_t^{(i)}$ e, via o
+  invariante de Snell generalizado~\eqref{eq:snell_inv} e o formalismo ABCD
+  do Capítulo~\ref{cap:multicamadas}, a distância percorrida $R_T^{(i)}$ e a
+  transmitância $T_1^{(i)}$ do enlace Tx$\to$alvo para cada alvo $i$. Essas
+  quantidades são reutilizadas em todas as avaliações subsequentes de
+  $J$, já que apenas o enlace alvo$\to$Rx varia com $\vect{r}_{Rx}$.
+
+  \item \textbf{Geração de candidatos multi-arranque.} Cinco posições
+  iniciais $\vect{x}_0^{(1..5)}$ são geradas segundo a heurística
+  geometricamente motivada da Seção~\ref{sec:otim_init} (oposta,
+  perpendiculares e Brewster com perturbação aleatória), ilustradas na
+  Fig.~\ref{fig:multistart}. Essa diversidade de arranques mitiga o problema
+  de múltiplos mínimos locais de $J$ mencionado na Seção~\ref{sec:otim_init}.
+
+  \item \textbf{Otimização local.} A partir de cada candidato $\vect{x}_0^{(i)}$,
+  resolve-se
+  \[
+    \vect{x}^{*(i)} = \arg\min_{\vect{r}_{Rx}\in\mathcal{D}} J(\vect{r}_{Rx};\alpha)
+  \]
+  com o \textit{solver} \texttt{fmincon} do MATLAB (algoritmo
+  \textit{interior-point}), restrito à região quadrada
+  $\mathcal{D} = [-r_s,\,r_s]^2$ definida pelo raio de busca $r_s$,
+  com tolerância de função $10^{-10}$ e no máximo $200$ iterações.
+
+  \item \textbf{Seleção do melhor arranque.} A posição ótima final é a de
+  menor custo entre os cinco resultados locais:
+  \[
+    \vect{r}_{Rx}^*(t_k) = \vect{x}^{*(i^*)}, \qquad
+    i^* = \arg\min_i J\bigl(\vect{x}^{*(i)}\bigr).
+  \]
+  Essa estratégia \textit{best-of-N} aproxima o mínimo global do problema
+  não convexo sem o custo de uma busca exaustiva no domínio $\mathcal{D}$.
+
+  \item \textbf{Recuperação de grandezas físicas.} No ponto ótimo
+  $\vect{r}_{Rx}^*(t_k)$, a potência recebida é reavaliada isoladamente com
+  $\alpha=0$ na função de custo — desacoplando-a do peso usado na busca — e
+  as resoluções $\delta_{xy}$, $\delta_z$ são calculadas pelas fórmulas do
+  Capítulo~\ref{cap:resolucao}.
+\end{enumerate}
+
+Repetindo esse procedimento para as $K$ posições decimadas do Tx obtém-se a
+sequência discreta $\{\vect{r}_{Rx}^*(t_k)\}_{k=1}^{K}$, potência, resolução e
+custo associados, que alimentam tanto os resultados da Seção~\ref{sec:otim_sim}
+quanto a reconstrução da trajetória contínua a seguir.
+
+\section{Trajetória Completa por Interpolação PCHIP}
+\label{sec:pchip}
+
+O otimizador é aplicado a um subconjunto decimado $\{t_k\}_{k=1}^{K}$ de
+posições do Tx, produzindo os pontos ótimos $\{\vect{r}_{Rx}^*(t_k)\}$. A
+trajetória contínua do Rx é reconstruída por interpolação com polinômios
+cúbicos de Hermite preservadores de forma (PCHIP), que:
+
+\begin{itemize}
+  \item garantem continuidade de $C^1$ (posição e velocidade contínuas),
+  \item preservam monotonia local (sem oscilações de Runge entre pontos),
+  \item são realizáveis fisicamente como trajetórias de VANT.
+\end{itemize}
+
+A trajetória final é uma hélice deformada que se aproxima da posição de Brewster
+do alvo em cada instante, sujeita às restrições de resolução impostas por $\alpha$.
+
+\section{Resultados de Simulação}
+\label{sec:otim_sim}
+
+% TODO: SIMULAÇÃO — Complementar com:
+%         (b) Posição ótima do Rx (trajetória completa) em planta (x,y)
+%         (c) Comparação: trajetória de Brewster puro (α=0) vs. trajetória
+%             otimizada (α≈0,3) vs. NorthOffset fixo (referência)
+%       Script a usar: simulations/run_snell_multislab_pipeline.m com
+%       parâmetros de target_multislab.json.
+
+\subsection{Configuração do Estudo de Sensibilidade}
+\label{ssec:otim_sim_config}
+
+Para quantificar o comportamento do otimizador~\eqref{eq:cost} em um cenário
+representativo de solo estratificado, executou-se um estudo de sensibilidade
+cruzando o peso $\alpha$ com o tamanho da grade de alvos, sobre o pipeline
+multicamadas descrito no Capítulo~\ref{cap:multicamadas} (meio de duas
+camadas, $n_1=2$, $n_2=3$, $d_1=d_2=1$\,m; portadora em $f=400$\,MHz). O
+otimizador foi executado para $\alpha \in \{0;\,0{,}3;\,0{,}6;\,1\}$ e três
+grades de alvos de $30$, $60$ e $100$\,m de lado, cada uma com
+$5\times5\times5=125$ alvos centrados na segunda camada, totalizando $12$
+otimizações completas ao longo de toda a trajetória do transmissor. O objetivo
+é caracterizar dois parâmetros de projeto que a análise de Pareto da
+Seção~\ref{sec:pareto} não cobre isoladamente: o peso de compromisso $\alpha$
+em um meio com múltiplas interfaces, e a extensão espacial da região de
+interesse cuja resolução é avaliada.
+
+\subsection{Efeito do Peso $\alpha$ e do Tamanho da Grade de Alvos}
+\label{ssec:otim_sim_resultados}
+
+A Tabela~\ref{tab:alpha_grid_resumo} apresenta, para cada combinação de grade
+e $\alpha$, os valores médios ao longo da trajetória do Tx da potência
+recebida, das resoluções lateral e axial e do produto $\delta_{xy}\cdot\delta_z$
+(proxy da área da célula de resolução no plano horizontal).
+
+\begin{table}[H]
+\centering
+\caption{Métricas médias por cenário do estudo de sensibilidade
+$\alpha$--grade (125 alvos, médias ao longo da trajetória do Tx).}
+\label{tab:alpha_grid_resumo}
+\small
+\begin{tabular}{@{}ccrrrr@{}}
+\toprule
+Grade (m) & $\alpha$ & Potência (dBm) & $\delta_{xy}$ (cm) &
+$\delta_z$ (cm) & $\delta_{xy}\!\cdot\!\delta_z$ (cm$^2$) \\
+\midrule
+30  & 0     & $-24{,}6$ & 1748,7 & 89,8 & $1{,}58\times10^{5}$ \\
+30  & 0{,}3 & $-26{,}2$ & 24,4   & 88,8 & 2169 \\
+30  & 0{,}6 & $-28{,}2$ & 17,5   & 93,2 & 1628 \\
+30  & 1     & $-31{,}0$ & 15,6   & 98,5 & 1540 \\
+\midrule
+60  & 0     & $-27{,}9$ & 1154,1 & 89,8 & $1{,}04\times10^{5}$ \\
+60  & 0{,}3 & $-29{,}2$ & 21,8   & 89,3 & 1943 \\
+60  & 0{,}6 & $-31{,}3$ & 17,2   & 93,9 & 1611 \\
+60  & 1     & $-33{,}8$ & 15,6   & 98,5 & 1540 \\
+\midrule
+100 & 0     & $-31{,}0$ & 2196,8 & 89,7 & $1{,}98\times10^{5}$ \\
+100 & 0{,}3 & $-32{,}4$ & 25,5   & 89,3 & 2275 \\
+100 & 0{,}6 & $-34{,}5$ & 17,1   & 94,3 & 1608 \\
+100 & 1     & $-36{,}8$ & 15,6   & 98,5 & 1540 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{pv_fig11_tradeoff_multicamada.png}
+\caption{Curva de compromisso potência--resolução para o meio de duas
+camadas. Cada ponto de uma mesma série (tamanho de grade) corresponde a um
+valor de $\alpha$; o eixo horizontal está em escala logarítmica.}
+\label{fig:tradeoff_multi}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{pv_fig12_evolucao_grid30m.png}
+\caption{Evolução ao longo da trajetória do Tx para a grade de 30\,m:
+potência recebida (topo), produto de resolução $\delta_{xy}\cdot\delta_z$ em
+escala logarítmica (meio) e custo $J$ (base), comparando os quatro valores
+de $\alpha$.}
+\label{fig:evol_grid30}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{pv_fig13_evolucao_grid100m.png}
+\caption{Mesma análise da Fig.~\ref{fig:evol_grid30}, para a grade de
+100\,m. O padrão qualitativo em função de $\alpha$ é o mesmo; a diferença
+está no nível absoluto de potência.}
+\label{fig:evol_grid100}
+\end{figure}
+
+O peso $\alpha$ apresenta, no meio multicamadas, o mesmo compromisso
+monotônico e fisicamente coerente observado no caso de interface única
+(Seção~\ref{sec:pareto}): a correlação entre $\alpha$ e a potência média é
+$-1{,}00$ nas três grades (aumentar $\alpha$ \emph{sempre} custa potência), e
+a correlação entre $\alpha$ e a resolução (produto $\delta_{xy}\cdot\delta_z$)
+é $-0{,}74$ (aumentar $\alpha$ tende a melhorá-la). O compromisso é, no
+entanto, fortemente não linear ao longo de $[0,1]$:
+
+\begin{itemize}
+  \item De $\alpha=0$ para $\alpha=0{,}3$, o custo em potência é pequeno
+        ($1{,}4$--$1{,}6$\,dB, consistente nas três grades), enquanto o
+        produto $\delta_{xy}\delta_z$ cai entre $53\times$ e $87\times$ (mais
+        de $98\%$ de redução). Esta é a transição de maior retorno: sair de
+        $\alpha=0$ — que ignora completamente a resolução, deixando o Rx numa
+        geometria com dezenas de metros de erro lateral — custa menos de
+        $2$\,dB de potência.
+  \item De $\alpha=0{,}3$ para $\alpha=0{,}6$, o custo sobe para
+        $\sim\!2$\,dB, e o ganho adicional de resolução cai para
+        $17$--$29\%$ — ainda vantajoso, mas com retorno decrescente.
+  \item De $\alpha=0{,}6$ para $\alpha=1$, o custo em potência é o maior de
+        todos ($2{,}3$--$2{,}9$\,dB) para um ganho de resolução marginal de
+        apenas $4$--$5\%$: praticamente todo o benefício de resolução
+        alcançável já foi obtido em $\alpha=0{,}6$.
+  \item Em $\alpha=1$ a solução converge para a mesma geometria relativa de
+        resolução ($\delta_{xy}\approx15{,}6$\,cm, $\delta_z\approx98{,}5$\,cm)
+        independentemente da grade — esperado, pois ao ignorar totalmente a
+        potência a posição ótima do Rx passa a depender apenas do ângulo
+        biestático em relação ao centro da grade, não da sua extensão. Ainda
+        assim, a potência física nessa posição varia com o tamanho da grade
+        ($-31{,}0 \to -33{,}8 \to -36{,}8$\,dBm), pois alvos mais afastados do
+        centro continuam contribuindo menos à potência total mesmo quando a
+        posição do Rx não foi escolhida em função deles.
+\end{itemize}
+
+Para $\alpha$ fixo, aumentar o tamanho da grade de alvos ($30\to60\to100$\,m)
+degrada a potência média recebida com uma penalidade notavelmente uniforme de
+$\sim\!3$\,dB por salto de escala de grade, \emph{independentemente do valor
+de $\alpha$ usado} — inclusive em $\alpha=1$, quando a posição do Rx é
+escolhida ignorando completamente a potência. Isso confirma que o efeito do
+tamanho de grade sobre a potência é uma propriedade da distribuição espacial
+dos alvos, não um artefato do peso de otimização. Em contraste, o efeito da
+grade sobre a resolução é pequeno: para $\alpha$ fixo, o produto
+$\delta_{xy}\delta_z$ varia pouco entre grades, pois a resolução é dominada
+pela geometria biestática global (posição relativa Tx--Rx--centro da grade),
+não pela dispersão espacial dos alvos individuais.
+
+\textbf{Recomendação prática:} para o cenário multicamadas avaliado, a faixa
+$\alpha \in [0{,}3,\,0{,}6]$ é o ponto de operação recomendado — captura mais
+de $98\%$ do ganho de resolução disponível a um custo de potência de apenas
+$1{,}4$--$3{,}6$\,dB frente a $\alpha=0$, e é consistente com o intervalo
+$\alpha^*\approx0{,}2$--$0{,}4$ identificado pela fronteira de Pareto de
+interface única (Fig.~\ref{fig:pareto}). Empurrar $\alpha$ até $1$ custa mais
+$2$--$3$\,dB de potência por um ganho de resolução essencialmente nulo, e por
+isso não é recomendado como padrão, exceto quando a resolução lateral for a
+única prioridade e houver margem de SNR de sobra. Regiões de interesse mais
+extensas (grades maiores) devem ser compensadas com potência de transmissão
+adicional ou reprocessadas por sub-regiões menores, já que o tamanho da grade
+penaliza a potência de forma consistente sem beneficiar a resolução.
+
+\textbf{Nota sobre a métrica de custo:} o custo $J$ não deve ser comparado
+diretamente entre corridas com $\alpha$ distinto, pois sua definição muda com
+o peso — os valores brutos de $J$ sugeririam piora monotônica de $\alpha=0$
+para $\alpha=1$, o que é apenas um artefato de escala. As comparações de
+desempenho desta seção usam sempre as grandezas físicas diretamente
+(potência em dBm, $\delta_{xy}$, $\delta_z$), como na Fig.~\ref{fig:tradeoff_multi}.
+
+\section{Conclusões do Capítulo}
+\label{sec:otim_concl}
+
+Este capítulo formulou o problema de otimização da trajetória do receptor como
+minimização de uma função de custo multi-objetivo logarítmica~\eqref{eq:cost}.
+A fronteira de Pareto identifica o intervalo ótimo de compromisso
+$\alpha^* \approx 0{,}2$--$0{,}4$, no qual ganhos significativos de potência
+são obtidos sem degradação crítica da resolução. A interpolação PCHIP converte
+o conjunto de posições ótimas discretas em uma trajetória contínua realizável.
+O estudo de sensibilidade da Seção~\ref{sec:otim_sim}, realizado sobre o
+pipeline multicamadas, confirma esse intervalo ($\alpha\in[0{,}3,\,0{,}6]$)
+para um meio com múltiplas interfaces e mostra, adicionalmente, que o tamanho
+da grade de alvos penaliza a potência recebida de forma uniforme
+($\sim$3\,dB por salto de escala de grade) sem afetar significativamente a
+resolução — um efeito independente do peso $\alpha$ escolhido. Os resultados
+numéricos da otimização e a comparação com trajetórias de referência são
+apresentados na Seção~\ref{sec:val_otim}.
+
+%%═══════════════════════════════════════════════════════════════════════════════
 \chapter{Validação por Simulação de Backprojection}
 \label{cap:resultados}
 %%═══════════════════════════════════════════════════════════════════════════════
@@ -1652,7 +1878,7 @@ mínimo exato em $\beta = \psi_0$.}
 \section{Validação do Modelo de Otimização de Trajetória}
 \label{sec:val_otim}
 
-% TODO: SIMULAÇÃO — Após completar o Capítulo 4, executar backprojection com
+% TODO: SIMULAÇÃO — Após completar o Capítulo de Otimização, executar backprojection com
 %       a trajetória otimizada e comparar SNR e resolução obtidos contra
 %       trajetórias de referência (NorthOffset fixo, trajetória de Brewster puro).
 %       Métrica: ganho em potência recebida (dB) e variação em δ_xy × δ_z (%).

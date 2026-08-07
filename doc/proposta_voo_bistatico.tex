@@ -1,0 +1,614 @@
+%% proposta_voo_bistatico.tex
+%% Proposta técnica: otimização do plano de voo do receptor em SAR biestático
+%% (transmissor em hélice cônica, receptor com posição otimizada),
+%% para os cenários de solo homogêneo e solo estratificado (multicamada).
+%% Idioma: Português
+%% Compilar: pdflatex proposta_voo_bistatico.tex (duas passagens)
+
+\documentclass[11pt,a4paper]{article}
+
+% ─── pacotes ────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\geometry{left=2.8cm, right=2.5cm, top=2.8cm, bottom=2.8cm}
+
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{siunitx}
+\sisetup{output-decimal-marker={,}}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage[table]{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,patterns,positioning}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+
+\usepackage[unicode,colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=green!50!black,
+  urlcolor=cyan!60!black,
+  pdftitle={Proposta de Voo Bistatico para SAR de Subsuperficie},
+  pdfauthor={David Atencia}]{hyperref}
+
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\nouppercase{\leftmark}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ─── caixas de destaque ───────────────────────────────────────────────────────
+\newtcolorbox{resultado}[1]{enhanced, breakable, colback=yellow!8, colframe=orange!70!black,
+  fonttitle=\bfseries, title={#1}}
+\newtcolorbox{definicao}[1]{enhanced, breakable, colback=blue!5, colframe=blue!50!black,
+  fonttitle=\bfseries, title={#1}}
+\newtcolorbox{nota}[1]{enhanced, breakable, colback=green!5, colframe=green!50!black,
+  fonttitle=\bfseries\small, title={#1}}
+
+% ─── macros ────────────────────────────────────────────────────────────────
+\newcommand{\RT}{R_T}
+\newcommand{\RR}{R_R}
+\newcommand{\thetaB}{\theta_B}
+\newcommand{\nuno}{n_1}
+\newcommand{\ndos}{n_2}
+\newcommand{\Prcv}{P_r}
+\newcommand{\Pt}{P_t}
+\newcommand{\Jcost}{J}
+\newcommand{\alphaR}{\alpha}
+\newcommand{\dxy}{\delta_{xy}}
+\newcommand{\dz}{\delta_z}
+
+% ─── capa moderna ─────────────────────────────────────────────────────────────
+\definecolor{covernavy}{HTML}{102A43}
+\definecolor{coverteal}{HTML}{1B998B}
+\definecolor{coversub}{HTML}{627D98}
+\newcommand{\coverfont}{\sffamily}
+
+\begin{document}
+
+\begin{titlepage}
+\newgeometry{left=0pt,right=0pt,top=0pt,bottom=0pt}
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture, overlay]
+
+  % ── faixa lateral navy ──────────────────────────────────────────────────
+  \fill[covernavy] (current page.north west) rectangle ([xshift=5.4cm]current page.south west);
+  \fill[coverteal] ([xshift=5.4cm]current page.north west) rectangle ([xshift=5.5cm]current page.south west);
+
+  % ── anéis concêntricos decorativos (motivo radar), recortados à faixa ──
+  \begin{scope}
+    \clip (current page.north west) rectangle ([xshift=5.4cm]current page.south west);
+    \foreach \r in {1.6,3.4,5.2,7.0,8.8,10.6}{
+      \draw[coverteal!55, line width=0.7pt]
+        ([yshift=-6.2cm,xshift=1.9cm]current page.north west) circle (\r cm);
+    }
+    \fill[coverteal!85] ([yshift=-6.2cm,xshift=1.9cm]current page.north west) circle (2.2pt);
+  \end{scope}
+
+  % ── rótulo vertical no rodapé da faixa ──────────────────────────────────
+  \node[rotate=90, anchor=west]
+    at ([xshift=2.7cm,yshift=2.0cm]current page.south west)
+    {\coverfont\bfseries\fontsize{9}{9}\selectfont\color{coverteal!90!white}
+     SAR BIEST\'ATICO \;\textbullet\; TOMOGRAFIA DE SUBSUPERF\'ICIE};
+
+  % ── kicker ───────────────────────────────────────────────────────────────
+  \node[anchor=north west, text width=12.6cm, align=left]
+    at ([xshift=6.6cm,yshift=-9.6cm]current page.north west)
+    {\coverfont\bfseries\color{coverteal} \large PROPOSTA T\'ECNICA};
+
+  % ── título principal ────────────────────────────────────────────────────
+  \node[anchor=north west, text width=12.6cm, align=left]
+    at ([xshift=6.6cm,yshift=-11.1cm]current page.north west)
+    {\coverfont\bfseries\fontsize{25}{29}\selectfont\color{covernavy}
+     Otimização do Plano de Voo do Receptor em SAR Biestático};
+
+  % ── subtítulo ────────────────────────────────────────────────────────────
+  \node[anchor=north west, text width=12.6cm, align=left]
+    at ([xshift=6.6cm,yshift=-14.2cm]current page.north west)
+    {\coverfont\itshape\Large\color{coversub}
+     Tomografia de Subsuperfície: Fundamento Físico,\\ Linha de Raciocínio e Utilidade Prática};
+
+  % ── linha separadora ─────────────────────────────────────────────────────
+  \draw[coverteal, line width=1.1pt]
+    ([xshift=6.6cm,yshift=-16.9cm]current page.north west) --
+    ++(5.4cm,0);
+
+  % ── autor / projeto / data ──────────────────────────────────────────────
+  \node[anchor=north west, text width=12.6cm, align=left]
+    at ([xshift=6.6cm,yshift=-17.9cm]current page.north west)
+    {\coverfont\bfseries\large\color{covernavy} David Atencia\\[0.35em]
+     \coverfont\color{coversub}\normalsize Projeto de Pesquisa SAR-Tomo\\[0.15em]
+     \coverfont\color{coversub}\normalsize \today};
+
+\end{tikzpicture}
+\end{titlepage}
+\restoregeometry
+\clearpage
+\pagenumbering{arabic}
+
+\begin{abstract}
+\noindent
+Este documento apresenta a proposta de otimização da trajetória do receptor em um sistema de
+radar de abertura sintética (SAR) biestático voltado à tomografia de alvos subsuperficiais.
+O transmissor percorre uma trajetória fixa em hélice cônica, enquanto a posição horizontal do
+receptor é escolhida, a cada instante, de modo a maximizar a potência recebida — explorando o
+\emph{ângulo de Brewster} da interface entre o ar e o solo — e, simultaneamente, minimizar a
+resolução espacial tridimensional esperada do sistema tomográfico. Discute-se o caso de um meio
+homogêneo de duas camadas (ar-solo) e sua generalização a um solo estratificado em várias camadas
+planas, mais próximo de condições reais de campo. Apresentam-se o fundamento físico-matemático da
+proposta, a linha de raciocínio que leva à estratégia de otimização adotada, os parâmetros de
+projeto relevantes e os benefícios práticos esperados, incluindo a possibilidade de visualizar e
+validar o plano de voo de forma georreferenciada antes da execução em campo.
+\end{abstract}
+
+\begin{nota}{Reprodutibilidade}
+Os estudos, simulações e o código-fonte que fundamentam esta proposta encontram-se disponíveis
+no repositório público do projeto:\\
+\url{https://github.com/DavidAtenciaMondragon/sar_tomo_research}.
+\end{nota}
+
+\clearpage
+\tableofcontents
+\clearpage
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\section{Introdução e Motivação}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+Em um sistema SAR biestático para detecção de alvos enterrados, o transmissor percorre uma
+trajetória predeterminada — uma \textbf{hélice cônica} — projetada para maximizar a diversidade
+angular e, com isso, a resolução tridimensional do volume de interesse. A posição do receptor,
+por outro lado, é um \textbf{grau de liberdade livre}: em cada instante de aquisição, pode ser
+escolhida entre um número praticamente ilimitado de posições horizontais, mantendo a mesma
+altitude do transmissor naquele instante.
+
+A proposta aqui descrita responde à seguinte pergunta de projeto:
+
+\begin{center}
+\fbox{\parbox{0.85\textwidth}{\centering\itshape
+Onde deve voar o receptor em cada instante para que o par biestático transmissor--receptor seja,
+simultaneamente, ótimo em potência recebida \textbf{e} em resolução 3D do alvo subsuperficial?
+}}
+\end{center}
+
+A proposta resolve esse problema de forma sistemática, posição a posição do transmissor ao longo
+da hélice, produzindo uma trajetória ótima para o receptor que pode ser exportada de forma
+georreferenciada e integrada a sistemas de informação geográfica (SIG) para planejamento e
+validação do voo em campo.
+
+\subsection{Por que o receptor precisa de um plano de voo próprio}
+
+Em um radar monostático, transmissor e receptor compartilham a mesma plataforma e, portanto, a
+mesma trajetória. Em um radar biestático essa restrição desaparece: o receptor pode ocupar uma
+posição independente, escolhida propositalmente para melhorar o desempenho do sistema. Duas
+oportunidades decorrem disso:
+
+\begin{itemize}
+  \item \textbf{Ganho de potência via ângulo de Brewster.} A interface ar-solo, para incidência
+  em polarização TM, possui um ângulo específico ($\thetaB$) no qual a reflexão é nula e toda a
+  potência incidente é transmitida ao subsolo. Posicionar o receptor de modo que o trecho
+  alvo$\to$receptor incida próximo a esse ângulo aumenta a potência que efetivamente retorna.
+  \item \textbf{Ganho de resolução via diversidade angular.} A resolução 3D de um sistema SAR
+  biestático depende do ângulo de separação biestática entre transmissor e receptor, observado a
+  partir do alvo. Escolher esse ângulo adequadamente reduz a área de resolução horizontal e
+  vertical do voxel tomográfico.
+\end{itemize}
+
+Como se mostra na Seção~\ref{sec:custo}, esses dois objetivos nem sempre apontam para a mesma
+posição do receptor, o que justifica uma formulação multiobjetivo e uma busca numérica — e não uma
+fórmula fechada única — para cada posição do transmissor.
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\section{Fundamentação Teórica}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Geometria do sistema}
+
+A Figura~\ref{fig:geometria} ilustra a configuração biestática. O transmissor percorre uma hélice
+cônica no ar, entre um raio mínimo e máximo e uma faixa de altitudes. O volume de alvos
+subsuperficiais é representado por um conjunto de pontos distribuídos no espaço 3D de interesse.
+Para cada posição instantânea do transmissor, busca-se a posição horizontal do receptor — na mesma
+altitude do transmissor naquele instante — que minimiza um critério combinado de desempenho.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.95, every node/.style={font=\small}]
+  % interface ar-solo
+  \fill[pattern=north east lines, pattern color=brown!60] (-6,-2) rectangle (6,-3.6);
+  \draw[thick] (-6,-2) -- (6,-2) node[right, black] {$z=0$ (interface ar--solo)};
+  \node at (0,-2.9) {\textcolor{brown!70!black}{solo ($n_2$, ou pilha de camadas $n_1,\dots,n_M$)}};
+
+  % Tx e helice
+  \draw[-{Latex[length=2mm]}, blue!60!black, thick] (-3,3.2) .. controls (-1,2.6) and (1,2.2) .. (3.2,1.6);
+  \filldraw[blue!60!black] (-3,3.2) circle (2pt) node[above] {Transmissor (início hélice)};
+  \filldraw[blue!60!black] (3.2,1.6) circle (2.4pt) node[right] {Tx$_i$};
+
+  % alvo
+  \filldraw[red!70!black] (0,-2.6) circle (2pt) node[below] {alvo $P$};
+
+  % Rx otimizado
+  \filldraw[orange!80!black] (-2.6,1.4) circle (2.4pt) node[left] {Rx$_i$ (otimizado)};
+
+  % raios refratados Tx->alvo
+  \draw[blue!50!black, -{Latex[length=1.8mm]}] (3.2,1.6) -- (0.9,-2.0);
+  \draw[blue!50!black, dashed, -{Latex[length=1.8mm]}] (0.9,-2.0) -- (0,-2.6);
+
+  % raios refratados alvo->Rx
+  \draw[orange!70!black, dashed, -{Latex[length=1.8mm]}] (0,-2.6) -- (-0.7,-1.95);
+  \draw[orange!70!black, -{Latex[length=1.8mm]}] (-0.7,-1.95) -- (-2.6,1.4);
+
+  \node[blue!50!black] at (2.4,0.15) {$R_T=R_1+R_2$};
+  \node[orange!70!black] at (-1.85,-0.35) {$R_R=R_3+R_4$};
+
+  \draw[<->, thick] (-2.6,1.55) .. controls (0,2.3) .. (3.2,1.75);
+  \node at (0.2,2.55) {$\Delta\phi$ (ângulo biestático)};
+\end{tikzpicture}
+\caption{Geometria biestática: o transmissor percorre a hélice cônica; o receptor, em cada
+instante, ocupa a posição $\mathrm{Rx}_i$ que otimiza conjuntamente a potência recebida (via
+ângulo de Brewster) e a resolução 3D (via ângulo biestático $\Delta\phi$). Linhas contínuas: trecho
+no ar; linhas tracejadas: trecho refratado no solo.}
+\label{fig:geometria}
+\end{figure}
+
+\subsection{Interface ar-solo, polarização TM e ângulo de Brewster}
+\label{sec:brewster}
+
+O caso base considera dois meios homogêneos: ar ($z>0$, índice $\nuno=1$) e solo ($z<0$, índice
+$\ndos=\sqrt{\varepsilon_r}$). A onda incide em polarização \textbf{TM} (campo elétrico no plano
+de incidência), para a qual os coeficientes de Fresnel são
+\[
+r_{TM} = \frac{\ndos\cos\theta_1 - \nuno\cos\theta_2}{\ndos\cos\theta_1 + \nuno\cos\theta_2}, \qquad
+t_{TM} = \frac{2\nuno\cos\theta_1}{\ndos\cos\theta_1 + \nuno\cos\theta_2},
+\]
+com $\theta_1,\theta_2$ relacionados pela lei de Snell ($\nuno\sin\theta_1=\ndos\sin\theta_2$).
+Existe um ângulo de incidência particular — o \textbf{ângulo de Brewster} — para o qual $r_{TM}=0$
+e, portanto, toda a potência incidente é transmitida ao segundo meio:
+\begin{resultado}{Ângulo de Brewster}
+\[
+\boxed{\thetaB = \arctan\!\left(\frac{\ndos}{\nuno}\right)}
+\]
+Para um solo seco típico ($\varepsilon_r\approx 4 \Rightarrow \ndos=2$): $\thetaB\approx
+63{,}43^\circ$, com ganho de transmitância de $\sim$12--14\% em relação a incidências
+intermediárias típicas.
+\end{resultado}
+
+Essa é a base física que justifica orientar a posição do receptor: se os trechos
+transmissor$\to$alvo e alvo$\to$receptor incidem na interface em ângulos próximos a $\thetaB$, a
+potência que efetivamente atinge o receptor é maximizada.
+
+\subsection{Princípio de Fermat e cálculo do caminho refratado}
+
+O caminho físico entre uma fonte (transmissor ou receptor) e um alvo enterrado não é uma linha
+reta: refrata-se na interface, segundo o princípio de Fermat (o caminho percorrido minimiza o
+tempo de trânsito óptico $\mathcal{T}=\int n(\bm r)\,ds$). Para uma interface plana horizontal, o
+ponto de refração ótimo pertence à reta que une as projeções horizontais da fonte e do alvo, o que
+reduz um problema de otimização bidimensional a um problema unidimensional com solução única,
+resolvido numericamente em poucas iterações. Esse resultado é o que torna viável avaliar um grande
+número de posições candidatas do receptor sem custo computacional proibitivo.
+
+\subsection{Equação de radar biestática com refração}
+
+Incorporando a transmitância $T_1,T_2$ nas duas travessias da interface e os caminhos ópticos
+totais $\RT=R_1+R_2$ (transmissor$\to$alvo) e $\RR=R_3+R_4$ (alvo$\to$receptor):
+\begin{resultado}{Equação de radar biestática com refração}
+\[
+\boxed{\Prcv = \frac{\Pt\,G_T\,G_R\,\sigma\,T_1\,T_2\,\lambda^2}{(4\pi)^3\,\RT^2\,\RR^2}}
+\]
+onde $\Pt$ é a potência transmitida, $G_T,G_R$ são os ganhos de antena na direção do alvo, $\sigma$
+é a seção reta radar do alvo e $\lambda$ é o comprimento de onda.
+\end{resultado}
+A dependência de $T_1$ e $T_2$ no ângulo de incidência é precisamente o elo entre a Seção
+\ref{sec:brewster} e a potência recebida: maximizar $T_1T_2$ equivale a aproximar os ângulos de
+incidência do ângulo de Brewster (ou de seu equivalente multicamada, Seção~\ref{sec:multicamada}).
+
+\subsection{Resolução 3D biestática}
+
+A resolução espacial do sistema tomográfico depende da geometria transmissor--alvo--receptor
+através do ângulo biestático $\Delta\phi$ e do ângulo de observação. Em termos gerais, a resolução
+horizontal $\dxy$ melhora (diminui) quando $\Delta\phi$ se afasta de $180^\circ$, e a resolução
+vertical $\dz$ depende da largura de banda do sinal e da abertura sintética efetiva projetada ao
+longo da hélice. Essas duas grandezas, calculadas para cada posição candidata do receptor, formam
+o segundo critério de desempenho da proposta, ao lado da potência recebida.
+
+\subsection{Extensão a solo estratificado (multicamada)}
+\label{sec:multicamada}
+
+Solos reais raramente são homogêneos: é comum encontrar camadas com propriedades dielétricas
+distintas (por exemplo, solo seco superficial sobre solo mais úmido em profundidade). A proposta
+generaliza o modelo de propagação a uma pilha de várias camadas planas e horizontais, cada uma
+caracterizada por um índice de refração e uma espessura próprios.
+
+\subsubsection{Invariante de Snell generalizado}
+Para um raio que atravessa a pilha de camadas, o parâmetro do raio
+\[
+p = n_0\sin\theta_0 = n_1\sin\theta_1 = \cdots = \text{constante}
+\]
+é conservado em todas as interfaces. A distância horizontal total percorrida pelo raio é ajustada
+numericamente até coincidir com a distância horizontal entre a fonte e o alvo, generalizando o
+procedimento unidimensional de Fermat da Seção anterior para múltiplas interfaces.
+
+\subsubsection{Transmitância multicamada}
+Os coeficientes de reflexão e transmissão TM da pilha completa são obtidos por um formalismo de
+matrizes de transferência que combina as contribuições de cada camada e se reduz exatamente às
+equações de Fresnel de duas camadas (Seção~\ref{sec:brewster}) quando existe uma única interface.
+
+\subsubsection{Ângulo ótimo de incidência: sem solução fechada}
+Para uma única interface, o ângulo que maximiza a transmitância é o Brewster $\thetaB=\arctan(n_2/n_1)$.
+Para uma pilha de várias camadas, efeitos de interferência entre interfaces sucessivas deslocam o
+máximo de transmitância e não existe, em geral, solução analítica fechada. Por isso, o ângulo
+ótimo é obtido por varredura numérica:
+\begin{resultado}{Ângulo ótimo multicamada (numérico)}
+\[
+\theta_{\mathrm{opt}} = \operatorname*{arg\,max}_{\theta\in[0,\,\pi/2)} T_{TM}(\theta)
+\]
+calculado a partir das camadas entre a superfície e a camada que contém o alvo, e usado no lugar
+de $\thetaB$ para orientar a busca da posição ótima do receptor.
+\end{resultado}
+
+\subsubsection{Reciprocidade}
+Para meios sem perdas (índices reais), a transmitância de ida (transmissor$\to$alvo) é igual à de
+volta (alvo$\to$receptor) para o mesmo parâmetro de raio, o que decorre da simetria do formalismo
+multicamada e da conservação de energia — propriedade que reduz o custo computacional da busca ao
+evitar recalcular quantidades já conhecidas do trecho fixo transmissor$\to$alvo.
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\section{Linha de Raciocínio da Otimização}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Por que combinar potência e resolução em um único critério}
+\label{sec:custo}
+
+Maximizar a potência recebida $\Prcv$ (tipicamente $10^{-10}$--$10^{-8}\,\text{W}$) e minimizar a
+área de resolução $\dxy\cdot\dz$ (tipicamente $10^{-2}$--$10^{-4}\,\text{m}^2$) não são, em geral,
+objetivos alcançados pela mesma posição do receptor. Uma combinação linear direta é problemática:
+as unidades físicas são incompatíveis (W vs.\ m$^2$) e as escalas numéricas diferem em várias
+ordens de grandeza, tornando qualquer peso linear arbitrário e sem interpretação física.
+
+A solução adotada explora a natureza \emph{multiplicativa} da equação de radar e das fórmulas de
+resolução, convertendo produtos em somas por meio do logaritmo:
+\begin{resultado}{Critério multiobjetivo log-normalizado}
+\[
+\boxed{\Jcost = -(1-\alphaR)\log_{10}(\Prcv) + \alphaR\log_{10}(\dxy\cdot\dz)}
+\]
+\begin{itemize}[nosep]
+  \item $\alphaR=0$: a busca considera \textbf{apenas a potência} recebida;
+  \item $\alphaR=1$: a busca considera \textbf{apenas a resolução} 3D esperada;
+  \item $\alphaR\in(0,1)$: equilíbrio multiobjetivo, com o peso relativo entre os dois critérios
+  ajustável conforme a prioridade da campanha (valor de referência típico: $\alphaR=0{,}3$, ou
+  seja, 70\% de peso em potência e 30\% em resolução).
+\end{itemize}
+A posição do receptor que minimiza $\Jcost$ é aquela que melhor equilibra potência recebida
+elevada e resolução espacial fina, segundo o peso escolhido.
+\end{resultado}
+
+\subsection{Estratégia de busca com múltiplos pontos de partida}
+
+O critério $\Jcost$, em função da posição horizontal do receptor, não é convexo: o ângulo
+biestático e os coeficientes de reflexão introduzem múltiplos mínimos locais. Para reduzir o risco
+de convergir a um mínimo local distante do ótimo global, a busca numérica parte de \textbf{vários
+pontos de partida heurísticos}, escolhidos com base na geometria do problema, cobrindo:
+
+\begin{enumerate}[nosep]
+  \item a direção oposta ao transmissor em relação ao centro do volume de alvos (ângulo biestático
+  próximo de $180^\circ$);
+  \item duas direções perpendiculares à linha transmissor--centro do volume;
+  \item posições guiadas pelo ângulo de Brewster (ou pelo ângulo ótimo multicamada), a uma
+  distância horizontal característica do centro do volume, com pequena perturbação para evitar
+  simetrias degeneradas.
+\end{enumerate}
+Cada ponto de partida é refinado por um método numérico de otimização com restrições de região
+(a busca é limitada a um raio horizontal máximo em torno do transmissor), e a solução de menor
+custo entre todos os pontos de partida é adotada como a posição ótima do receptor naquele
+instante.
+
+\subsection{Reaproveitamento do trecho fixo transmissor\texorpdfstring{$\to$}{->}alvo}
+
+Como o transmissor e os alvos não mudam durante a busca da posição do receptor, todo o trecho
+transmissor$\to$alvo (ponto de refração, ângulo de incidência, transmitância e distância óptica) é
+calculado uma única vez por posição do transmissor, antes de avaliar as posições candidatas do
+receptor. Apenas o trecho alvo$\to$receptor precisa ser recalculado a cada candidato avaliado, o
+que reduz significativamente o esforço computacional total da busca.
+
+\subsection{Resumo da linha de raciocínio}
+
+\begin{resultado}{Resumo do procedimento (ambos os cenários — solo homogêneo e estratificado)}
+Para cada posição do transmissor ao longo da hélice:
+\begin{enumerate}[nosep]
+  \item Calcular os ganhos de antena do transmissor em direção a cada alvo do volume de interesse.
+  \item Calcular, uma única vez, o trecho fixo transmissor$\to$alvo (refração, transmitância,
+  distância óptica).
+  \item Definir a geometria de busca (ângulo de Brewster ou ângulo ótimo multicamada, distância
+  característica associada).
+  \item A partir de múltiplos pontos de partida, minimizar o critério combinado de potência e
+  resolução, respeitando os limites da região de busca.
+  \item Selecionar o ponto de menor custo como a posição ótima do receptor.
+  \item Registrar a potência recebida, a resolução esperada e o valor do critério no ponto ótimo.
+\end{enumerate}
+Ao final, a trajetória completa do receptor é obtida por interpolação suave sobre as posições
+ótimas calculadas, resultando em uma trajetória contínua e fisicamente executável, coerente com a
+trajetória do transmissor.
+\end{resultado}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\section{Parâmetros de Configuração}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+Os parâmetros a seguir descrevem, do ponto de vista físico e de projeto, as grandezas que definem
+cada cenário de voo. Eles podem ser ajustados conforme as condições reais do terreno e os
+objetivos da campanha, sem alterar o fundamento teórico da proposta.
+
+\subsection{Trajetória do transmissor (hélice cônica)}
+
+\begin{table}[H]
+\centering
+\caption{Parâmetros geométricos e de operação do transmissor}
+\label{tab:radar_params}
+\small
+\begin{tabular}{@{}p{4.6cm}p{6.6cm}p{2.8cm}@{}}
+\toprule
+Parâmetro & Papel no sistema & Valor de referência \\
+\midrule
+Raios mínimo e máximo da hélice & Definem a abertura angular vista pelo volume de alvos & $147{,}5$ / $172{,}5\,\text{m}$ \\
+Altitudes mínima e máxima & Definem a inclinação da hélice cônica & $80$ / $120\,\text{m}$ \\
+Número de voltas & Densidade de amostragem angular da trajetória & $2$ \\
+Velocidade de voo & Determina o espaçamento entre pulsos ao longo da hélice & $120\,\text{m/s}$ \\
+Frequência de repetição de pulso & Taxa de amostragem temporal do sinal & $400\,\text{Hz}$ \\
+Frequência portadora & Define a penetração no solo e o comprimento de onda & $400\,\text{MHz}$ (banda P) \\
+Largura de banda do sinal & Determina a resolução vertical (em profundidade) & $50\,\text{MHz}$ \\
+Potência transmitida & Determina o alcance do enlace de rádio & $100\,\text{kW}$ \\
+Ganho e abertura da antena & Concentram a energia na direção do volume de interesse & $6\,\text{dBi}$; aberturas de $14^\circ$ (azimute) e $50^\circ$ (elevação) \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+
+A frequência portadora em banda P ($400\,\text{MHz}$, $\lambda\approx0{,}75\,\text{m}$) é escolhida
+por seu baixo coeficiente de atenuação no solo ($\lesssim 0{,}5\,\text{dB/m}$ em solo seco), o que
+permite detectar alvos a $5$--$10\,\text{m}$ de profundidade — inviável em bandas mais altas (por
+exemplo, banda X), onde a atenuação supera $25\,\text{dB/m}$.
+
+\subsection{Modelo do solo}
+
+\begin{table}[H]
+\centering
+\caption{Parâmetros do meio subsuperficial nos dois cenários considerados}
+\label{tab:soil_params}
+\small
+\begin{tabular}{@{}p{4.6cm}p{6.6cm}p{2.8cm}@{}}
+\toprule
+Cenário & Descrição & Valor de referência \\
+\midrule
+Solo homogêneo & Um único índice de refração para todo o subsolo & $n_2=2$ ($\varepsilon_r\approx4$) \\
+Solo estratificado & Sequência de camadas planas, cada uma com índice de refração e espessura próprios, da superfície até a profundidade dos alvos & duas camadas de exemplo: $n{=}2$ ($1\,\text{m}$) sobre $n{=}3$ ($1\,\text{m}$) \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+
+\subsection{Volume de alvos e critério de busca}
+
+\begin{table}[H]
+\centering
+\caption{Parâmetros do volume de interesse e da busca da posição do receptor}
+\label{tab:opt_params}
+\small
+\begin{tabular}{@{}p{4.6cm}p{6.6cm}p{2.8cm}@{}}
+\toprule
+Parâmetro & Papel no sistema & Valor de referência \\
+\midrule
+Extensão e profundidade do volume de alvos & Define a região subsuperficial de interesse tomográfico & dezenas de metros em planta; poucos metros de profundidade \\
+Raio de busca do receptor & Limita a região horizontal onde o receptor pode ser posicionado & $200\,\text{m}$ em torno do transmissor \\
+Peso potência--resolução ($\alphaR$) & Equilibra a prioridade entre potência recebida e resolução espacial & $0$ a $1$; valor de referência $0{,}3$ \\
+Número de pontos de partida da busca & Reduz o risco de mínimos locais na otimização & tipicamente 5 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+
+\begin{nota}{Estudos de sensibilidade}
+O peso $\alphaR$ e o tamanho do volume de alvos podem ser variados sistematicamente para
+quantificar seu efeito na potência recebida, na resolução esperada e no critério combinado —
+permitindo escolher, de forma fundamentada, a configuração mais adequada a cada campanha.
+\end{nota}
+
+\subsection{Resultados e uso em sistemas de informação geográfica}
+
+Cada execução da proposta produz, para a trajetória completa do transmissor, a trajetória ótima
+correspondente do receptor, acompanhada da potência recebida esperada, da resolução espacial
+esperada e do valor do critério combinado ao longo do voo.
+
+Como a geometria do problema é definida em relação a um ponto de referência geográfico conhecido,
+os resultados podem ser exportados em formatos tabulares e georreferenciados, prontos para
+importação em um sistema de informação geográfica (SIG), como o \textbf{QGIS}. Isso permite:
+\begin{itemize}[nosep]
+  \item visualizar, sobre imagens de satélite ou cartografia local, a trajetória planejada do
+  transmissor e a trajetória otimizada do receptor;
+  \item conferir a viabilidade operacional do voo do receptor (obstáculos, limites de propriedade,
+  espaço aéreo) antes da campanha de campo;
+  \item disponibilizar as coordenadas georreferenciadas para o piloto ou sistema de navegação do
+  receptor.
+\end{itemize}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\section{Benefícios da Proposta}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\begin{enumerate}
+  \item \textbf{Aumento da potência recebida.} Ao orientar a posição do receptor para o ângulo de
+  Brewster (ou seu equivalente numérico multicamada), a transmitância na interface se aproxima do
+  máximo teórico, com ganho estimado de $\sim$12--14\% em relação a uma incidência típica
+  arbitrária — relevante em um enlace de subsuperfície já limitado em potência.
+
+  \item \textbf{Melhoria da resolução 3D tomográfica.} A escolha simultânea do ângulo biestático
+  reduz a área de resolução do voxel de imageamento, sem exigir mudanças na trajetória (fixa) do
+  transmissor.
+
+  \item \textbf{Controle explícito do compromisso potência-resolução.} Um único peso ajustável
+  permite priorizar sensibilidade de detecção (potência) ou nitidez de imageamento (resolução)
+  conforme o objetivo da campanha, sem redesenhar a estratégia de busca.
+
+  \item \textbf{Generalização a solos realistas.} A extensão a solo estratificado elimina a
+  suposição de solo homogêneo, permitindo modelar estratificações comuns em campo (por exemplo,
+  camada seca superficial sobre camada mais úmida) e obter um plano de voo consistente com a
+  física real do terreno, ainda que sem perdas dielétricas modeladas (Seção~\ref{sec:limitacoes}).
+
+  \item \textbf{Viabilidade computacional.} A redução do problema de refração a uma busca
+  unidimensional, o reaproveitamento do trecho fixo transmissor$\to$alvo e a amostragem adequada
+  da trajetória do transmissor tornam viável otimizar centenas de posições do receptor, com
+  múltiplos pontos de partida cada, em tempo compatível com o planejamento operacional de uma
+  campanha.
+
+  \item \textbf{Integração direta com o fluxo de trabalho de campo.} A exportação georreferenciada
+  dos resultados evita retrabalho manual de conversão de coordenadas e permite validar visualmente
+  o plano de voo antes da execução, reduzindo o risco de replanejamento em campo.
+\end{enumerate}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\section{Limitações e Trabalhos Futuros}
+\label{sec:limitacoes}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\begin{itemize}[nosep]
+  \item O modelo de propagação é \textbf{sem perdas} (índices de refração reais); solos reais têm
+  permissividade complexa, que introduz atenuação adicional não modelada nesta proposta.
+  \item As interfaces são consideradas \textbf{planas e horizontais}; rugosidade de superfície e
+  heterogeneidade lateral do solo não são consideradas.
+  \item O volume de alvos é representado por uma \textbf{amostragem discreta}, representativa do
+  volume de interesse, não uma discretização exaustiva do meio contínuo real.
+  \item A não convexidade do critério combinado é mitigada, mas não eliminada, pela busca com
+  múltiplos pontos de partida; um número maior de pontos pode ser necessário em geometrias muito
+  assimétricas.
+  \item Trabalhos futuros: incorporar atenuação dielétrica complexa por camada e validar o plano de
+  voo otimizado contra medições de campo.
+\end{itemize}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\section*{Referências}
+\addcontentsline{toc}{section}{Referências}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\begin{enumerate}[nosep]
+  \item M.\ Born e E.\ Wolf, \emph{Principles of Optics}, 7ª ed., Cambridge University Press, 1999.
+  \item F.\ T.\ Ulaby, R.\ K.\ Moore, A.\ K.\ Fung, \emph{Microwave Remote Sensing}, Artech House, 1981.
+  \item A.\ Ishimaru, \emph{Electromagnetic Wave Propagation, Radiation, and Scattering}, Prentice Hall, 1991.
+  \item J.\ A.\ Góes, \emph{Techniques for High-Resolution 3D Images with Synthetic Aperture Radar}, Tese de Doutorado, UNICAMP, 2022.
+\end{enumerate}
+
+\end{document}

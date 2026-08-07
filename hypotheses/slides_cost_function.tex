@@ -1,0 +1,613 @@
+%% ============================================================================
+%%  Apresentação: Funções de Custo para Posicionamento do Receptor em SAR
+%%  Biestático Helicoidal — Formato Beamer / Diapositivos
+%%  Autor: David Atencia
+%% ============================================================================
+\documentclass[aspectratio=169, 10pt]{beamer}
+
+%% ─── Tema e cores ────────────────────────────────────────────────────────────
+\usetheme{Madrid}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{caption}[numbered]
+\setbeamerfont{frametitle}{size=\large, series=\bfseries}
+
+\definecolor{azulSAR}{RGB}{20, 60, 120}
+\definecolor{cinzaFundo}{RGB}{245, 247, 250}
+\setbeamercolor{palette primary}  {bg=azulSAR,   fg=white}
+\setbeamercolor{palette secondary}{bg=azulSAR!80, fg=white}
+\setbeamercolor{palette tertiary} {bg=azulSAR!60, fg=white}
+\setbeamercolor{title}            {fg=white}
+\setbeamercolor{frametitle}       {bg=azulSAR, fg=white}
+\setbeamercolor{block title}      {bg=azulSAR!85, fg=white}
+\setbeamercolor{block body}       {bg=cinzaFundo}
+\setbeamercolor{alerted text}     {fg=red!70!black}
+\setbeamercolor{itemize item}     {fg=azulSAR}
+\setbeamercolor{itemize subitem}  {fg=azulSAR!70}
+
+%% ─── Pacotes ─────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\usepackage{amsmath, amssymb, mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+
+%% ─── Macros ──────────────────────────────────────────────────────────────────
+\newcommand{\Rx}{\mathrm{Rx}}
+\newcommand{\Tx}{\mathrm{Tx}}
+\newcommand{\rRx}{\mathbf{r}_{\Rx}}
+\newcommand{\dxy}{\delta_{xy}}
+\newcommand{\dz}{\delta_z}
+\newcommand{\thetaB}{\theta_{\mathrm{B}}}
+\newcommand{\gdeg}{\ensuremath{^{\circ}}}
+
+%% ─── Metadados ───────────────────────────────────────────────────────────────
+\title[Funções de Custo --- SAR Biestático]{%
+  Projeto de Funções de Custo para\\[0.3em]
+  Posicionamento do Receptor em SAR\\[0.3em]
+  Biestático Helicoidal Subsuperficial}
+
+\author[D.\ Atencia]{David Atencia}
+\institute[Doutoramento SAR]{Programa de Doutoramento em Engenharia Elétrica}
+\date{\today}
+
+% ============================================================================
+\begin{document}
+% ============================================================================
+
+%% ── Capa ─────────────────────────────────────────────────────────────────────
+{
+\setbeamertemplate{headline}{}
+\begin{frame}
+  \titlepage
+  \vspace{-0.8em}
+  \begin{center}
+    \small\textit{Baseado no artigo IEEE:
+    ``Cost Function Design for Bistatic Receiver Placement
+    in Helical SAR Subsurface Imaging Systems''}
+  \end{center}
+\end{frame}
+}
+
+%% ── Sumário ──────────────────────────────────────────────────────────────────
+\begin{frame}{Sumário}
+  \tableofcontents
+\end{frame}
+
+% ============================================================================
+\section{Motivação e Contexto}
+% ============================================================================
+
+\begin{frame}{Por que SAR Biestático Helicoidal?}
+  \begin{columns}[T]
+    \begin{column}{0.54\textwidth}
+      \begin{itemize}
+        \item \textbf{SAR subsuperficial} combina penetração de micro-ondas
+              com resolução sintética para imageamento 3-D do solo.
+        \vspace{0.5em}
+        \item Configuração \textbf{biestática} (Tx $\neq$ Rx) oferece:
+          \begin{itemize}
+            \item Maior diversidade angular
+            \item Melhor resolução lateral
+            \item Exploração do ângulo de Brewster TM
+          \end{itemize}
+        \vspace{0.5em}
+        \item \textbf{Problema central}: onde posicionar o Rx?\\[0.3em]
+              A posição controla \emph{simultaneamente}
+              potência recebida \textbf{e} resolução espacial.
+        \vspace{0.5em}
+        \item Esses dois objetivos são \alert{conflitantes}\\
+              $\Rightarrow$ problema de otimização multi-objetivo
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.43\textwidth}
+      \begin{block}{Geometria Helicoidal}
+        \centering
+        \begin{tikzpicture}[scale=0.85, every node/.style={font=\small}]
+          %% Solo
+          \fill[brown!25] (-2.5,-0.3) rectangle (2.5, 0.0);
+          \draw[thick] (-2.5,0) -- (2.5,0)
+            node[right]{\footnotesize Interface};
+          %% Alvo
+          \filldraw[red!70!black] (0,-0.9) circle (3pt)
+            node[right]{\footnotesize Alvo ($z_P$)};
+          %% Tx
+          \filldraw[blue!80] (-1.6, 2.0) circle (3pt)
+            node[above left]{\footnotesize Tx};
+          %% Rx
+          \filldraw[green!50!black] (1.2, 2.0) circle (3pt)
+            node[above right]{\footnotesize Rx};
+          %% Raios
+          \draw[blue!70, dashed, thick]
+            (-1.6,2.0) -- (-0.45,0) -- (0,-0.9);
+          \draw[green!60!black, dashed, thick]
+            (1.2,2.0)  -- (0.35,0)  -- (0,-0.9);
+          %% Delta phi
+          \draw[<->, red!60!black, thick]
+            (-1.6,2.0) -- node[above]{\footnotesize $\Delta\phi$} (1.2,2.0);
+          %% Theta_B
+          \node[below right, gray, font=\footnotesize] at (0.35,0) {$\thetaB$};
+          %% Altitude
+          \draw[<->, gray] (2.1,0) -- node[right]{\footnotesize $H$} (2.1,2.0);
+        \end{tikzpicture}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================================
+\section{Modelo do Sistema}
+% ============================================================================
+
+\begin{frame}{Modelo Físico}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Potência Recebida}
+        \vspace{-0.4em}
+        \begin{equation*}
+          P_r(\rRx) =
+          \frac{P_t\,G_t\,G_r\,\sigma\,T_1\,T_2(\rRx)\,\lambda_0^2}
+               {(4\pi)^3\,R_T^2\,R_R^2(\rRx)}
+        \end{equation*}
+        \vspace{-0.3em}
+        \begin{itemize}
+          \item $T_2(\rRx)$: transmitância TM na interface ar--solo
+          \item Máxima em $\thetaB = \arctan(n_2/n_1) = 63{,}4\gdeg$
+        \end{itemize}
+      \end{block}
+      \vspace{0.5em}
+      \begin{block}{Resolução Espacial ($k$-espaço)}
+        \vspace{-0.4em}
+        \begin{align*}
+          \dz  &= \frac{c}{2\,W_z}
+                \quad\text{(axial)} \\[4pt]
+          \dxy &= \frac{0{,}60\,\lambda_0}
+                       {\pi\sin\psi_0\,|\cos(\Delta\phi/2)|}
+                \quad\text{(lateral)}
+        \end{align*}
+        \vspace{-0.3em}
+        \begin{itemize}
+          \item $\dxy$ melhora com $|\Delta\phi| \to 180\gdeg$
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Parâmetros de Referência}
+        \centering
+        \renewcommand{\arraystretch}{1.15}
+        \begin{tabular}{@{}lll@{}}
+          \toprule
+          Parâmetro & Valor & Descrição \\
+          \midrule
+          $f_0$        & 10\,GHz  & Portadora \\
+          $B$          & 50\,MHz  & Largura de banda \\
+          $n_2$        & 2{,}0    & Solo ($\varepsilon_r=4$) \\
+          $\thetaB$    & 63{,}4°  & Ângulo de Brewster \\
+          $H$          & 100\,m   & Altitude das plataformas \\
+          $\rho_{\Tx}$ & 160\,m   & Raio da órbita Tx \\
+          $z_P$        & 5\,m     & Profundidade do alvo \\
+          \bottomrule
+        \end{tabular}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================================
+\section{Formulação do Problema}
+% ============================================================================
+
+\begin{frame}{Dois Objetivos em Conflito}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Objetivo 1 --- Perda de Potência}
+        \begin{equation*}
+          f_1(\rRx) = -\log_{10} P_r(\rRx)
+        \end{equation*}
+        Minimizar $f_1$ $\equiv$ maximizar $P_r$\\[4pt]
+        \textcolor{gray}{\small Escala log comprime variação de $10^3$
+        para intervalo $f_1 \in [14,\,18]$}
+      \end{block}
+      \vspace{0.5em}
+      \begin{block}{Objetivo 2 --- Volume de Resolução}
+        \begin{equation*}
+          f_2(\rRx) = \log_{10}\!\bigl[\dxy \cdot \dz\bigr]
+        \end{equation*}
+        Minimizar $f_2$ $\equiv$ minimizar célula de resolução\\[4pt]
+        \textcolor{gray}{\small $f_2 \in [-3,\,-1{,}5]$ ---
+        magnitudes comparáveis a $f_1$}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{O Conflito Fundamental}
+        \begin{itemize}
+          \item \textbf{Máxima potência} ($f_1$ mín.):\\
+                Rx no anel de Brewster,\\
+                $\rho_B \approx H\tan\thetaB \approx 200\,\mathrm{m}$
+          \vspace{0.4em}
+          \item \textbf{Melhor resolução} ($f_2$ mín.):\\
+                Rx oposto ao Tx em azimute,\\
+                $\Delta\phi \to 180\gdeg$
+          \vspace{0.5em}
+          \item[$\Rightarrow$] Problema \textbf{biobjetivo}:
+            \begin{equation*}
+              \min_{\rRx \in \mathcal{D}}\;
+              \bigl[f_1(\rRx),\;f_2(\rRx)\bigr]^{\!\top}
+            \end{equation*}
+        \end{itemize}
+      \end{alertblock}
+      \vspace{0.4em}
+      \centering
+      \small\textit{A escalarização converte o problema\\
+      biobjetivo num escalar único a otimizar.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================================
+\section{Funções de Custo}
+% ============================================================================
+
+\begin{frame}{Cinco Funções de Custo Candidatas}
+  \vspace{-0.3em}
+  \renewcommand{\arraystretch}{1.25}
+  \begin{table}
+  \centering
+  \small
+  \begin{tabular}{@{} c l c c c c @{}}
+    \toprule
+    & \textbf{Função} & \textbf{Diferenciável}
+    & \textbf{Frente não convexa} & \textbf{Norm.\ domínio}
+    & \textbf{Param.} \\
+    \midrule
+    $J_1$ & Soma pond.\ logarítmica
+      & \textcolor{green!60!black}{\checkmark}
+      & \textcolor{red}{$\times$}
+      & \textcolor{green!60!black}{Não} & $\alpha$ \\
+    $J_2$ & Soma pond.\ linear norm.
+      & \textcolor{green!60!black}{\checkmark}
+      & \textcolor{red}{$\times$}
+      & \textcolor{red}{Sim} & $\alpha$ \\
+    $J_3$ & Chebyshev (minimax)
+      & \textcolor{red}{$\times$}
+      & \textcolor{green!60!black}{\checkmark}
+      & \textcolor{red}{Sim} & $\alpha$ \\
+    $J_4$ & Distância ao ponto ideal
+      & \textcolor{green!60!black}{\checkmark}
+      & Parcial
+      & \textcolor{red}{Sim} & --- \\
+    $J_5$ & $J_1$ + penal.\ Brewster
+      & \textcolor{green!60!black}{\checkmark}
+      & \textcolor{red}{$\times$}
+      & \textcolor{green!60!black}{Não} & $\alpha,\gamma$ \\
+    \bottomrule
+  \end{tabular}
+  \end{table}
+
+  \vspace{0.3em}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Formulações}
+        \vspace{-0.3em}
+        \begin{align*}
+          J_1 &= (1{-}\alpha)f_1 + \alpha f_2 \\
+          J_2 &= (1{-}\alpha)\tilde{f}_1 + \alpha \tilde{f}_2 \\
+          J_3 &= \max\!\bigl[(1{-}\alpha)\tilde{f}_1,\;\alpha\tilde{f}_2\bigr] \\
+          J_4 &= \sqrt{\tilde{f}_1^2 + \tilde{f}_2^2} \\
+          J_5 &= J_1 + \gamma(\theta_R - \thetaB)^2
+        \end{align*}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Nota}
+        \small
+        $\tilde{f}_k$: normalização min-max sobre $\mathcal{D}$\\[4pt]
+        $\alpha \in [0,1]$: peso resolução vs.\ potência\\[4pt]
+        $\gamma \geq 0$: intensidade da penalização angular
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{$J_1$ --- Soma Ponderada Logarítmica (Recomendada)}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \begin{block}{}
+        \centering
+        \large
+        $J_1 = (1-\alpha)\underbrace{f_1}_{\text{potência}}
+             + \alpha\underbrace{f_2}_{\text{resolução}}$
+      \end{block}
+      \vspace{0.5em}
+      \textbf{Por que é a melhor para o sistema de 2 camadas?}
+      \begin{enumerate}
+        \item \textbf{Comensurabilidade intrínseca}: escala log mantém $f_1$
+              e $f_2$ comparáveis sem normalização explícita.
+        \vspace{0.3em}
+        \item \textbf{Gradiente consistente}: a função log é côncava ---
+              gradiente mais forte perto do ângulo de Brewster.
+        \vspace{0.3em}
+        \item \textbf{Paisagem unimodal}: favorece convergência de métodos
+              locais (gradiente descendente, quasi-Newton).
+        \vspace{0.3em}
+        \item \textbf{Independência do domínio}: a função não muda se a
+              grade de busca for redimensionada.
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{alertblock}{Valor recomendado: $\alpha^* = 0{,}30$}
+        Equilibra potência e resolução no joelho da curva de Pareto.
+      \end{alertblock}
+      \vspace{0.5em}
+      \begin{block}{Casos limite}
+        \begin{itemize}
+          \item $\alpha = 0$: somente potência\\
+                (Rx no anel de Brewster)
+          \vspace{0.3em}
+          \item $\alpha = 1$: somente resolução\\
+                ($\Delta\phi \to 180\gdeg$, degenerado)
+        \end{itemize}
+      \end{block}
+      \vspace{0.5em}
+      \begin{block}{Limitação}
+        \small Soma ponderada só alcança partes \textbf{convexas} da
+        fronteira de Pareto. Para frentes não convexas, usar $J_3$.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{$J_3$ --- Escalarização de Chebyshev (Alternativa)}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{}
+        \centering
+        \large
+        $J_3 = \max\!\bigl[(1{-}\alpha)\tilde{f}_1,\;\alpha\tilde{f}_2\bigr]$
+      \end{block}
+      \vspace{0.5em}
+      \textbf{Quando usar $J_3$?}
+      \begin{itemize}
+        \item Meio com \textbf{múltiplas camadas} (solo + lençol freático,
+              permafrost \ldots)\\
+              $\Rightarrow$ fronteira de Pareto pode ser \alert{não convexa}.
+        \item $J_1$ não alcança regiões não convexas com nenhum $\alpha$ ---
+              $J_3$ sim.
+      \end{itemize}
+      \vspace{0.5em}
+      \textbf{Desvantagem:}
+      \begin{itemize}
+        \item Não diferenciável nas arestas do $\max$
+        \item Ótimo pode saltar descontinuamente com $\alpha$
+      \end{itemize}
+      \vspace{0.3em}
+      \begin{block}{Forma aumentada}
+        \small
+        $J_3^{+} = J_3 + \rho\,(\tilde{f}_1 + \tilde{f}_2),\;\;
+        \rho = 10^{-3}$\\
+        Recupera diferenciabilidade mantendo cobertura total de Pareto.
+      \end{block}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \begin{block}{$J_1$ vs.\ $J_3$: cobertura da frente de Pareto}
+        \centering
+        \begin{tikzpicture}[scale=0.95]
+          \draw[->] (0,0) -- (3.2,0) node[right]{\small $f_1$};
+          \draw[->] (0,0) -- (0,2.8) node[above]{\small $f_2$};
+          %% Frente convexa (J1 cobre toda)
+          \draw[blue!70!black, very thick, domain=0:2.4, samples=30]
+            plot (\x, {2.4 - \x*\x/2.4});
+          %% Frente não convexa (J3 necessário)
+          \draw[red!70!black, very thick, dashed, domain=0:2.4, samples=60]
+            plot (\x, {2.4*exp(-0.75*\x) + 0.28*sin(3.2*\x r)});
+          %% Legenda
+          \draw[blue!70!black, very thick]
+            (0.1,2.65) -- (0.65,2.65)
+            node[right, font=\tiny]{$J_1$ (convexa)};
+          \draw[red!70!black, very thick, dashed]
+            (0.1,2.35) -- (0.65,2.35)
+            node[right, font=\tiny]{$J_3$ (não convexa)};
+          %% Anotação zona não convexa
+          \node[gray, font=\tiny, align=center] at (1.9,1.4)
+            {Região\\não\\convexa};
+          \draw[->, gray, thin] (1.65,1.25) -- (1.15,0.82);
+        \end{tikzpicture}
+      \end{block}
+      \vspace{0.2em}
+      \centering
+      \small\textit{$J_3$ cobre pontos de Pareto
+      inacessíveis a $J_1$ para qualquer $\alpha$.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================================
+\section{Resultados de Simulação}
+% ============================================================================
+
+\begin{frame}{Paisagens de Custo no Plano $(x_\Rx,\,y_\Rx)$}
+  \begin{columns}[T]
+    \begin{column}{0.58\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{../utils/fig_cf01_landscapes.pdf}
+      \par\vspace{0.2em}
+      \tiny
+      Paisagens de $f_1$, $f_2$ e $J_1$--$J_3$--$J_5$ para $\alpha=0{,}30$.
+      Estrela: Tx. Cruz: alvo. Círculo: Rx ótimo.
+    \end{column}
+    \begin{column}{0.39\textwidth}
+      \small
+      \begin{enumerate}
+        \item $f_1$: anel estreito de alta transmitância em
+              $\rho_B \approx 200\,\mathrm{m}$ (largura ${\sim}5\gdeg$)
+        \vspace{0.4em}
+        \item $f_2$: resolução lateral melhora monotonicamente com $|\Delta\phi|$
+        \vspace{0.4em}
+        \item $J_1$ e $J_5$: mínimos próximos; $J_5$ desloca Rx levemente
+              para o locus de Brewster
+        \vspace{0.4em}
+        \item $J_2$: \alert{regiões planas} extensas --- gradiente quase nulo
+        \vspace{0.4em}
+        \item $J_3$: mínimo compacto com arestas do operador $\max$
+      \end{enumerate}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Fronteiras de Pareto e Sensibilidade a $\alpha$}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \centering
+      \includegraphics[width=0.92\linewidth]{../utils/fig_cf02_pareto_fronts.pdf}
+      \par\vspace{0.2em}
+      \tiny
+      Fronteiras de Pareto em $(f_1,\,f_2)$.
+      Estrela: ponto ideal. Losango: $J_4$.
+      \vspace{0.6em}
+      \small
+      \begin{itemize}
+        \item $J_3$ cobre segmentos \textbf{inacessíveis} a $J_1$
+        \item $J_4$ encontra o joelho da curva
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{../utils/fig_cf03_alpha_sensitivity.pdf}
+      \par\vspace{0.2em}
+      \tiny
+      Posição ótima do Rx vs.\ $\alpha$:
+      (a) distância radial $\rho^*_\Rx$; (b) azimute $\phi^*_\Rx$.
+      \vspace{0.6em}
+      \small
+      \begin{itemize}
+        \item $J_1$: trajetória \textbf{contínua} e suave
+        \item $J_3$: \alert{saltos abruptos} ao trocar ramo do $\max$
+        \item Região crítica: $\alpha \in [0{,}25,\;0{,}35]$
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Condicionamento do Gradiente e Penalização de Brewster}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{../utils/fig_cf04_gradient_norm.pdf}
+      \par\vspace{0.2em}
+      \tiny Norma do gradiente $\|\nabla J\|$ para $\alpha=0{,}30$.
+      \vspace{0.5em}
+      \small
+      \begin{itemize}
+        \item $J_1$: gradiente \textbf{significativo} em todo o domínio
+        \item $J_2$: \alert{platôs} de gradiente quase nulo
+        \item $J_3$: alto, mas \alert{descontínuo} nas arestas
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{../utils/fig_cf05_brewster_penalty.pdf}
+      \par\vspace{0.2em}
+      \tiny Efeito do coeficiente $\gamma$ em $J_5$.
+      \vspace{0.5em}
+      \small
+      \begin{itemize}
+        \item $\gamma = 0$: $J_5 \equiv J_1$
+        \item $\gamma \in [1,\,5]$\,rad$^{-2}$: convergência ${\approx}85\%$
+              para $\thetaB$ com $<15\%$ de degradação em resolução
+        \item Satura para $\gamma > 10$\,rad$^{-2}$
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================================
+\section{Conclusões e Recomendações}
+% ============================================================================
+
+\begin{frame}{Recomendações de Projeto}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Use $J_1$ quando\ldots}
+        \begin{itemize}
+          \item O meio tem \textbf{2 camadas} (ar--solo)
+          \item Frente de Pareto é convexa
+          \item Se deseja otimização por gradiente eficiente
+          \item[$\to$] $\alpha^* = 0{,}30$ recomendado
+        \end{itemize}
+      \end{block}
+      \vspace{0.5em}
+      \begin{block}{Use $J_3$ quando\ldots}
+        \begin{itemize}
+          \item O meio é \textbf{multicamada}
+          \item A frente de Pareto é não convexa
+          \item Usar variante aumentada com $\rho = 10^{-3}$
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Evite $J_2$}
+        Normalização dependente do domínio e regiões de gradiente nulo
+        comprometem a confiabilidade do otimizador.
+      \end{alertblock}
+      \vspace{0.5em}
+      \begin{block}{Alternativa rigorosa a $J_5$}
+        Formulação $\varepsilon$-restrita:
+        \begin{equation*}
+          \min_{\rRx}\;f_2(\rRx)\quad
+          \text{s.a.}\quad f_1(\rRx) \leq f_1^{\max}
+        \end{equation*}
+        Garante potência mínima como \textbf{restrição rígida}.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Conclusões}
+  \begin{enumerate}
+    \setlength\itemsep{0.55em}
+    \item \textbf{$J_1$ é a função recomendada} para o sistema de 2 camadas:
+          comensurabilidade intrínseca, diferenciabilidade e paisagem unimodal.
+
+    \item \textbf{$J_3$ (Chebyshev)} cobre a fronteira de Pareto completamente
+          --- preferível para meios multicamada com frentes não convexas.
+
+    \item \textbf{$J_2$ não é recomendada}: normalização dependente do domínio
+          e mau condicionamento numérico.
+
+    \item A \textbf{penalização de Brewster ($J_5$)} é útil como ferramenta
+          de projeto, mas a formulação $\varepsilon$-restrita é mais rigorosa
+          quando a potência mínima é requisito estrito do sistema.
+
+    \item Todas as funções \textbf{generalizam para meios multicamada}
+          substituindo $T_2$ pela transmitância total via matrizes ABCD.
+  \end{enumerate}
+
+  \vspace{0.7em}
+  \begin{block}{Trabalho futuro}
+    \small
+    Permitividade dependente da frequência $\cdot$
+    Rugosidade superficial $\cdot$
+    Incerteza nos parâmetros elétricos do solo
+  \end{block}
+\end{frame}
+
+%% ── Slide final ──────────────────────────────────────────────────────────────
+{
+\setbeamertemplate{headline}{}
+\begin{frame}[plain]
+  \vfill
+  \centering
+  {\Large\bfseries\color{azulSAR} Obrigado}\\[1em]
+  \large Perguntas?\\[1.5em]
+  \normalsize\texttt{david.atencia.m21@gmail.com}\\[0.8em]
+  \small\textit{Figuras: \texttt{utils/generate\_figures\_cost\_analysis.py}}
+  \vfill
+\end{frame}
+}
+
+\end{document}

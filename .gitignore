@@ -33,6 +33,8 @@
 *.synctex.gz
 *.bbl
 *.blg
+*.nav
+*.snm
 
 # Archivos comprimidos
 *.zip
@@ -58,3 +60,11 @@ desktop.ini
 
 # Claude Code
 .claude/
+
+# Logs de corridas MATLAB (generados por diary() dentro de io/)
+analisis_log_*.txt
+barrido_log_*.txt
+
+# Salidas de corridas de barrido/sensibilidade (reproduzíveis, muito volume)
+simulations/io/plan_vuelo_multislab/
+simulations/io/plan_vuelo_multislab_old/

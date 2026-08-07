@@ -1,4 +1,4 @@
-function plot_bistatic_configuration(PxT, PyT, PzT, tg, Rx_opt_all, n1, n2, angulo_brewster)
+function plot_bistatic_configuration(PxT, PyT, PzT, tg, Rx_opt_all, n1, n2, angulo_brewster, output_dir)
 % PLOT_BISTATIC_CONFIGURATION Crea visualización 3D de la configuración bistática optimizada
 %
 % Inputs:
@@ -7,6 +7,11 @@ function plot_bistatic_configuration(PxT, PyT, PzT, tg, Rx_opt_all, n1, n2, angu
 %   Rx_opt_all - Posiciones optimizadas del receptor (3 x N)
 %   n1, n2 - Índices de refracción del aire y tierra
 %   angulo_brewster - Ángulo de Brewster en radianes
+%   output_dir - (opcional) carpeta de salida para la figura; por defecto io/plan_vuelo
+
+if nargin < 9
+    output_dir = fullfile('io', 'plan_vuelo');
+end
 
 % Figure - Configuración optimizada final
 figure('Position', [200, 200, 1000, 800])
@@ -52,16 +57,15 @@ axis tight
 set(gca, 'Box', 'on', 'FontSize', 10)
 
 % Crear carpeta de salida si no existe
-output_dir = fullfile('io', 'plan_vuelo');
 if ~exist(output_dir, 'dir')
     mkdir(output_dir);
 end
 
-% Guardar figura en io/plan_vuelo/
+% Guardar figura en output_dir
 output_base = fullfile(output_dir, 'bistatic_configuration_3d');
 print(output_base, '-depsc', '-r300')
 print(output_base, '-dpng', '-r300')
-fprintf('\nFigura 3D guardada como bistatic_configuration_3d.eps y .png en carpeta io/plan_vuelo/\n')
+fprintf('\nFigura 3D guardada como bistatic_configuration_3d.eps y .png en carpeta %s\n', output_dir)
 
 hold off
 

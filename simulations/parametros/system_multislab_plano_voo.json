@@ -6,6 +6,7 @@
             {"n": 3, "d": 1}
         ],
         "searchRadius":  200,
+        "alpha_res":     0.3,
         "IndiceMaximo":  256,
         "NumeroPulsos":  10000,
         "PlotarGrafico": true,

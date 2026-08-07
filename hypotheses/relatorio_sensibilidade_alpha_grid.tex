@@ -1,0 +1,302 @@
+\documentclass[11pt, a4paper]{article}
+
+%% ─── Codificação e idioma ────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+
+%% ─── Tipografia ──────────────────────────────────────────────────────────────
+\usepackage{lmodern}
+\usepackage{microtype}
+
+%% ─── Geometria de página ─────────────────────────────────────────────────────
+\usepackage[top=2.5cm, bottom=2.5cm, left=3cm, right=3cm]{geometry}
+
+%% ─── Matemática ──────────────────────────────────────────────────────────────
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+%% ─── Figuras e tabelas ───────────────────────────────────────────────────────
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{float}
+
+%% ─── Listas ──────────────────────────────────────────────────────────────────
+\usepackage{enumitem}
+\setlist[itemize]{noitemsep, topsep=4pt}
+\setlist[enumerate]{noitemsep, topsep=4pt}
+
+%% ─── Hipervínculos ───────────────────────────────────────────────────────────
+\usepackage[hidelinks, colorlinks=true, linkcolor=blue!70!black,
+            citecolor=blue!70!black, urlcolor=blue!70!black]{hyperref}
+
+%% ─── Captions ────────────────────────────────────────────────────────────────
+\captionsetup{font=small, labelfont=bf, labelsep=period}
+
+%% ─── Comandos de conveniência ────────────────────────────────────────────────
+\newcommand{\Rx}{\mathrm{Rx}}
+\newcommand{\Tx}{\mathrm{Tx}}
+\newcommand{\dxy}{\delta_{xy}}
+\newcommand{\dz}{\delta_z}
+\newcommand{\alphares}{\alpha_{\mathrm{res}}}
+
+%% ─── Caminho comum das figuras geradas ───────────────────────────────────────
+\newcommand{\figdir}{../simulations/io/plan_vuelo_multislab/analisis_comparativo}
+
+%% ─── Metadados ───────────────────────────────────────────────────────────────
+\title{\textbf{Sensibilidade do Otimizador de Trajetória do Receptor\\
+       ao Peso Potência--Resolução e ao Tamanho da Grade de Alvos\\
+       \large{Pipeline biestático multicamadas (multislab)}}}
+\author{Nota técnica --- doutorado SAR}
+\date{\today}
+
+% =============================================================================
+\begin{document}
+% =============================================================================
+
+\maketitle
+\thispagestyle{empty}
+
+\noindent\textbf{Contexto:} otimizador de posição do receptor (Rx) para o SAR
+biestático helicoidal com propagação em solo multicamadas. O custo escalarizado
+combina potência recebida e resolução volumétrica através do peso
+$\alphares \in [0,1]$ (0 = só potência, 1 = só resolução). Este relatório resume
+um estudo de sensibilidade desse peso e do tamanho da grade de alvos utilizada
+para avaliar a qualidade da solução.
+\vspace{6pt}
+
+\noindent\textbf{Nota de revisão:} uma versão anterior deste relatório continha
+um erro na rotina de registro de potência do otimizador
+(\texttt{run\_plano\_de\_voo\_multislab.m}): a chamada que deveria medir a
+potência física no ponto ótimo reutilizava por engano o mesmo $\alphares$ da
+otimização, em vez de $\alphares=0$. Como consequência, a coluna de "potência"
+reportada para $\alphares \neq 0$ não era potência, e sim uma reformulação de
+$10^{-J}$ — o que produzia uma correlação $\alphares$--potência positiva,
+fisicamente incoerente. O erro foi corrigido, os 12 cenários foram
+reprocessados do zero e todos os números, figuras e conclusões abaixo refletem
+os dados corrigidos.
+\vspace{6pt}
+
+\noindent\rule{\linewidth}{0.4pt}
+
+% =============================================================================
+\section{Objetivo do estudo}
+% =============================================================================
+
+O otimizador escolhe, para cada posição do transmissor (Tx) ao longo da órbita
+helicoidal, a posição do receptor que minimiza o custo
+\[
+J(\Rx;\alphares) = -(1-\alphares)\,\log_{10} P_r(\Rx) + \alphares\,\log_{10}
+\bigl[\dxy(\Rx)\cdot\dz(\Rx)\bigr],
+\]
+em que $P_r$ é a potência recebida e $\dxy$, $\dz$ são as resoluções lateral e
+axial esperadas no centro da grade de alvos. Dois parâmetros de projeto afetam
+diretamente essa otimização e não haviam sido caracterizados sistematicamente:
+
+\begin{itemize}
+  \item $\alphares$ --- o peso de compromisso entre potência e resolução;
+  \item o tamanho da grade de alvos (extensão em $x$/$y$ da região de interesse
+        no subsolo), que define sobre quantos pontos a resolução é avaliada e
+        quão descentralizados do eixo da órbita eles podem estar.
+\end{itemize}
+
+O estudo varreu $\alphares \in \{0,\ 0.3,\ 0.6,\ 1\}$ e três tamanhos de grade
+($30$, $60$ e $100$~m de lado), com $5\times5\times5 = 125$ alvos por cenário,
+totalizando 12 execuções completas da otimização ao longo de toda a trajetória
+do Tx.
+
+% =============================================================================
+\section{Resultados}
+% =============================================================================
+
+A Tabela~\ref{tab:resumo} apresenta, para cada combinação de grade e
+$\alphares$, os valores médios ao longo da trajetória de: potência recebida,
+resoluções lateral/axial e o produto $\dxy\cdot\dz$ (proxy do volume da célula
+de resolução no plano horizontal).
+
+\begin{table}[H]
+  \centering
+  \caption{Métricas médias por cenário (125 alvos, médias ao longo da trajetória do Tx).}
+  \label{tab:resumo}
+  \small
+  \begin{tabular}{@{}ccrrrr@{}}
+    \toprule
+    \textbf{Grade (m)} & $\boldsymbol{\alphares}$ &
+    \textbf{Potência (dBm)} & $\boldsymbol{\dxy}$\textbf{ (cm)} &
+    $\boldsymbol{\dz}$\textbf{ (cm)} & $\boldsymbol{\dxy\!\cdot\!\dz}$\textbf{ (cm\textsuperscript{2})} \\
+    \midrule
+    30  & 0.0 & $-24.6$ & 1748.7 & 89.8 & $1.58\times10^{5}$ \\
+    30  & 0.3 & $-26.2$ & 24.4   & 88.8 & 2169 \\
+    30  & 0.6 & $-28.2$ & 17.5   & 93.2 & 1628 \\
+    30  & 1.0 & $-31.0$ & 15.6   & 98.5 & 1540 \\
+    \midrule
+    60  & 0.0 & $-27.9$ & 1154.1 & 89.8 & $1.04\times10^{5}$ \\
+    60  & 0.3 & $-29.2$ & 21.8   & 89.3 & 1943 \\
+    60  & 0.6 & $-31.3$ & 17.2   & 93.9 & 1611 \\
+    60  & 1.0 & $-33.8$ & 15.6   & 98.5 & 1540 \\
+    \midrule
+    100 & 0.0 & $-31.0$ & 2196.8 & 89.7 & $1.98\times10^{5}$ \\
+    100 & 0.3 & $-32.4$ & 25.5   & 89.3 & 2275 \\
+    100 & 0.6 & $-34.5$ & 17.1   & 94.3 & 1608 \\
+    100 & 1.0 & $-36.8$ & 15.6   & 98.5 & 1540 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\linewidth]{\figdir/tradeoff_potencia_resolucion.png}
+  \caption{Curva de compromisso potência--resolução. Cada ponto de uma mesma
+  série (tamanho de grade) corresponde a um valor de $\alphares$; o eixo
+  horizontal está em escala logarítmica.}
+  \label{fig:tradeoff}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\linewidth]{\figdir/evolucion_grid_30m.png}
+  \caption{Evolução ao longo da trajetória do Tx para a grade de 30~m: potência
+  recebida (topo), produto de resolução $\dxy\cdot\dz$ em escala logarítmica
+  (meio) e custo $J$ (base), comparando os quatro valores de $\alphares$.}
+  \label{fig:evol30}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\linewidth]{\figdir/evolucion_grid_100m.png}
+  \caption{Mesma análise da Fig.~\ref{fig:evol30}, para a grade de 100~m. O
+  padrão qualitativo em função de $\alphares$ é o mesmo; a diferença está no
+  nível absoluto de potência (ver Seção~\ref{sec:interpretacao}).}
+  \label{fig:evol100}
+\end{figure}
+
+% =============================================================================
+\section{Interpretação}
+\label{sec:interpretacao}
+% =============================================================================
+
+\subsection{Efeito do peso $\alphares$}
+
+O peso $\alphares$ controla um compromisso monotônico e fisicamente coerente:
+a correlação entre $\alphares$ e a potência média é $-1.00$ nos três tamanhos
+de grade (aumentar $\alphares$ \emph{sempre} custa potência, como esperado ao
+despriorizá-la no custo), e a correlação entre $\alphares$ e a resolução
+(produto $\dxy\cdot\dz$) é $-0.74$ (aumentar $\alphares$ tende a melhorar a
+resolução). O ponto central da análise é o quão favorável é essa troca ao
+longo do intervalo $[0,1]$ — e ela está longe de ser linear:
+
+\begin{itemize}
+  \item \textbf{De $\alphares=0$ para $\alphares=0.3$}: o custo em potência é
+        pequeno ($1.4$--$1.6$~dB, consistente nos três tamanhos de grade),
+        enquanto o produto $\dxy\dz$ cai entre $53\times$ e $87\times$
+        (de $\sim\!10^5$--$2\times10^5$ para $\sim\!2\times10^3$
+        cm\textsuperscript{2}, i.e. mais de $98\%$ de redução). Esta é, de
+        longe, a transição de maior retorno: sair de $\alphares=0$ (que ignora
+        completamente a resolução, deixando o Rx numa geometria com dezenas de
+        metros de erro lateral) custa menos de $2$~dB de potência.
+  \item \textbf{De $\alphares=0.3$ para $\alphares=0.6$}: o custo sobe para
+        $\sim\!2$~dB, e o ganho de resolução cai para $17$--$29\%$ de redução
+        adicional em $\dxy\dz$ — ainda vantajoso, mas com retorno claramente
+        decrescente frente ao passo anterior.
+  \item \textbf{De $\alphares=0.6$ para $\alphares=1.0$}: o custo em potência
+        é o maior de todos ($2.3$--$2.9$~dB), para um ganho de resolução
+        marginal de apenas $4$--$5\%$. Praticamente todo o benefício de
+        resolução alcançável já foi obtido em $\alphares=0.6$.
+  \item $\alphares=1$ converge para a mesma geometria relativa de resolução
+        ($\dxy\approx15.6$~cm, $\dz\approx98.5$~cm) independentemente do
+        tamanho da grade — esperado, pois quando o custo ignora totalmente a
+        potência, a posição ótima do Rx é ditada apenas pelo ângulo biestático
+        em relação ao centro da grade, não pela extensão da grade em si.
+        Ainda assim, a \emph{potência física} nessa posição varia com o
+        tamanho da grade ($-31.0 \to -33.8 \to -36.8$~dBm), porque os alvos
+        mais afastados do centro continuam contribuindo menos à potência
+        total mesmo quando a posição do Rx não foi escolhida em função deles.
+\end{itemize}
+
+\textbf{Recomendação prática:} a faixa $\alphares \in [0.3,\,0.6]$ é o ponto de
+operação recomendado: captura mais de $98\%$ do ganho de resolução disponível
+a um custo de potência de apenas $1.4$--$3.6$~dB frente a $\alphares=0$.
+Empurrar $\alphares$ até $1.0$ custa outros $2$--$3$~dB de potência por um
+ganho de resolução essencialmente nulo, e por isso não é recomendado como
+padrão, exceto quando a resolução lateral for a única prioridade e houver
+margem de SNR de sobra.
+
+\subsection{Efeito do tamanho da grade de alvos}
+
+Para $\alphares$ fixo, aumentar o tamanho da grade de alvos (30~$\to$~60~$\to$~100~m)
+degrada monotonicamente a potência média recebida, com uma penalidade
+notavelmente uniforme de $\sim\!3$~dB por salto de escala de grade,
+\emph{independente do valor de $\alphares$ usado}:
+
+\begin{itemize}
+  \item $\alphares=0$: $-24.6 \to -27.9 \to -31.0$~dBm ($-3.3$, $-3.2$~dB).
+  \item $\alphares=0.3$: $-26.2 \to -29.2 \to -32.4$~dBm ($-3.1$, $-3.1$~dB).
+  \item $\alphares=0.6$: $-28.2 \to -31.3 \to -34.5$~dBm ($-3.1$, $-3.2$~dB).
+  \item $\alphares=1.0$: $-31.0 \to -33.8 \to -36.8$~dBm ($-2.8$, $-3.0$~dB).
+\end{itemize}
+
+Notavelmente, a penalidade persiste mesmo em $\alphares=1$, quando a posição do
+Rx é escolhida ignorando completamente a potência: mesmo que a geometria ótima
+de resolução não dependa da grade, alvos mais espalhados continuam, em média,
+mais distantes e pior iluminados por essa geometria fixa, reduzindo a potência
+física recebida. Isso confirma que o efeito do tamanho de grade sobre a
+potência é uma propriedade da própria distribuição espacial dos alvos, não um
+artefato do peso de otimização.
+
+Em compensação, o efeito da grade sobre a resolução é pequeno (comparar
+colunas $\dxy\dz$ entre tamanhos de grade, para $\alphares$ fixo): a resolução
+é dominada pela geometria biestática global (posição relativa Tx--Rx--centro
+da grade) e não pela dispersão espacial dos alvos individuais.
+
+\textbf{Implicação prática:} grades de alvos maiores (regiões de interesse mais
+extensas) custam SNR de forma consistente, mas não custam resolução. Se a área
+de interesse real for grande, convém compensar com potência de transmissão
+adicional ou reprocessar por sub-regiões menores em vez de otimizar uma única
+geometria de Rx para toda a área.
+
+\subsection{Sobre o uso do custo $J$ como métrica de comparação}
+
+O custo $J$ \emph{não} deve ser comparado diretamente entre corridas com
+$\alphares$ distinto, pois sua própria definição muda com o peso (os valores de
+$J$ na Tabela~\ref{tab:resumo}, se olhados fora de contexto, sugeririam
+piora monotônica de $\alphares=0$ para $\alphares=1$, o que é apenas um
+artefato da escala, não uma piora real de desempenho). As comparações de
+desempenho neste relatório usam sempre as grandezas físicas diretamente
+(potência em dBm, $\dxy$, $\dz$), como na Fig.~\ref{fig:tradeoff}.
+
+% =============================================================================
+\section{Conclusões}
+% =============================================================================
+
+\begin{enumerate}
+  \item O peso $\alphares$ tem efeito monotônico e fisicamente coerente:
+        aumentá-lo sempre custa potência (correlação $-1.00$) e sempre tende a
+        melhorar a resolução (correlação $-0.74$), confirmando que o custo
+        escalarizado está corretamente formulado. A troca é fortemente
+        não linear: mais de $98\%$ do ganho de resolução disponível é obtido
+        já em $\alphares=0.3$, a um custo de apenas $1.4$--$1.6$~dB de
+        potência; valores acima de $0.6$ trocam potência adicional por uma
+        melhora de resolução praticamente nula.
+  \item O tamanho da grade de alvos afeta a potência recebida média de forma
+        consistente e uniforme ($\sim$3~dB de perda por salto de escala de
+        grade), \emph{para qualquer valor de $\alphares$, inclusive
+        $\alphares=1$} — ao contrário do que uma versão anterior deste
+        relatório (com o bug de potência ainda presente) sugeria. O impacto
+        sobre a resolução esperada, em contraste, é pequeno.
+  \item A superfície de compromisso potência--resolução (Fig.~\ref{fig:tradeoff})
+        é a ferramenta correta para escolher $\alphares$ em função do requisito
+        de projeto (SNR mínimo vs. resolução mínima), e não os valores brutos
+        de $J$, que não são comparáveis entre diferentes $\alphares$.
+  \item Para o cenário multicamadas avaliado, $\alphares \in [0.3,\,0.6]$ é
+        recomendado como faixa de operação padrão — $0.3$ quando a potência
+        recebida for a restrição mais crítica, $0.6$ quando a resolução
+        lateral for prioritária e houver margem de SNR. $\alphares=1$ não é
+        recomendado como padrão: seu custo adicional de potência
+        ($2$--$3$~dB frente a $\alphares=0.6$) não se traduz em ganho
+        perceptível de resolução.
+\end{enumerate}
+
+\end{document}
