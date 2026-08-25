@@ -95,43 +95,43 @@ def fig01_fresnel_tm():
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
 
-    # ── Panel izquierdo: transmitancia y reflectancia de POTENCIA ──
+    # ── Left panel: POWER transmittance and reflectance ──
     ax = axes[0]
-    ax.plot(theta, T, color=C['sky'], lw=2.5, label='$T$ (transmitancia de potencia)')
-    ax.plot(theta, R, color=C['target'], lw=2.5, label='$R$ (reflectancia de potencia)')
-    ax.plot(theta, T + R, 'k--', lw=1.2, alpha=0.5, label='$T+R$ (conservación)')
+    ax.plot(theta, T, color=C['sky'], lw=2.5, label='$T$ (power transmittance)')
+    ax.plot(theta, R, color=C['target'], lw=2.5, label='$R$ (power reflectance)')
+    ax.plot(theta, T + R, 'k--', lw=1.2, alpha=0.5, label='$T+R$ (conservation)')
     ax.axvline(theta_B, color=C['orange'], lw=1.8, ls=':', label=f'Brewster $\\theta_B={theta_B:.1f}°$')
     ax.fill_betweenx([0, 1.05], theta_B - 3, theta_B + 3, alpha=0.12, color=C['orange'])
-    ax.annotate('$T=1,\\ R=0$\nen Brewster',
+    ax.annotate('$T=1,\\ R=0$\nat Brewster',
                 xy=(theta_B, 1.00), xytext=(theta_B + 12, 0.82),
                 fontsize=10, color=C['orange'],
                 arrowprops=dict(arrowstyle='->', color=C['orange'], lw=1.5))
-    ax.set_xlabel('Ángulo de incidencia $\\theta_1$ [°]')
-    ax.set_ylabel('Potencia transmitida / reflejada')
-    ax.set_title('(a) Transmitancia y Reflectancia de Potencia — TM')
+    ax.set_xlabel('Angle of incidence $\\theta_1$ [°]')
+    ax.set_ylabel('Transmitted / reflected power')
+    ax.set_title('(a) Power Transmittance and Reflectance — TM')
     ax.set_xlim(0, 90)
     ax.set_ylim(-0.02, 1.10)
     ax.legend(loc='lower left', fontsize=9)
     ax.grid(True)
 
-    # ── Panel derecho: coeficientes de CAMPO ──
+    # ── Right panel: FIELD coefficients ──
     ax = axes[1]
-    ax.plot(theta, np.abs(t), color=C['sky'], lw=2.5, label='$|t_{TM}|$ (transmisión campo)')
-    ax.plot(theta, np.abs(r), color=C['target'], lw=2.5, label='$|r_{TM}|$ (reflexión campo)')
+    ax.plot(theta, np.abs(t), color=C['sky'], lw=2.5, label='$|t_{TM}|$ (field transmission)')
+    ax.plot(theta, np.abs(r), color=C['target'], lw=2.5, label='$|r_{TM}|$ (field reflection)')
     ax.axvline(theta_B, color=C['orange'], lw=1.8, ls=':',
                label=f'Brewster $\\theta_B={theta_B:.1f}°$')
     ax.annotate('$r_{TM}=0$', xy=(theta_B, 0.0), xytext=(theta_B + 10, 0.18),
                 fontsize=10, color=C['orange'],
                 arrowprops=dict(arrowstyle='->', color=C['orange'], lw=1.5))
-    ax.set_xlabel('Ángulo de incidencia $\\theta_1$ [°]')
-    ax.set_ylabel('Coeficiente de campo eléctrico')
-    ax.set_title('(b) Coeficientes de Campo — TM')
+    ax.set_xlabel('Angle of incidence $\\theta_1$ [°]')
+    ax.set_ylabel('Electric field coefficient')
+    ax.set_title('(b) Field Coefficients — TM')
     ax.set_xlim(0, 90)
     ax.set_ylim(-0.02, 1.55)
     ax.legend(loc='upper left', fontsize=9)
     ax.grid(True)
 
-    plt.suptitle(f'Coeficientes de Fresnel para polarización TM ($n_1={n1}$, $n_2={n2}$, $\\varepsilon_r=4$)',
+    plt.suptitle(f'Fresnel Coefficients for TM Polarization ($n_1={n1}$, $n_2={n2}$, $\\varepsilon_r=4$)',
                  fontsize=13, fontweight='bold', y=1.01)
     plt.tight_layout()
     save('pv_fig01_fresnel_tm.pdf')
@@ -425,7 +425,7 @@ def fig05_cost_function():
     J_profile = np.array(J_profile)
 
     # Brewster distance (approximate)
-    d_brew = (100.0 + 5.0) / np.tan(theta_B)
+    d_brew = 100.0 * np.tan(theta_B) + 5.0 / np.tan(theta_B)
     xB, yB = d_brew * opp_dir
 
     fig, axes = plt.subplots(1, 2, figsize=(13, 5.5))
@@ -512,7 +512,7 @@ def fig06_multistart():
     n1, n2 = 1.0, 2.0
     theta_B = np.arctan(n2 / n1)
     d = np.linalg.norm(TX - tg_c)
-    d_brew = (100.0 + 5.0) / np.tan(theta_B)
+    d_brew = 100.0 * np.tan(theta_B) + 5.0 / np.tan(theta_B)
 
     opp = (tg_c - TX) / np.linalg.norm(tg_c - TX)
     perp = np.array([-opp[1], opp[0]])
@@ -520,22 +520,33 @@ def fig06_multistart():
     az_opp = np.arctan2(opp[1], opp[0])
 
     cands = {
-        '1\nOpuesto': tg_c + opp * d * 0.8,
-        '2\nPerp. +': tg_c + perp * d * 0.8,
-        '3\nPerp. −': tg_c - perp * d * 0.8,
-        '4\nBrewster': tg_c + d_brew * np.array([np.cos(az_opp), np.sin(az_opp)]),
-        '5\nBrewster\n(jitter)': tg_c + d_brew * 1.18 * np.array(
+        '1 Opposite': tg_c + opp * d * 0.8,
+        '2 Perp. +': tg_c + perp * d * 0.8,
+        '3 Perp. -': tg_c - perp * d * 0.8,
+        '4 Brewster': tg_c + d_brew * np.array([np.cos(az_opp), np.sin(az_opp)]),
+        '5 Brewster (jitter)': tg_c + d_brew * 1.18 * np.array(
             [np.cos(az_opp + 0.2), np.sin(az_opp + 0.2)]),
     }
+    # Candidates 4-5 sit close together near the target cloud, so their
+    # labels are pulled out to open space with a leader line instead of
+    # being placed right on the marker (which caused an illegible cluster).
+    label_offsets = {
+        '1 Opposite': (0, 18),
+        '2 Perp. +': (18, -8),
+        '3 Perp. -': (18, 8),
+        '4 Brewster': (-70, 45),
+        '5 Brewster (jitter)': (-85, -50),
+    }
 
-    # Círculo de búsqueda
+    # Región de búsqueda (radio > d_brew*1.18 para conter o candidato 5)
+    r_search = 250.0
     theta_circ = np.linspace(0, 2*np.pi, 300)
-    ax.plot(200*np.cos(theta_circ), 200*np.sin(theta_circ), '--',
-            color='gray', lw=1.0, alpha=0.5, label='Región de búsqueda ($r=200$ m)')
+    ax.plot(r_search*np.cos(theta_circ), r_search*np.sin(theta_circ), '--',
+            color='gray', lw=1.0, alpha=0.5, label=f'Search region ($r={r_search:.0f}$ m)')
 
     # Círculo de Brewster
     ax.plot(d_brew*np.cos(theta_circ), d_brew*np.sin(theta_circ),
-            ':', color=C['orange'], lw=1.5, alpha=0.7, label=f'Radio Brewster $d_B={d_brew:.0f}$ m')
+            ':', color=C['orange'], lw=1.5, alpha=0.7, label=f'Brewster radius $d_B={d_brew:.0f}$ m')
 
     # Flechas desde target hacia candidatos
     colors_cands = [C['sky'], C['purple'], C['teal'], C['orange'], C['brew']]
@@ -543,8 +554,15 @@ def fig06_multistart():
         ax.annotate('', xy=pt, xytext=tg_c,
                     arrowprops=dict(arrowstyle='->', color=col, lw=1.5, alpha=0.6))
         ax.plot(*pt, 'x', ms=12, mew=3.0, color=col, zorder=8)
-        ax.text(pt[0] + 6, pt[1] + 6, lab, fontsize=9.5, color=col,
-                fontweight='bold', ha='left', va='bottom')
+        off = label_offsets[lab]
+        ax.annotate(lab, xy=pt, xycoords='data',
+                    xytext=off, textcoords='offset points',
+                    fontsize=9.5, color=col, fontweight='bold',
+                    ha='left' if off[0] >= 0 else 'right', va='center',
+                    arrowprops=dict(arrowstyle='-', color=col, lw=0.8, alpha=0.7,
+                                     shrinkA=0, shrinkB=5),
+                    bbox=dict(boxstyle='round,pad=0.15', fc='white', ec='none', alpha=0.85),
+                    zorder=9)
 
     # TX y centroide
     ax.plot(*TX, 's', ms=13, color=C['tx'], zorder=9, label='TX')
@@ -555,18 +573,18 @@ def fig06_multistart():
     for _ in range(25):
         pt = tg_c + np.random.uniform(-20, 20, 2)
         ax.plot(*pt, 'x', ms=5, mew=1.0, color=C['target'], alpha=0.5, zorder=4)
-    ax.plot(*tg_c, '*', ms=16, color=C['target'], zorder=9, label='Centroide targets')
+    ax.plot(*tg_c, '*', ms=16, color=C['target'], zorder=9, label='Target centroid')
 
     # Línea TX → centroide
     ax.plot([TX[0], tg_c[0]], [TX[1], tg_c[1]], ':', color=C['tx'], lw=1.2, alpha=0.5)
 
-    ax.set_xlim(-230, 230)
-    ax.set_ylim(-230, 230)
+    ax.set_xlim(-270, 270)
+    ax.set_ylim(-270, 270)
     ax.set_aspect('equal')
     ax.grid(True, alpha=0.3)
     ax.set_xlabel('$x$ [m]', fontsize=12)
     ax.set_ylabel('$y$ [m]', fontsize=12)
-    ax.set_title('Vista Cenital: 5 Candidatos de Inicio para la Búsqueda del RX\n'
+    ax.set_title('Top View: 5 Starting Candidates for the RX Search\n'
                  f'($n_1={n1}$, $n_2={n2}$, $\\theta_B={np.degrees(theta_B):.1f}°$)',
                  fontsize=12, fontweight='bold')
     ax.legend(fontsize=9, loc='lower left')
@@ -582,7 +600,7 @@ def fig07_pareto():
     c_light = 3e8
     lam = 0.75
     B_hz = 50e6
-    d_brew = (100.0 + abs(tg_c[2])) / np.tan(theta_B)
+    d_brew = 100.0 * np.tan(theta_B) + abs(tg_c[2]) / np.tan(theta_B)
     opp_dir = -(TX[:2] / np.linalg.norm(TX[:2]))
 
     alphas = np.linspace(0, 1, 41)
@@ -616,13 +634,12 @@ def fig07_pareto():
     ax = axes[0]
     sc = ax.scatter(Pr_dBm, res_cm2, c=alphas, cmap='plasma', s=60, zorder=5)
     ax.plot(Pr_dBm, res_cm2, '-', color='gray', lw=1.2, alpha=0.5, zorder=4)
-    plt.colorbar(sc, ax=ax, label='$\\alpha$ (peso resolución)')
+    plt.colorbar(sc, ax=ax, label='$\\alpha$ (resolution weight)')
 
-    # Marcadores alpha=0, 0.3, 0.87, 1
-    for alpha_mark, lab in [(0, '$\\alpha=0$\n(solo potencia)'),
-                             (0.3, '$\\alpha=0.3$\n(nominal)'),
-                             (0.87, '$\\alpha^*\\approx0.87$'),
-                             (1, '$\\alpha=1$\n(solo resolución)')]:
+    # Markers at alpha=0, 0.3 (Pareto knee), 1
+    for alpha_mark, lab in [(0, '$\\alpha=0$\n(power only)'),
+                             (0.3, '$\\alpha^*\\approx0.3$\n(Pareto knee)'),
+                             (1, '$\\alpha=1$\n(resolution only)')]:
         idx = np.argmin(np.abs(alphas - alpha_mark))
         ax.plot(Pr_dBm[idx], res_cm2[idx], 'D', ms=10, zorder=8,
                 color=plt.cm.plasma(alpha_mark))
@@ -631,29 +648,29 @@ def fig07_pareto():
                     fontsize=8.5, ha='right',
                     arrowprops=dict(arrowstyle='->', lw=1.0, color='gray'))
 
-    ax.set_xlabel('Potencia recibida $P_r$ [dBm]', fontsize=11)
-    ax.set_ylabel('Área de resolución $\\delta_{xy}\\cdot\\delta_z$ [cm$^2$]', fontsize=11)
-    ax.set_title('(a) Frontera de Pareto: Potencia vs. Resolución', fontsize=12)
+    ax.set_xlabel('Received power $P_r$ [dBm]', fontsize=11)
+    ax.set_ylabel('Resolution area $\\delta_{xy}\\cdot\\delta_z$ [cm$^2$]', fontsize=11)
+    ax.set_title('(a) Pareto Front: Power vs. Resolution', fontsize=12)
     ax.grid(True)
-    ax.invert_xaxis()  # mayor dBm = mejor potencia = izquierda
+    ax.invert_xaxis()  # higher dBm = better power = left
 
-    # ── Panel derecho: J* vs alpha ──
+    # ── Right panel: J* vs alpha ──
     ax = axes[1]
     J_power = [-np.log10(p) for p in Pr_pareto]
     J_res   = [np.log10(r) for r in res_pareto]
     J_total = [-(1-a)*jp + a*jr for a, jp, jr in zip(alphas, J_power, J_res)]
 
-    ax.plot(alphas, J_power, color=C['sky'], lw=2, label='Contrib. potencia $-(1-\\alpha)\\log_{10}P_r$')
-    ax.plot(alphas, J_res,   color=C['target'], lw=2, label='Contrib. resolución $\\alpha\\log_{10}(\\delta\\delta_z)$')
-    ax.plot(alphas, J_total, 'k-', lw=2.5, label='Costo total $J^*$')
-    ax.axvline(0.87, color=C['orange'], ls=':', lw=1.8, label='$\\alpha^*\\approx0.87$')
-    ax.set_xlabel('Peso de resolución $\\alpha$', fontsize=11)
-    ax.set_ylabel('Valor del costo en el óptimo', fontsize=11)
-    ax.set_title('(b) Descomposición de $J^*$ vs. $\\alpha$', fontsize=12)
+    ax.plot(alphas, J_power, color=C['sky'], lw=2, label='Power contrib. $-(1-\\alpha)\\log_{10}P_r$')
+    ax.plot(alphas, J_res,   color=C['target'], lw=2, label='Resolution contrib. $\\alpha\\log_{10}(\\delta\\delta_z)$')
+    ax.plot(alphas, J_total, 'k-', lw=2.5, label='Total cost $J^*$')
+    ax.axvline(0.3, color=C['orange'], ls=':', lw=1.8, label='$\\alpha^*\\approx0.3$ (knee)')
+    ax.set_xlabel('Resolution weight $\\alpha$', fontsize=11)
+    ax.set_ylabel('Cost value at the optimum', fontsize=11)
+    ax.set_title('(b) Decomposition of $J^*$ vs. $\\alpha$', fontsize=12)
     ax.legend(fontsize=9)
     ax.grid(True)
 
-    plt.suptitle('Frontera de Pareto: equilibrio Potencia — Resolución 3D',
+    plt.suptitle('Pareto Front: Power — 3D Resolution Trade-off',
                  fontsize=13, fontweight='bold', y=1.01)
     plt.tight_layout()
     save('pv_fig07_pareto.pdf')
@@ -666,39 +683,46 @@ def fig08_brewster_geometry():
     fig, ax = plt.subplots(figsize=(10, 7))
 
     n1, n2 = 1.0, 2.0
-    theta_B = np.arctan(n2 / n1)
+    theta_B = np.arctan(n2 / n1)          # incidence angle in air, from vertical
+    theta_t = np.pi/2 - theta_B           # refraction angle in ground (Cor. 2.1: theta_B+theta_t=90deg)
     z_TX = 100.0
     z_tg = -5.0
+    depth = abs(z_tg)
     x_tg = 0.0
 
-    # Posición Tx para que el rayo incida en Brewster
-    d_B = (z_TX + abs(z_tg)) / np.tan(theta_B)  # distancia horizontal TX a Q1
-    x_TX = -d_B
-    x_Q1 = 0.0  # punto de refracción Tx→Target en x=0
+    # Horizontal offset of each leg of the refracted ray (matches
+    # buildRxSearchGeometry.m: distancia_brewster = RxZ*tan(thetaB) + depth/tan(thetaB))
+    dx_air = z_TX * np.tan(theta_B)
+    dx_ground = depth * np.tan(theta_t)   # = depth / tan(theta_B)
+    d_B = dx_air + dx_ground              # total horizontal distance TX(RX) to target
 
-    # Rx simétrico (Target→Rx incide también en Brewster)
-    x_Q2 = x_tg  # coincide con x_tg cuando target en x=0
+    x_TX = -d_B
     x_RX = d_B
     z_RX = z_TX
 
-    # Interfaz
+    # Refraction points on the interface: NOT directly above the target,
+    # since the ray keeps bending horizontally in the ground (dx_ground).
+    x_Q1 = -dx_ground   # Tx -> target leg
+    x_Q2 = dx_ground    # target -> Rx leg
+
+    # Interface
     ax.axhline(0, color=C['soil'], lw=2.5, ls='--')
     ax.fill_between([-200, 200], [-30, -30], [0, 0], color=C['soil'], alpha=0.08)
     ax.fill_between([-200, 200], [0, 0], [140, 140], color='lightcyan', alpha=0.20)
-    ax.text(-180, 120, 'Aire  ($n_1=1$)', fontsize=11, color=C['sky'])
-    ax.text(-180, -22, 'Suelo  ($n_2=2$)', fontsize=11, color=C['soil'])
+    ax.text(-150, 120, 'Air  ($n_1=1$)', fontsize=11, color=C['sky'], ha='center')
+    ax.text(-150, -22, 'Ground  ($n_2=2$)', fontsize=11, color=C['soil'], ha='center')
 
-    # Rayos
+    # Rays
     def draw_ray(ax, A, B, col, lw=2.5, ls='-', arrowfrac=0.55):
         mid = A + arrowfrac * (B - A)
         ax.annotate('', xy=mid + 0.001*(B-A), xytext=mid,
                     arrowprops=dict(arrowstyle='->', color=col, lw=lw))
-        ax.plot([A[0], B[0]], [A[1], B[1]], ls, color=col, lw=lw)
+        ax.plot([A[0], B[0]], [A[1], B[1]], color=col, lw=lw, linestyle=ls)
 
     TX  = np.array([x_TX, z_TX])
     Q1  = np.array([x_Q1, 0.0])
+    Q2  = np.array([x_Q2, 0.0])
     TG  = np.array([x_tg, z_tg])
-    Q2  = np.array([x_Q2 + 0.0, 0.0])   # ligeramente desplazado para visibilidad
     RX  = np.array([x_RX, z_RX])
 
     draw_ray(ax, TX, Q1, C['tx'])
@@ -706,52 +730,68 @@ def fig08_brewster_geometry():
     draw_ray(ax, TG, Q2, C['rx'])
     draw_ray(ax, Q2, RX, C['rx'])
 
-    # Normales
-    for xn in [x_Q1, x_Q2]:
+    # Normals at the two refraction points
+    for xn in (x_Q1, x_Q2):
         ax.plot([xn, xn], [-20, 20], ':', color='gray', lw=1.0, alpha=0.7)
 
-    # Ángulos de Brewster (arcos)
-    for (xq, xA, zA), col in [((x_Q1, x_TX, z_TX), C['tx']), ((x_Q2, x_RX, z_RX), C['rx'])]:
-        angle_deg = np.degrees(np.arctan2(abs(zA), abs(xA - xq)))
-        arc = Arc((xq, 0), 30, 30, angle=90, theta1=0, theta2=angle_deg,
+    # Brewster angle arcs, measured from the vertical normal to each ray,
+    # using the true ray direction (atan2) instead of an assumed quadrant.
+    for (P_from, P_to), col, R_arc, label_side in [
+            ((Q1, TX), C['tx'], 22, -1),
+            ((Q2, RX), C['rx'], 32, +1)]:
+        ray_ang = np.degrees(np.arctan2(P_to[1] - P_from[1], P_to[0] - P_from[0]))
+        lo, hi = sorted([90.0, ray_ang])
+        arc = Arc((P_from[0], 0), 2*R_arc, 2*R_arc, angle=0, theta1=lo, theta2=hi,
                   color=col, lw=1.5, ls='-')
         ax.add_patch(arc)
-        mid_angle = np.radians(angle_deg / 2)
-        ax.text(xq + 18*np.sin(mid_angle), 16*np.cos(mid_angle),
+        mid_angle = np.radians((lo + hi) / 2)
+        ax.text(P_from[0] + (R_arc + 10) * np.cos(mid_angle),
+                (R_arc + 10) * np.sin(mid_angle),
                 f'$\\theta_B={np.degrees(theta_B):.1f}°$',
-                fontsize=10, color=col, ha='center')
+                fontsize=9.5, color=col, ha='center')
 
-    # Puntos y etiquetas
-    for pt, lab, col, mk in [(TX, 'TX', C['tx'], 's'), (RX, 'RX', C['rx'], 's'),
-                               (Q1, '$Q_1^*$', C['orange'], 'D'), (Q2, '$Q_2^*$', C['orange'], 'D'),
-                               (TG, 'Target $P$', C['target'], '*')]:
-        ax.plot(*pt, mk, ms=11 if mk=='*' else 9, color=col, zorder=8)
-        offset = np.array([5, 4])
-        if lab in ('TX', '$Q_1^*$'):
-            offset[0] = -45
-        ax.text(pt[0]+offset[0], pt[1]+offset[1], lab, fontsize=11, color=col, fontweight='bold')
+    # Points and labels, positioned with leader lines so nothing overlaps
+    # (Q1 and Q2 sit only ~2.5 m apart, next to the target, at this scale)
+    point_specs = [
+        (TX, 'TX', C['tx'], 's', (-8, 12)),
+        (RX, 'RX', C['rx'], 's', (8, 12)),
+        (Q1, '$Q_1^*$', C['orange'], 'D', (-55, 32)),
+        (Q2, '$Q_2^*$', C['orange'], 'D', (55, 32)),
+        (TG, 'Target $P$', C['target'], '*', (55, -22)),
+    ]
+    for pt, lab, col, mk, off in point_specs:
+        ax.plot(*pt, mk, ms=12 if mk == '*' else 9, color=col, zorder=9)
+        ax.annotate(lab, xy=pt, xycoords='data',
+                    xytext=off, textcoords='offset points',
+                    fontsize=10.5, color=col, fontweight='bold',
+                    ha='left' if off[0] >= 0 else 'right', va='center',
+                    arrowprops=dict(arrowstyle='-', color=col, lw=0.8, alpha=0.8,
+                                     shrinkA=0, shrinkB=6),
+                    bbox=dict(boxstyle='round,pad=0.15', fc='white', ec='none', alpha=0.85),
+                    zorder=10)
 
-    # Cota de distancia Brewster
-    ax.annotate('', xy=(x_Q1, -28), xytext=(x_TX, -28),
+    # Brewster distance dimension line (TX to target, the full d_B span)
+    ax.annotate('', xy=(x_tg, -28), xytext=(x_TX, -28),
                 arrowprops=dict(arrowstyle='<->', color=C['tx'], lw=1.5))
-    ax.text((x_TX + x_Q1)/2, -35, f'$d_B = {int(d_B)}$ m', ha='center',
+    ax.text((x_TX + x_tg)/2, -35, f'$d_B = {d_B:.0f}$ m', ha='center',
             fontsize=10, color=C['tx'])
 
-    ax.set_xlim(-200, 200)
+    ax.set_xlim(-220, 220)
     ax.set_ylim(-45, 145)
-    ax.set_xlabel('Posición horizontal [m]', fontsize=12)
-    ax.set_ylabel('Altura / Profundidad [m]', fontsize=12)
-    ax.set_title('Geometría de Brewster Biestática: Configuración Óptima en Sección Transversal\n'
+    ax.set_xlabel('Horizontal position [m]', fontsize=12)
+    ax.set_ylabel('Height / Depth [m]', fontsize=12)
+    ax.set_title('Bistatic Brewster Geometry: Optimal Cross-Section Configuration\n'
                  f'($n_1={n1}$, $n_2={n2}$, $\\theta_B={np.degrees(theta_B):.1f}°$)',
                  fontsize=12, fontweight='bold')
     ax.grid(True, alpha=0.3)
 
-    # Caja con la distancia de Brewster
-    ax.text(0.02, 0.97,
-            f'$d_B = (z_{{TX}}+|z_P|)/\\tan\\theta_B$\n'
-            f'$= ({int(z_TX)}+{int(abs(z_tg))})/\\tan({np.degrees(theta_B):.1f}°)$\n'
+    # Brewster-distance formula box, top-right (clear of the "Air" label)
+    ax.text(0.98, 0.97,
+            f'$d_B = z_{{TX}}\\tan\\theta_B + |z_P|/\\tan\\theta_B$\n'
+            f'$= {int(z_TX)}\\tan({np.degrees(theta_B):.1f}°) + '
+            f'{int(depth)}/\\tan({np.degrees(theta_B):.1f}°)$\n'
             f'$\\approx {d_B:.0f}$ m',
-            transform=ax.transAxes, fontsize=10, va='top',
+            transform=ax.transAxes, fontsize=10, va='top', ha='right',
             bbox=dict(boxstyle='round', fc='lightyellow', ec='orange', alpha=0.9))
     save('pv_fig08_brewster_geometry.pdf')
 
@@ -813,7 +853,7 @@ def fig09_alpha_sensitivity():
     # ── Panel derecho: sensibilidad de J a alpha ──
     ax = axes[1]
     approx_cost, TX, tg_c, theta_B = compute_cost_map()
-    d_brew = (100.0 + 5.0) / np.tan(theta_B)
+    d_brew = 100.0 * np.tan(theta_B) + 5.0 / np.tan(theta_B)
     opp_dir = -(TX[:2] / np.linalg.norm(TX[:2]))
 
     alphas = np.linspace(0, 1, 61)
@@ -843,8 +883,7 @@ def fig09_alpha_sensitivity():
     l1, = ax.plot(alphas, Pr_dBm,  color=C['sky'],    lw=2.5, label='$P_r^*$ [dBm] (eje izq.)')
     l2, = ax2_r.plot(alphas, res_cm2, color=C['target'], lw=2.5, ls='--',
                      label='$\\delta_{xy}\\delta_z^*$ [cm²] (eje der.)')
-    ax.axvline(0.87, color=C['orange'], ls=':', lw=1.8, label='$\\alpha^*\\approx0.87$')
-    ax.axvline(0.3,  color=C['green'],  ls=':', lw=1.5, label='$\\alpha=0.3$ (nominal)')
+    ax.axvline(0.3, color=C['orange'], ls=':', lw=1.8, label='$\\alpha^*\\approx0.3$ (joelho)')
 
     ax.set_xlabel('Parámetro de peso $\\alpha$', fontsize=12)
     ax.set_ylabel('Potencia óptima $P_r^*$ [dBm]', fontsize=12, color=C['sky'])
@@ -852,9 +891,8 @@ def fig09_alpha_sensitivity():
     ax.set_title('(b) Sensibilidad de la solución óptima a $\\alpha$', fontsize=11)
     ax.tick_params(axis='y', labelcolor=C['sky'])
     ax2_r.tick_params(axis='y', labelcolor=C['target'])
-    lines = [l1, l2] + [ax.axvline(0.87, color=C['orange'], ls=':', lw=1.8),
-                         ax.axvline(0.3, color=C['green'], ls=':', lw=1.5)]
-    labels = ['$P_r^*$', '$\\delta_{xy}\\delta_z^*$', '$\\alpha^*\\approx0.87$', '$\\alpha=0.3$']
+    lines = [l1, l2] + [ax.axvline(0.3, color=C['orange'], ls=':', lw=1.8)]
+    labels = ['$P_r^*$', '$\\delta_{xy}\\delta_z^*$', '$\\alpha^*\\approx0.3$']
     ax.legend(lines, labels, fontsize=9, loc='center left')
     ax.grid(True, alpha=0.35)
 
@@ -893,7 +931,7 @@ def fig10_sistema_3d():
                       color=C['soil'], lw=0.3, alpha=0.25, zorder=2)
 
     # Hélice TX
-    ax.plot(PxT, PyT, PzT, '-', color=C['tx'], lw=2.0, label='Hélice TX', zorder=5)
+    ax.plot(PxT, PyT, PzT, '-', color=C['tx'], lw=2.0, label='TX helix', zorder=5)
 
     # Grid de targets (4×4×4 = 64 puntos, simplificado 3D)
     n1, n2, theta_B = 1.0, 2.0, np.arctan(2.0)
@@ -905,7 +943,7 @@ def fig10_sistema_3d():
             for tz_ in tg_z:
                 ax.plot([tx_], [ty_], [tz_], 'x', ms=4, mew=1.2,
                         color=C['target'], alpha=0.6, zorder=4)
-    ax.plot([], [], 'x', ms=6, color=C['target'], label='Grid de targets')
+    ax.plot([], [], 'x', ms=6, color=C['target'], label='Target grid')
 
     # Posiciones RX decimadas (simulación: misma hélice, NorthOffset=90°)
     decim = 25
@@ -915,14 +953,14 @@ def fig10_sistema_3d():
         tx_pos = np.array([PxT[k], PyT[k], PzT[k]])
         # RX guiado por Brewster (opuesto + distancia Brewster aproximada)
         tx_dir = tx_pos[:2] / np.linalg.norm(tx_pos[:2])
-        d_brew = (PzT[k] + 5.0) / np.tan(theta_B)
-        rx_xy = -tx_dir * min(d_brew, 190.0)
+        d_brew = PzT[k] * np.tan(theta_B) + 5.0 / np.tan(theta_B)
+        rx_xy = -tx_dir * min(d_brew, 240.0)
         rx_x_list.append(rx_xy[0])
         rx_y_list.append(rx_xy[1])
         rx_z_list.append(PzT[k])
 
     ax.scatter(rx_x_list, rx_y_list, rx_z_list, s=25, color=C['rx'],
-               zorder=6, label='RX óptimo (decimado)')
+               zorder=6, label='Optimal RX (decimated)')
 
     # Caminos refractados para una posición TX seleccionada (k=100)
     k_show = 100
@@ -963,11 +1001,11 @@ def fig10_sistema_3d():
     ax.set_xlabel('$x$ [m]')
     ax.set_ylabel('$y$ [m]')
     ax.set_zlabel('$z$ [m]')
-    ax.set_title('Sistema SAR Biestático Helicoidal — Plan de Vuelo Optimizado',
+    ax.set_title('Bistatic Helical SAR System — Optimized Flight Plan',
                  fontsize=12, fontweight='bold', pad=15)
     ax.legend(fontsize=9, loc='upper left')
-    ax.set_xlim(-200, 200)
-    ax.set_ylim(-200, 200)
+    ax.set_xlim(-250, 250)
+    ax.set_ylim(-250, 250)
     ax.set_zlim(-15, 130)
     ax.view_init(elev=22, azim=45)
     save('pv_fig10_sistema_3d.pdf')

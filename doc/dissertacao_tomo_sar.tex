@@ -149,7 +149,7 @@ resolução tridimensional; e (iv) o formalismo de matrizes de transferência AB
 para a extensão a $N$ camadas subsuperficiais.
 
 A validação por simulação de \textit{backprojection} biestático confirma as
-fórmulas analíticas com erros inferiores a 0{,}05\% na resolução vertical
+fórmulas analíticas com erros inferiores a 0{,}1\% na resolução vertical
 $\delta_z$ e inferiores a 12\% na resolução horizontal $\delta_{xy}$.
 
 \vspace{1em}
@@ -182,7 +182,7 @@ three-dimensional resolution formulas emerge; and (iv) the ABCD transfer matrix
 formalism for extension to $N$ subsurface layers.
 
 Validation via bistatic backprojection simulation confirms the analytical
-formulas with errors below 0.05\% in vertical resolution $\delta_z$ and below
+formulas with errors below 0.1\% in vertical resolution $\delta_z$ and below
 12\% in horizontal resolution $\delta_{xy}$.
 
 \vspace{1em}
@@ -249,7 +249,7 @@ $\mathcal{L}$                             & Caminho óptico                     
 $p = n_0\sin\theta_0$                     & Invariante de Snell (parâmetro de raio)             & --        \\
 $\mathbf{M}_i$                            & Matriz ABCD da camada $i$                           & --        \\
 $k_{z,i}$                                 & Número de onda vertical na camada $i$               & rad/m     \\
-$Z_i = n_i/\sqrt{n_i^2-p^2}$             & Impedância TM da camada $i$                         & --        \\
+$Z_i = n_i^2/\sqrt{n_i^2-p^2}$            & Impedância TM da camada $i$                         & --        \\
 $\Gamma_{\text{TM}}$                      & Coeficiente de reflexão global (ABCD)               & --        \\
 $P_t,\, P_r$                              & Potência transmitida / recebida                     & W         \\
 $G_t,\, G_r$                              & Ganhos de antena Tx e Rx                            & --        \\
@@ -396,7 +396,7 @@ trabalho, são:
 
   \item \textbf{Validação por simulação de \textit{backprojection} biestático.}
   O simulador integra numericamente a lei de Snell via Newton-Raphson e confirma
-  as fórmulas analíticas com erros inferiores a 0{,}05\% em $\delta_z$ e
+  as fórmulas analíticas com erros inferiores a 0{,}1\% em $\delta_z$ e
   inferiores a 12\% em $\delta_{xy}$.
 
 \end{enumerate}
@@ -643,6 +643,7 @@ Portanto $\tan\theta_B = n_2/n_1$.
 \end{proof}
 
 \begin{corolario}
+\label{cor:brewster_ortho}
 No ângulo de Brewster, o raio refratado e o hipotético raio refletido são
 perpendiculares: $\theta_B + \theta_t^{(B)} = \pi/2$.
 \end{corolario}
@@ -994,15 +995,6 @@ A resolução vertical~\eqref{eq:delta_z} é \textbf{invariante ao NorthOffset}
 $\Delta\phi$, pois a componente $k_z$ do vetor biestático~\eqref{eq:kz_bist}
 depende apenas dos ângulos de elevação e não da separação azimutal Tx--Rx.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.85\textwidth]{fig06_kspace_vertical.pdf}
-\caption{Cobertura do $k$-espaço vertical $k_z$ para o SAR biestático helicoidal.
-A extensão total $\Delta k_z$ combina a contribuição de largura de banda
-$\Delta k_z^{(B)}$ e a contribuição da apertura tomográfica $\Delta k_z^{(\text{tom})}$.}
-\label{fig:kspace_vertical}
-\end{figure}
-
 \section{Resolução Horizontal $\delta_{xy}$}
 \label{sec:delta_xy}
 
@@ -1198,7 +1190,7 @@ encapsuladas pela \textbf{matriz de transferência}:
     \cos(k_{z,i}\,d_i) & \jj\,Z_i\,\sin(k_{z,i}\,d_i) \\[4pt]
     \dfrac{\jj}{Z_i}\,\sin(k_{z,i}\,d_i) & \cos(k_{z,i}\,d_i)
   \end{pmatrix}, \qquad
-  Z_i = \frac{n_i}{\sqrt{n_i^2-p^2}}
+  Z_i = \frac{n_i}{\cos\theta_i} = \frac{n_i^2}{\sqrt{n_i^2-p^2}}
   \label{eq:ABCD_matrix}
 \end{equation}
 
@@ -1222,7 +1214,7 @@ As impedâncias de entrada e saída da pilha são:
 \begin{equation}
   Z_{\text{in}} = \frac{1}{\sqrt{1-p^2}}
   \qquad\text{(ar de entrada)}, \qquad
-  Z_{\text{out}} = \frac{n_L}{\sqrt{n_L^2-p^2}}
+  Z_{\text{out}} = \frac{n_L^2}{\sqrt{n_L^2-p^2}}
   \qquad\text{(camada do alvo)}
   \label{eq:Zin_Zout}
 \end{equation}
@@ -1267,11 +1259,13 @@ TM~\eqref{eq:r_TM}.
 $L=1 \Rightarrow \mathbf{M}_{1\cdots 0} = \mathbf{I}$, portanto $[A,B;C,D]=[1,0;0,1]$:
 \[
   \Gamma = \frac{Z_{\text{out}} - Z_{\text{in}}}{Z_{\text{out}} + Z_{\text{in}}}
-  = \frac{n_2/\sqrt{n_2^2-p^2} - 1/\sqrt{1-p^2}}{n_2/\sqrt{n_2^2-p^2} + 1/\sqrt{1-p^2}}
+  = \frac{n_2^2/\sqrt{n_2^2-p^2} - 1/\sqrt{1-p^2}}{n_2^2/\sqrt{n_2^2-p^2} + 1/\sqrt{1-p^2}}
+  = \frac{n_2/\cos\theta_t - 1/\cos\theta_i}{n_2/\cos\theta_t + 1/\cos\theta_i}
   = \frac{n_2\cos\theta_i - \cos\theta_t}{n_2\cos\theta_i + \cos\theta_t}
   = r_{\text{TM}}
 \]
-onde foi usada a lei de Snell $p = \sin\theta_i = n_2\sin\theta_t$.
+onde foi usada a lei de Snell $p = \sin\theta_i = n_2\sin\theta_t$, de modo que
+$\sqrt{n_2^2-p^2} = n_2\cos\theta_t$ e $\sqrt{1-p^2} = \cos\theta_i$.
 \end{proof}
 
 \section{Ângulo de Transmissão Ótimo para Pilha Multicamada}
@@ -1440,9 +1434,13 @@ otimizador são geometricamente motivados e fisicamente interpretáveis:
   (equilibra cobertura azimutal do $k$-espaço).
 
   \item \textbf{Posição de Brewster:} Rx à distância horizontal
-  $d_B = (z_{Rx}+|z_P|)\tan\theta_B$ do centroide, de modo que o raio
-  alvo$\to$Rx incide na interface com $\theta_R = \theta_B$. Esta é a posição
-  ótima em potência para $\alpha = 0$.
+  $d_B = z_{Rx}\tan\theta_B + |z_P|/\tan\theta_B$ do centroide, de modo que o
+  raio alvo$\to$Rx incide na interface com $\theta_R = \theta_B$. O primeiro
+  termo é o percurso no ar (ângulo $\theta_B$ em relação à normal); o segundo
+  é o percurso no solo, onde o raio refrata para o ângulo complementar
+  $\theta_t = \pi/2-\theta_B$ (Corolário~\ref{cor:brewster_ortho}), de modo
+  que $\tan\theta_t = 1/\tan\theta_B$. Esta é a posição ótima em potência para
+  $\alpha = 0$.
 \end{itemize}
 
 \begin{figure}[H]
@@ -1817,9 +1815,9 @@ de \textit{backprojection} biestático.}
 \toprule
 Configuração & Variável & Analítico & Simulação & Erro (\%) \\
 \midrule
-$\Delta\phi=180^\circ$, no eixo   & $\delta_z$   & 21{,}10\,cm & 21{,}12\,cm & 0{,}05 \\
+$\Delta\phi=180^\circ$, no eixo   & $\delta_z$   & 21{,}10\,cm & 21{,}12\,cm & 0{,}1 \\
 $\Delta\phi=180^\circ$, no eixo   & $\delta_{xy}$ & 0{,}24\,m   & 0{,}240\,m  & 0{,}0  \\
-$\Delta\phi=90^\circ$, no eixo    & $\delta_z$   & 21{,}10\,cm & 21{,}12\,cm & 0{,}05 \\
+$\Delta\phi=90^\circ$, no eixo    & $\delta_z$   & 21{,}10\,cm & 21{,}12\,cm & 0{,}1 \\
 $\Delta\phi=90^\circ$, no eixo    & $\delta_{xy}$ & 9{,}54\,mm  & 8{,}80\,mm  & 7{,}8  \\
 $\Delta\phi=90^\circ$, $x_P=20$\,m & $\delta_z$  & 18{,}72\,cm & 20{,}05\,cm & 7{,}1  \\
 $\Delta\phi=90^\circ$, $x_P=20$\,m & $\delta_x$  & 9{,}96\,mm  & 8{,}80\,mm  & 11{,}6 \\
@@ -1827,6 +1825,11 @@ $\Delta\phi=90^\circ$, $x_P=20$\,m & $\delta_y$  & 9{,}96\,mm  & 9{,}10\,mm  & 8
 \bottomrule
 \end{tabular}
 \end{table}
+
+\noindent O erro percentual é calculado em relação à previsão analítica,
+Erro $= |\delta_{\text{analítico}} - \delta_{\text{simulação}}| /
+\delta_{\text{analítico}} \times 100\%$, convenção usada de forma consistente
+na Tabela~\ref{tab:validation} e na Figura~\ref{fig:validation}.
 
 \begin{figure}[H]
 \centering
@@ -1839,7 +1842,7 @@ $\Delta\phi=90^\circ$, $x_P=20$\,m & $\delta_y$  & 9{,}96\,mm  & 9{,}10\,mm  & 8
 \subsection{Análise dos Erros}
 \label{ssec:val_erros}
 
-\paragraph{$\delta_z$ no eixo ($0{,}05\%$):}
+\paragraph{$\delta_z$ no eixo ($0{,}1\%$):}
 O erro é compatível com termos de ordem $(B/f_0)^2 \approx 0{,}0025\%$
 omitidos na aproximação de banda estreita $B \ll f_0$ usada na derivação
 de $\Delta k_z^{(B)}$~\eqref{eq:dkz_bw}. A invariância de $\delta_z$ ao
@@ -1900,7 +1903,7 @@ mínimo exato em $\beta = \psi_0$.}
 
 Os resultados do Cenário A confirmam que o modelo analítico de resolução 3D
 derivado no Capítulo~\ref{cap:resolucao} é preciso para alvos no eixo, com
-erros inferiores a 0{,}05\% em $\delta_z$. Os erros maiores em $\delta_{xy}$
+erros inferiores a 0{,}1\% em $\delta_z$. Os erros maiores em $\delta_{xy}$
 (7--12\%) para alvos fora do eixo e com $\Delta\phi$ pequeno decorrem de duas
 aproximações controladas: (i) o ângulo de \textit{look} efetivo ao alvo
 subsuperficial e (ii) a ausência de ponderação por $1/R^2$ na simulação.
@@ -1918,7 +1921,7 @@ e para ponderação por $1/R^2$ são identificados como trabalho futuro
 \label{sec:val_concl}
 
 O simulador de \textit{backprojection} biestático validou as equações analíticas
-de resolução 3D com erros aceitáveis para projeto: $< 0{,}05\%$ em $\delta_z$
+de resolução 3D com erros aceitáveis para projeto: $< 0{,}1\%$ em $\delta_z$
 no eixo e $< 12\%$ em $\delta_{xy}$ fora do eixo. A invariância de $\delta_z$
 ao NorthOffset foi confirmada experimentalmente. As validações dos modelos de
 otimização (Cenário B) e multicamadas (Cenário C) são identificadas como

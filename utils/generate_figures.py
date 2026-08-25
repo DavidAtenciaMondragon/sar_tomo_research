@@ -550,48 +550,53 @@ def fig06_kspace_vertical():
 # FIG 7: Efecto del NorthOffset en el k-espacio horizontal
 # ─────────────────────────────────────────────────────────────────────────────
 def fig07_northoffset_kspace():
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4.5))
+    fig, axes = plt.subplots(1, 3, figsize=(13, 5.0))
     offsets = [0, 90, 180]
-    titles = ['(a) NorthOffset = 0°\n(monoestático equivalente)',
+    titles = ['(a) NorthOffset = 0°\n(monostatic equivalent)',
               '(b) NorthOffset = 90°',
-              '(c) NorthOffset = 180°\n(cancelación total)']
+              '(c) NorthOffset = 180°\n(total cancellation)']
     colors_off = [C['sky'], C['green'], C['target']]
 
     psi0 = np.radians(58); n2 = 2.0; lam = 0.03
     f0 = 10e9; c = 3e8; B = 0.5e9
     sin_t0 = np.sin(psi0) / n2
-    A = 2 * np.pi * f0 * n2 * sin_t0 / c  # radio base para Δφ=0
+    A = 2 * np.pi * f0 * n2 * sin_t0 / c  # base radius for Δφ=0
 
     theta = np.linspace(0, 2 * np.pi, 300)
+    # Below this radius the ring is numerically degenerate (Δφ=180° gives
+    # cos(90°)~1e-17, not exactly 0) — treat it as the "no coverage" case
+    # instead of dividing by a near-zero Rc.
+    RC_TOL = 1e-3 * A
 
     for ax, dphi_deg, title, col in zip(axes, offsets, titles, colors_off):
         dphi = np.radians(dphi_deg)
-        Rc = A * 2 * abs(np.cos(dphi / 2))  # radio del círculo
+        Rc = A * 2 * abs(np.cos(dphi / 2))  # ring radius
 
-        if Rc > 0:
+        if Rc > RC_TOL:
             k_in = A * 2 * abs(np.cos(dphi / 2)) * (1 - B / (2 * f0))
             k_out = A * 2 * abs(np.cos(dphi / 2)) * (1 + B / (2 * f0))
             ax.fill_between(k_out * np.cos(theta), -k_out * np.sin(theta),
                             k_in * np.cos(theta) * np.sign(np.cos(theta)),
                             alpha=0.15, color=col)
             ax.plot(Rc * np.cos(theta), Rc * np.sin(theta), color=col, lw=2.5)
-            # radio
+            # radius
             ax.annotate('', xy=(Rc, 0), xytext=(0, 0),
                         arrowprops=dict(arrowstyle='->', color='black', lw=1.5))
             ax.text(Rc * 0.5, 0.2 * Rc, r'$R_c$', fontsize=12)
-            # resolución
+            # resolution, placed inside the axes (not below the x-label)
             delta_xy = 1.20 / Rc * 1e3  # mm
-            ax.text(0, -Rc * 1.3,
-                    rf'$\delta_{{xy}} \approx {delta_xy:.1f}$ mm',
-                    ha='center', fontsize=10, color=col,
-                    bbox=dict(boxstyle='round', fc='white', ec=col, alpha=0.8))
+            ax.text(0.5, 0.06, rf'$\delta_{{xy}} \approx {delta_xy:.1f}$ mm',
+                    ha='center', va='bottom', fontsize=10, color=col,
+                    transform=ax.transAxes,
+                    bbox=dict(boxstyle='round', fc='white', ec=col, alpha=0.9))
         else:
-            ax.text(0, 0, 'Sin cobertura\nhorizontal\n($k_x=k_y=0$)',
+            ax.text(0.5, 0.55, 'No horizontal\ncoverage\n($k_x=k_y=0$)',
                     ha='center', va='center', fontsize=11, color=col,
+                    transform=ax.transAxes,
                     bbox=dict(boxstyle='round', fc='lightyellow', ec=col, alpha=0.9))
-            ax.text(0, -0.25,
-                    r'$\delta_{xy}\to\infty$',
-                    ha='center', fontsize=12, color=col)
+            ax.text(0.5, 0.30, r'$\delta_{xy}\to\infty$',
+                    ha='center', va='center', fontsize=12, color=col,
+                    transform=ax.transAxes)
 
         ax.axhline(0, color='gray', lw=0.8); ax.axvline(0, color='gray', lw=0.8)
         ax.set_aspect('equal')
@@ -601,9 +606,9 @@ def fig07_northoffset_kspace():
         lim = max(A * 2.2, 0.5)
         ax.set_xlim(-lim, lim); ax.set_ylim(-lim, lim)
 
-    fig.suptitle(r'Cobertura del k-espacio horizontal según NorthOffset $\Delta\phi$' + '\n' +
+    fig.suptitle(r'Horizontal $k$-space Coverage vs. NorthOffset $\Delta\phi$' + '\n' +
                  r'($R_c(\Delta\phi) = \frac{4\pi\sin\psi_0}{\lambda}|\cos(\Delta\phi/2)|$)',
-                 fontsize=12, y=1.02)
+                 fontsize=12, y=1.03)
     plt.tight_layout()
     save('fig07_northoffset_kspace.pdf')
 
@@ -735,7 +740,7 @@ def fig10_resolution_curves():
         ax.plot(Bperp_arr, dz * 100, color=col, lw=2, label=f'$B={lab}$')
     ax.set_xlabel(r'$B_\perp$ [m]')
     ax.set_ylabel(r'$\delta_z$ [cm]')
-    ax.set_title(r'$\delta_z$ vs. $B_\perp$', fontsize=11)
+    ax.set_title(r'(a) $\delta_z$ vs. $B_\perp$', fontsize=11)
     ax.legend(fontsize=9); ax.grid(True)
     ax.set_ylim(0, 50)
 
@@ -752,11 +757,11 @@ def fig10_resolution_curves():
         ax.semilogy(dphi_arr, dxy, color=col, lw=2, label=f'$f_0={lab}$')
     ax.set_xlabel(r'NorthOffset $\Delta\phi$ [°]')
     ax.set_ylabel(r'$\delta_{xy}$ [cm]')
-    ax.set_title(r'$\delta_{xy}$ vs. NorthOffset', fontsize=11)
+    ax.set_title(r'(b) $\delta_{xy}$ vs. NorthOffset', fontsize=11)
     ax.legend(fontsize=9); ax.grid(True, which='both')
     ax.set_xlim(0, 175)
 
-    # ── δz vs β (ángulo de inclinación) ────────────────────────────────
+    # ── δz vs β (tilt angle) ────────────────────────────────────────────
     ax = axes[2]
     B_hz = 50e6; B_helix = 47.17
     psi0_arr = np.radians(58)
@@ -768,12 +773,12 @@ def fig10_resolution_curves():
     dz_b = c / (2 * Wz_b)
     ax.plot(beta_arr, dz_b * 100, color=C['purple'], lw=2.5)
     ax.axvline(np.degrees(psi0_arr), color='red', ls='--', lw=2,
-               label=f'Óptimo: $\\beta=\\psi_0={np.degrees(psi0_arr):.0f}°$')
+               label=f'Optimum: $\\beta=\\psi_0={np.degrees(psi0_arr):.0f}°$')
     ax.scatter([np.degrees(psi0_arr)], [c / (2 * (term_bw + c * B_helix * np.sin(psi0) * np.cos(psi0) / (lam0 * R0 * n2 * cos_t0))) * 100],
                c='red', s=80, zorder=5)
-    ax.set_xlabel(r'Ángulo de inclinación $\beta$ [°]')
+    ax.set_xlabel(r'Tilt angle $\beta$ [°]')
     ax.set_ylabel(r'$\delta_z$ [cm]')
-    ax.set_title(r'$\delta_z$ vs. $\beta$ ($B_{helix}=47$ m)', fontsize=11)
+    ax.set_title(r'(c) $\delta_z$ vs. $\beta$ ($B_{helix}=47$ m)', fontsize=11)
     ax.legend(fontsize=9); ax.grid(True)
 
     plt.tight_layout()
@@ -883,16 +888,16 @@ def fig12_validation():
 
     # ── δz ───────────────────────────────────────────────────────────────
     ax = axes[0]
-    b1 = ax.bar(x - w/2, [v * 100 for v in dz_pred], w, label='Predicción', color=C['sky'], alpha=0.85)
-    b2 = ax.bar(x + w/2, [v * 100 for v in dz_meas], w, label='Simulación', color=C['green'], alpha=0.85)
+    b1 = ax.bar(x - w/2, [v * 100 for v in dz_pred], w, label='Prediction', color=C['sky'], alpha=0.85)
+    b2 = ax.bar(x + w/2, [v * 100 for v in dz_meas], w, label='Simulation', color=C['green'], alpha=0.85)
 
     for bar, pred, meas in zip(x, dz_pred, dz_meas):
-        err = abs(pred - meas) / meas * 100
+        err = abs(pred - meas) / pred * 100
         ax.text(bar, max(pred, meas) * 100 + 0.5, f'{err:.1f}%\nerror', ha='center', fontsize=8.5)
 
     ax.set_xticks(x); ax.set_xticklabels(labels, fontsize=9)
     ax.set_ylabel(r'$\delta_z$ [cm]')
-    ax.set_title(r'Resolución Vertical $\delta_z$', fontsize=12)
+    ax.set_title(r'Vertical Resolution $\delta_z$', fontsize=12)
     ax.legend(fontsize=10); ax.grid(axis='y', alpha=0.4)
     ax.set_ylim(0, 30)
 
@@ -903,18 +908,18 @@ def fig12_validation():
     lv = [labels[i] for i in idx_valid]
     xv = np.arange(len(lv))
     b1 = ax.bar(xv - w/2, [dxy_pred[i] * 1e3 for i in idx_valid], w,
-                label='Predicción', color=C['sky'], alpha=0.85)
+                label='Prediction', color=C['sky'], alpha=0.85)
     b2 = ax.bar(xv + w/2, [dxy_meas[i] * 1e3 for i in idx_valid], w,
-                label='Simulación', color=C['green'], alpha=0.85)
+                label='Simulation', color=C['green'], alpha=0.85)
 
     for bar_idx, i in enumerate(idx_valid):
-        err = abs(dxy_pred[i] - dxy_meas[i]) / dxy_meas[i] * 100
+        err = abs(dxy_pred[i] - dxy_meas[i]) / dxy_pred[i] * 100
         ax.text(bar_idx, max(dxy_pred[i], dxy_meas[i]) * 1e3 + 0.3,
                 f'{err:.1f}%\nerror', ha='center', fontsize=8.5)
 
     ax.set_xticks(xv); ax.set_xticklabels(lv, fontsize=9)
     ax.set_ylabel(r'$\delta_{xy}$ [mm]')
-    ax.set_title(r'Resolución Horizontal $\delta_{xy}$ (grilla fina, 2 mm)', fontsize=12)
+    ax.set_title(r'Horizontal Resolution $\delta_{xy}$ (fine grid, 2 mm)', fontsize=12)
     ax.legend(fontsize=10); ax.grid(axis='y', alpha=0.4)
     ax.set_ylim(0, 13)
 
