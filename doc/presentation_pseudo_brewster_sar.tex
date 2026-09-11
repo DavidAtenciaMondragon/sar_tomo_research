@@ -1,0 +1,263 @@
+% !TEX program = lualatex
+% Pseudo-Brewster Angle-Guided Bistatic SAR Optimization for Subsurface Sensing
+% Conference talk (~15 min), light/minimalist visual style (metropolis theme).
+% Compile with: lualatex presentation_pseudo_brewster_sar.tex (run twice)
+\documentclass[9pt,aspectratio=169]{beamer}
+
+\usetheme{metropolis}
+\definecolor{mDarkTeal}{HTML}{1F4E5F}
+\definecolor{mLightTeal}{HTML}{3C7A8C}
+\setbeamercolor{palette primary}{bg=mDarkTeal,fg=white}
+\setbeamercolor{frametitle}{bg=mDarkTeal,fg=white}
+\setbeamercolor{progress bar}{fg=mLightTeal,bg=black!10}
+\setbeamercolor{alerted text}{fg=mLightTeal}
+\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{navigation symbols}{}
+\metroset{block=fill,sectionpage=none}
+
+\usepackage{fontspec}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{siunitx}
+\sisetup{per-mode=symbol}
+
+\title{Pseudo-Brewster Angle--Guided Bistatic SAR Optimization for Subsurface Sensing}
+\subtitle{Physics-guided flight planning and receiver placement for drone-borne bistatic SAR}
+\author{%
+  \textbf{David Atencia Mondag\'on}\textsuperscript{1} \quad
+  Eder Carlos Fernandes\textsuperscript{1} \quad
+  Everton Gomede\textsuperscript{2} \\[2pt]
+  \small João Roberto Moreira Neto\textsuperscript{3} \quad
+  Hugo Enrique Hernandez Figueroa\textsuperscript{1}
+}
+\institute{%
+  \small\textsuperscript{1}State University of Campinas (UNICAMP) \quad
+  \textsuperscript{2}University of British Columbia (UBC) \quad
+  \textsuperscript{3}Radaz S.A.
+}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+% ------------------------------------------------------------
+\begin{frame}{Why subsurface sensing is hard}
+  \begin{itemize}
+    \item Applications demand \alert{deep, reliable} sensing: mineral exploration, archaeological surveys, groundwater detection.
+    \item Conventional ground-penetrating radar (GPR): penetration limited to a few tens of meters by EM attenuation.
+    \item \textbf{Bistatic} radar (separated Tx/Rx) offers enhanced penetration potential --- but performance hinges on coupling efficiency at the air--ground interface.
+    \item Transmission efficiency is highly sensitive to the \alert{angle of incidence} on lossy dielectric soil.
+  \end{itemize}
+  \vfill
+  \footnotesize This work: explicitly bring pseudo-Brewster angle physics into flight planning \emph{and} receiver placement.
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Pseudo-Brewster angle in lossy media}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item Classical Brewster angle: undefined in lossy soils.
+        \item A \alert{pseudo-Brewster angle} exists for media with complex permittivity $\varepsilon = \varepsilon' - j\varepsilon''$ (McMichael, 2010).
+        \item It minimizes reflection / maximizes transmission at the interface.
+        \item Depends primarily on \alert{soil moisture} and \alert{frequency} $\Rightarrow$ a mission-planning parameter.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{figures/paper_fig2_reflectivity.png}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Bistatic radar equation for subsurface targets}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.52\textwidth}
+      \[
+        P_r = \frac{P_t G_t G_r \sigma\, T_{tx} T_{rx}\, \lambda^2}{(4\pi)^3 R_1^2 R_2^2 R_3^2 R_4^2}
+      \]
+      \[
+        T = \frac{n_2\cos\theta_2}{n_1\cos\theta_1}\,\lvert t_{TM}\rvert^2
+      \]
+      \begin{itemize}
+        \small
+        \item $T_{tx},T_{rx}$: power transmittance (Fresnel, TM) at the air--ground crossing, transmit and receive paths.
+        \item $R_1,\dots,R_4$: the four bistatic path segments (Tx--target, target--Rx, through air and ground).
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{figures/paper_fig1_bistatic_geometry.png}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Integrated system: four components}
+  \begin{enumerate}
+    \item \textbf{QGIS flight planning} --- pseudo-Brewster-conditioned bistatic drone trajectories.
+    \item \textbf{Bistatic receiver optimization} --- multi-start placement maximizing received power.
+    \item \textbf{RD350 Explorer} --- validated multi-band (P/L/C) drone-borne SAR platform.
+    \item \textbf{ML-ready data framework} --- toward automated subsurface tomographic analysis.
+  \end{enumerate}
+  \vfill
+  \begin{alertblock}{Core idea}
+    Treat EM transmission physics, geometry optimization, and mission planning as \emph{one} coupled problem --- not three independent ones.
+  \end{alertblock}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Flight planning with pseudo-Brewster constraints}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item QGIS Python plugin computes the pseudo-Brewster angle from soil permittivity (FEAGRI/Unicamp measurements).
+        \item Generates \alert{conical spiral} trajectories for two drones, \SI{180}{\degree} apart.
+        \item Three helical radii tested (top to base of volume of interest).
+        \item Geometric feasibility \alert{strictly conditioned} on satisfying the pseudo-Brewster angle --- non-compliant configurations discarded.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \small
+      \begin{tabular}{cc}
+        \toprule
+        Moisture (\%) & Permittivity \\
+        \midrule
+        20 & $12.16 - 4.68j$ \\
+        25 & $15.54 - 5.49j$ \\
+        30 & $19.22 - 6.27j$ \\
+        35 & $23.22 - 7.02j$ \\
+        40 & $27.50 - 7.74j$ \\
+        45 & $32.06 - 8.45j$ \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Bistatic receiver placement optimization}
+  \[
+    \max_{\mathbf{r}_r} \sum_{i=1}^{N_t} P_{r,i}(\mathbf{r}_r)
+    \qquad
+    \mathbf{r}_{ref} = \mathbf{c}_t + d_B\begin{bmatrix}\cos\phi_{opp}\\ \sin\phi_{opp}\end{bmatrix},
+    \quad d_B = \frac{h_{total}}{\tan\theta_B}
+  \]
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \small
+        \item Objective: received power, direct physical proxy for interface coupling --- independent of processing-stage assumptions (SNR, resolution, coherence handled downstream).
+        \item \alert{Five} multi-start initializations: geometric opposition (1), perpendicular (2), pseudo-Brewster-guided (2).
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{figures/paper_fig3_multistart.png}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Multi-band drone-borne SAR: RD350 Explorer}
+  \begin{itemize}
+    \item Multi-band SAR (P, L, C) purpose-built for drone operation.
+    \item Study frequency: \SI{400}{\mega\hertz} (UHF) --- balances penetration, antenna size, and resolution.
+    \item GNSS ground station and integrated planning/processing software.
+    \item Commissioning verified hardware/software integration and field flight execution; acquisition flights follow the QGIS-generated plans.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Results: strategy comparison at \SI{400}{\mega\hertz}}
+  \centering
+  \begin{tabular}{lrrrr}
+    \toprule
+    Strategy & Avg (dBm) & Max (dBm) & Min (dBm) & Improv.\ (\%) \\
+    \midrule
+    \textbf{Brewster-guided} & \textbf{$-70.11$} & $-67.82$ & $-75.22$ & \textbf{0.00 (ref.)} \\
+    Perpendicular & $-72.99$ & $-71.68$ & $-77.44$ & 4.11 \\
+    Opposite & $-72.30$ & $-71.23$ & $-76.76$ & 3.13 \\
+    \bottomrule
+  \end{tabular}
+  \vspace{1em}
+  \begin{itemize}
+    \item $\lambda = \SI{0.75}{\meter}$ in air. Values averaged across target configurations and initialization seeds.
+    \item Brewster-guided positioning consistently yields the \alert{highest} received power.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Results: received power across receiver positions}
+  \centering
+  \includegraphics[width=0.62\linewidth]{figures/paper_fig5_power_comparison.png}
+  \begin{itemize}
+    \footnotesize
+    \item Brewster-guided optimization (solid) tracks consistently above perpendicular and opposite strategies (dashed) across the receiver-position sweep.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Optimized bistatic configuration}
+  \centering
+  \includegraphics[width=0.72\linewidth]{figures/paper_fig4_3dconfig.png}
+  \begin{itemize}
+    \footnotesize
+    \item Illustrative configuration: transmitter spiral (blue), optimized receiver positions (orange), subsurface targets (red), air--ground interface.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Discussion, limitations, and future work}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \textbf{Limitations}
+      \begin{itemize}
+        \item Requires reliable estimates of surface soil permittivity.
+        \item Sensitive to environmental variation.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{Future work}
+      \begin{itemize}
+        \footnotesize
+        \item Full tomographic flight campaigns (spiral trajectories)
+        \item Deep 3D volume reconstruction analysis
+        \item DANN / 3D U-Net model training
+        \item Quantitative validation of penetration depth
+        \item Multi-frequency extensions
+        \item Polarimetric considerations
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Conclusions}
+  \begin{itemize}
+    \item Pseudo-Brewster angle-guided bistatic SAR framework for subsurface sensing.
+    \item At \SI{400}{\mega\hertz}: average received power $-70.11$~dBm, outperforming perpendicular and opposite geometries by \alert{4.11\%} and \alert{3.13\%}.
+    \item Physically grounded EM optimization integrates operationally into bistatic SAR mission planning --- measurable gains, \alert{no added system complexity}.
+    \item Enhanced coupling $\Rightarrow$ better conditions for subsequent tomographic reconstruction.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}[standout]
+  Thank you\\
+  \vspace{0.5em}
+  \normalsize\normalfont
+  Questions?
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Acknowledgment}
+  \footnotesize
+  This research was funded by the National Council for Scientific and Technological Development (CNPq), grants 141109/2023-8 and 314539/2023-9, and by the S\~ao Paulo Research Foundation (FAPESP), projects 2021/11380-5 (CPTEn), 2021/00199-8 (SMARTNESS), 2022/11596-0 (EMU), and 2024/15524-0 (NSFC).
+\end{frame}
+
+\end{document}

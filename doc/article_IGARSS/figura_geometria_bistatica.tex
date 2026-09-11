@@ -1,0 +1,75 @@
+% Figura 1: Geometría del sistema bistático
+\documentclass[border=5pt]{standalone}
+\usepackage{tikz}
+\usepackage{tikz-3dplot}
+\usetikzlibrary{arrows.meta, decorations.pathreplacing, calc} % <-- ADICIONAR calc
+
+\begin{document}
+\tdplotsetmaincoords{70}{110}
+
+\begin{tikzpicture}[tdplot_main_coords, scale=0.8]
+
+% Definir puntos
+\coordinate (Tx) at (2, 4, 3);
+\coordinate (Rx) at (-3, -2, 3);
+\coordinate (Target1) at (0, 0, -2);
+\coordinate (Target2) at (1, 1, -2);
+\coordinate (Surface1) at (0.8, 1.6, 0);
+\coordinate (Surface2) at (-0.6, -0.4, 0);
+
+% Plano del suelo
+\fill[gray!20, opacity=0.5] (-4,-4,0) -- (4,-4,0) -- (4,4,0) -- (-4,4,0) -- cycle;
+\draw[gray] (-4,-4,0) -- (4,-4,0) -- (4,4,0) -- (-4,4,0) -- cycle;
+
+% Subsuelo
+\fill[brown!30, opacity=0.3] (-4,-4,-3) -- (4,-4,-3) -- (4,4,-3) -- (-4,4,-3) -- 
+                              (-4,-4,0) -- (4,-4,0) -- (4,4,0) -- (-4,4,0) -- cycle;
+
+% Transmisor
+\draw[blue, thick] (Tx) circle (0.15);
+\fill[blue] (Tx) circle (0.1);
+\node[above, blue] at (Tx) {Transmitter};
+
+% Receptor
+\draw[red, thick] (Rx) circle (0.15);
+\fill[red] (Rx) circle (0.1);
+\node[above, red] at (Rx) {Receiver};
+
+% Targets
+\foreach \target in {Target1, Target2} {
+    \draw[black, thick] (\target) circle (0.1);
+    \fill[black] (\target) circle (0.08);
+}
+\node[below] at (Target1) {Target 1};
+\node[below] at (Target2) {Target 2};
+
+% Trayectorias de rayos
+% Tx → Surface1 → Target1
+\draw[blue, thick, ->] (Tx) -- (Surface1);
+\draw[blue, thick, dashed, ->] (Surface1) -- (Target1);
+
+% Target1 → Surface2 → Rx
+\draw[red, thick, dashed, ->] (Target1) -- (Surface2);
+\draw[red, thick, ->] (Surface2) -- (Rx);
+
+% Etiquetas de distancias
+\node[midway, above] at ($(Tx)!0.5!(Surface1)$) {$R_1$};
+\node[midway, right] at ($(Surface1)!0.5!(Target1)$) {$R_2$};
+\node[midway, left] at ($(Target1)!0.5!(Surface2)$) {$R_3$};
+\node[midway, below] at ($(Surface2)!0.5!(Rx)$) {$R_4$};
+
+% Puntos de intersección
+\fill[green] (Surface1) circle (0.05);
+\fill[green] (Surface2) circle (0.05);
+
+% Ejes de coordenadas
+\draw[->] (0,0,0) -- (2,0,0) node[right] {$X$};
+\draw[->] (0,0,0) -- (0,2,0) node[above] {$Y$};
+\draw[->] (0,0,0) -- (0,0,2) node[above] {$Z$};
+
+% Etiquetas de medios
+\node[right] at (3, 3, 1.5) {Air ($n_1 = 1$)};
+\node[right] at (3, 3, -1.5) {Ground ($n_2 > 1$)};
+
+\end{tikzpicture}
+\end{document}

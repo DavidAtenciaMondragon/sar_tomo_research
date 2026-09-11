@@ -1,0 +1,963 @@
+%% otimiza_tx.tex
+%% Otimização do Transmissor e Estratégia Sequencial Tx -> Rx
+%% no SAR Biestático Helicoidal — Exploração do Ângulo de Brewster
+%%
+%% Idioma: Português
+%% Compilar: pdflatex -interaction=nonstopmode otimiza_tx.tex  (duas passagens)
+%% Figuras:  hypotheses/figures/otx_fig0X_*.pdf
+%%           (gerar com utils/generate_figures_tx.py)
+
+\documentclass[12pt,a4paper,oneside]{book}
+
+%% ─── Pacotes ─────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{geometry}
+\geometry{left=3cm, right=2.5cm, top=3cm, bottom=2.5cm}
+
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{siunitx}
+\sisetup{output-decimal-marker={,}}
+
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{theorems,skins,breakable}
+
+\usepackage[unicode,colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=green!50!black,
+  urlcolor=cyan!60!black,
+  pdftitle={Otimizacao do Transmissor e Estrategia Sequencial Tx-Rx em SAR Bistatico Helicoidal},
+  pdfauthor={David Atencia}]{hyperref}
+
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\nouppercase{\leftmark}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+%% ─── Caixas de destaque (mesmo estilo de explicacion_plan_de_vuelo.tex) ───────
+\newcommand{\result}[2]{%
+  \begin{tcolorbox}[enhanced, breakable,
+    colback=yellow!8, colframe=orange!70!black,
+    fonttitle=\bfseries,
+    title={\protect#1},
+    attach boxed title to top left={yshift=-2mm, xshift=5mm},
+    boxed title style={colback=orange!70!black}]
+    #2
+  \end{tcolorbox}}
+
+\newcommand{\nota}[2]{%
+  \begin{tcolorbox}[enhanced, breakable,
+    colback=green!5, colframe=green!50!black,
+    fonttitle=\bfseries\small,
+    title={\protect#1}]
+    #2
+  \end{tcolorbox}}
+
+\newcommand{\atencion}[2]{%
+  \begin{tcolorbox}[enhanced, breakable,
+    colback=red!5, colframe=red!60!black,
+    fonttitle=\bfseries\small,
+    title={\protect#1}]
+    #2
+  \end{tcolorbox}}
+
+%% ─── Teoremas ────────────────────────────────────────────────────────────────
+\newtheorem{teorema}{Teorema}[chapter]
+\newtheorem{proposicao}{Proposição}[chapter]
+\newtheorem{lema}{Lema}[chapter]
+\newtheorem{corolario}{Corolário}[chapter]
+\theoremstyle{definition}
+\newtheorem{definicaom}{Definição}[chapter]
+\theoremstyle{remark}
+\newtheorem*{observacao}{Observação}
+
+%% ─── Macros ──────────────────────────────────────────────────────────────────
+\newcommand{\RT}{R_T}
+\newcommand{\RR}{R_R}
+\newcommand{\thetaB}{\theta_B}
+\newcommand{\nuno}{n_1}
+\newcommand{\ndos}{n_2}
+\newcommand{\Prcv}{P_r}
+\newcommand{\Pt}{P_t}
+\newcommand{\dxy}{\delta_{xy}}
+\newcommand{\dz}{\delta_z}
+\newcommand{\psiT}{\psi_{0,\mathrm{Tx}}}
+\newcommand{\psiR}{\psi_{0,\mathrm{Rx}}}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{document}
+
+\frontmatter
+
+%%─── Capa ────────────────────────────────────────────────────────────────────
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\LARGE\bfseries Otimização do Transmissor\\
+no SAR Biestático Helicoidal:\\
+uma Estratégia Sequencial Tx$\,\to\,$Rx\\
+Guiada pelo Ângulo de Brewster}\\[1.2cm]
+{\large\itshape Fundamentação física, formulação matemática e\\
+sequência de desenvolvimento racional}\\[2cm]
+{\normalsize Documento técnico complementar à dissertação\\
+\textit{Otimização da Trajetória do Receptor em SAR Biestático\\
+Helicoidal} e ao documento \texttt{explicacion\_plan\_de\_vuelo.tex}}\\[2cm]
+{\normalsize David Atencia}\\[0.4cm]
+{\normalsize 2026}
+\vfill
+\end{titlepage}
+
+%%─── Resumo ──────────────────────────────────────────────────────────────────
+\chapter*{Resumo}
+\addcontentsline{toc}{chapter}{Resumo}
+
+O sistema de otimização de trajetória descrito em \texttt{explicacion\_plan\_de\_vuelo.tex}
+e no Capítulo~5 da dissertação otimiza \textbf{apenas} a posição do receptor (Rx) a
+cada pulso, guiando-a pelo ângulo de Brewster $\thetaB$ para maximizar a
+transmitância $T_2$ no trecho alvo$\to$Rx. O transmissor (Tx), no entanto, segue
+uma trajetória helicoidal cônica cujos parâmetros geométricos
+($\rho_0$, $z_0$, e portanto o ângulo de \textit{look} $\psi_0$) são fixados
+\emph{a priori}, sem qualquer critério relacionado ao ângulo de Brewster — apesar
+de a mesma equação de radar biestático depender, de forma inteiramente simétrica,
+da transmitância $T_1$ no trecho Tx$\to$alvo.
+
+Este documento demonstra que essa assimetria é uma lacuna de projeto, não uma
+necessidade física, e propõe uma estratégia de \textbf{duas etapas}: primeiro
+projetar o Tx (Etapa 1) para equilibrar a proximidade ao ângulo de Brewster
+com a resolução vertical $\dz$ que sua própria abertura sintética determina;
+depois, com o Tx fixado, otimizar o Rx (Etapa 2) exatamente como já é feito
+hoje. Prova-se que a potência bistática recebida se fatora
+\emph{exatamente} em um produto de um fator dependente apenas do Tx e um
+fator dependente apenas do Rx — o que torna a decomposição sequencial
+\emph{ótima, sem perda,} para o termo de potência, e uma aproximação bem
+controlada para o termo de resolução. A metodologia é verificada
+numericamente com os parâmetros reais do sistema já em uso
+(\texttt{radarTx\_espiral\_plano\_voo.json}): o ângulo de \textit{look}
+atualmente empregado, $\psi_0=58^\circ$, está a menos de $1^\circ$ do valor que a
+otimização formal da Etapa 1 prescreve sob a mesma convenção de peso
+logarítmico ($\gamma=0{,}3$) já usada para o Rx — evidência de que o projeto
+atual já era \emph{quase} ótimo por construção, e de que este documento
+formaliza e generaliza o critério que faltava.
+
+%%─── Sumário ─────────────────────────────────────────────────────────────────
+\tableofcontents
+
+\mainmatter
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Introdução e Motivação}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{O problema: uma assimetria no projeto atual}
+\label{sec:motivacao}
+
+A equação de radar biestático com refração já foi derivada e está em uso no
+sistema de otimização do receptor (documento \texttt{explicacion\_\allowbreak
+plan\_\allowbreak de\_\allowbreak vuelo.tex}, Cap.~4, e função
+\texttt{objective\_\allowbreak function.m}):
+
+\begin{equation}
+  \boxed{\Prcv = \frac{\Pt\,G_T\,G_R\,\sigma\,T_1\,T_2\,\lambda^2}{(4\pi)^3\,\RT^2\,\RR^2}}
+  \label{eq:radar_bistatico}
+\end{equation}
+
+onde $T_1=T_1(\theta_{i,1})$ é a transmitância de potência TM no trecho
+Tx$\to$alvo, avaliada no ângulo de incidência $\theta_{i,1}$ que o \emph{Tx}
+forma com a normal à interface; $T_2=T_2(\theta_{i,2})$ é a transmitância
+homóloga no trecho alvo$\to$Rx; e $\RT$, $\RR$ são os caminhos ópticos totais
+de cada trecho (Tx$\to Q_1^*\to$alvo e alvo$\to Q_2^*\to$Rx,
+respectivamente).
+
+A Eq.~\eqref{eq:radar_bistatico} é \textbf{estruturalmente simétrica} em Tx e
+Rx: trocar os papéis de $(T_1,\RT)$ e $(T_2,\RR)$ não altera a física. No
+entanto, o sistema implementado hoje trata os dois lados de forma
+completamente diferente:
+
+\begin{itemize}
+  \item \textbf{Rx}: a cada posição do Tx, a posição $(x,y)$ do Rx é
+  escolhida por um otimizador não-convexo (\texttt{fmincon}, 5 candidatos de
+  arranque) que maximiza uma função de custo multi-objetivo guiada
+  explicitamente pelo ângulo de Brewster — o candidato de arranque \#4/5
+  é construído a partir da distância de Brewster $d_B$
+  (\texttt{buildRxSearchGeometry.m}, \texttt{chooseCandidateRxPos.m}).
+
+  \item \textbf{Tx}: a trajetória (uma hélice cônica com raio menor/maior e
+  altura menor/maior) é lida diretamente de um arquivo de parâmetros
+  (\texttt{radarTx\_espiral\_plano\_voo.json}) e usada sem qualquer etapa de
+  otimização. Nenhuma rotina do sistema calcula, verifica ou otimiza a
+  proximidade entre o ângulo de incidência do Tx e $\thetaB$.
+\end{itemize}
+
+\nota{Evidência direta no código}{
+O próprio \texttt{explicacion\_plan\_de\_vuelo.tex} (Cap.~1) descreve o Tx
+como seguindo ``uma trajetória predeterminada \,--\, a hélice cônica \,--\,
+otimizada para maximizar a diversidade angular e a resolução 3D''. Essa
+frase é imprecisa: a hélice é escolhida para satisfazer requisitos de
+resolução (via a condição $\beta=\psi_0$, Seção~\ref{sec:helix_review}),
+mas \emph{não} há, em nenhum lugar do \texttt{system\_espiral\_plano\_voo.json}
+ou do \texttt{run\_plano\_de\_voo.m}, um passo que escolha $\rho_0,z_0$ em
+função de $\thetaB$.
+}
+
+\section{A pergunta central deste documento}
+
+\begin{center}
+\fbox{\parbox{0.85\textwidth}{\centering\itshape
+Como projetar a trajetória do Tx para aproveitar o ângulo de Brewster tanto
+quanto o Rx já aproveita — e por que faz sentido resolver primeiro o Tx e
+só depois o Rx, em vez de otimizar os dois simultaneamente?
+}}
+\end{center}
+
+Este documento responde a essa pergunta em três partes:
+
+\begin{enumerate}
+  \item Uma \textbf{fundamentação formal} (Capítulo~\ref{cap:fundamentacao})
+  de por que a decomposição sequencial Tx$\to$Rx é justificada — mostrando
+  que a potência bistática se fatora \emph{exatamente} em um termo
+  só-Tx e um termo só-Rx, e que o único acoplamento residual (via a
+  resolução horizontal $\dxy$) é assimilável pela liberdade posicional do
+  Rx.
+
+  \item Uma \textbf{formulação matemática} (Capítulos~\ref{cap:etapa1}
+  e~\ref{cap:etapa2}) para cada etapa, reaproveitando integralmente o
+  aparato já validado (coeficientes de Fresnel TM, fórmulas de resolução
+  3D, função de custo logarítmica) e estendendo-o de forma simétrica ao
+  Tx.
+
+  \item Uma \textbf{verificação numérica} com os parâmetros reais do
+  sistema, mostrando que a metodologia proposta reproduz — e generaliza —
+  o valor de $\psi_0$ já em uso.
+\end{enumerate}
+
+\section{Relação com outros documentos}
+
+Este documento pressupõe familiaridade com:
+\begin{itemize}
+  \item \texttt{explicacion\_resolucion.tex} — derivação das fórmulas de
+  resolução 3D $\dxy,\dz$ a partir do $k$-espaço biestático.
+  \item \texttt{explicacion\_plan\_de\_vuelo.tex} — derivação da equação de
+  radar biestático com refração e da metodologia de otimização do Rx
+  (função de custo, busca multi-início).
+  \item \texttt{dissertacao\_tomo\_sar.tex} — Capítulos~2--3 (Fresnel TM,
+  Brewster, resolução 3D) e Capítulo~5 (otimização do Rx), dos quais este
+  documento herda notação e resultados já demonstrados, sem os
+  redemonstrar.
+\end{itemize}
+Nenhum resultado já provado nesses documentos é redemonstrado aqui; eles
+são citados e reutilizados como base para os resultados novos
+(Capítulos~\ref{cap:fundamentacao}--\ref{cap:etapa1}).
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Fundamentos Reaproveitados}
+\label{cap:fundamentos}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+Este capítulo reúne, sem redemonstrar, os resultados da dissertação e dos
+documentos irmãos que serão usados como blocos de construção.
+
+\section{Ângulo de Brewster e transmitância TM}
+
+Para incidência TM em meios sem perdas e não-magnéticos, o único ângulo de
+incidência $\theta_i$ que anula a reflectância é
+\begin{equation}
+  \thetaB = \arctan\!\left(\frac{\ndos}{\nuno}\right)
+  \label{eq:brewster}
+\end{equation}
+(Teorema~2.1 da dissertação). A transmitância de potência correspondente é
+\begin{equation}
+  T(\theta_i) = \frac{\ndos\cos\theta_t}{\nuno\cos\theta_i}\,|t_{TM}(\theta_i)|^2
+  = 1-|r_{TM}(\theta_i)|^2,
+  \label{eq:fresnel_T}
+\end{equation}
+com $T(\thetaB)=1$. Para $\nuno=1,\ndos=2$ (solo com $\varepsilon_r=4$),
+$\thetaB\approx 63{,}43^\circ$. A função $T(\theta_i)$ é \textbf{unimodal}: cresce
+monotonicamente de $\theta_i=0$ até $\thetaB$ e decresce monotonicamente daí
+até $\theta_i=90^\circ$ (visível na Fig.~2.1 da dissertação) — propriedade que
+será usada nos Capítulos~\ref{cap:fundamentacao}--\ref{cap:etapa1}.
+
+\section{Geometria da hélice cônica}
+
+Cada antena (Tx ou Rx) descreve, na formulação idealizada do documento
+de resolução espacial e do Capítulo~3 da dissertação, uma hélice cônica
+caracterizada por:
+\begin{itemize}
+  \item $\rho_0$ — raio médio (entre \texttt{RaioMenorEsp} e
+  \texttt{RaioMaiorEsp});
+  \item $z_0$ — altura média (entre \texttt{AltMenorEsp} e
+  \texttt{AltMaiorEsp});
+  \item $\psi_0=\arctan(\rho_0/z_0)$ — ângulo de \textit{look} médio;
+  \item $R_0=\sqrt{\rho_0^2+z_0^2}$ — alcance oblíquo médio;
+  \item $\beta=\arctan(\Delta z/\Delta\rho)$ — ângulo de inclinação da
+  hélice, com $\Delta\rho,\Delta z$ as excursões de raio e altura;
+  \item $B_{helix}=\sqrt{\Delta\rho^2+\Delta z^2}$ — comprimento de arco da
+  hélice (abertura sintética total).
+\end{itemize}
+
+\section{Condição ótima de inclinação (revisão)}
+\label{sec:helix_review}
+
+\begin{proposicao}[já demonstrada — dissertação, Seção~3.6]
+A projeção perpendicular da hélice sobre a linha de visada,
+$B_\perp = B_{helix}\,|\cos(\beta-\psi_0)|$, é maximizada — e portanto $\dz$
+é minimizado, para $B_{helix}$ fixo — quando $\beta=\psi_0$, resultando em
+$B_\perp=B_{helix}$.
+\end{proposicao}
+
+Este documento \textbf{não questiona} essa condição; ela é adotada como
+válida e usada throughout (Capítulo~\ref{cap:etapa1}) como restrição de
+igualdade $\beta=\psi_0$ ao dimensionar o Tx.
+
+\section{Fórmulas de resolução 3D (revisão)}
+\label{sec:resolucao_review}
+
+Da Seção~3.4--3.5 da dissertação (Eqs.~3.10--3.11) e de
+\texttt{calculateBistaticResolution.m}:
+\begin{align}
+  \dz &= \frac{c}{2\,W_z}, \qquad
+  W_z = \ndos B\cos\theta_{t,0}
+  + \frac{c\,B_\perp\sin\psi_0\cos\psi_0}{\lambda_0 R_0 \ndos\cos\theta_{t,0}}
+  \label{eq:Wz_review}\\
+  \dxy(\Delta\phi) &= \frac{0{,}60\,\lambda_0}{\pi\,\sin\psi_0\,|\cos(\Delta\phi/2)|}
+  \label{eq:dxy_review}
+\end{align}
+com $\cos\theta_{t,0}=\sqrt{1-\sin^2\psi_0/\ndos^2}$ (Snell), $B$ a largura
+de banda do chirp e $\Delta\phi$ o NorthOffset (separação azimutal Tx--Rx
+vista do alvo).
+
+\begin{teorema}[já demonstrado — dissertação, Seção~3.4]
+\label{teo:invariancia_review}
+$\dz$ é invariante a $\Delta\phi$: a Eq.~\eqref{eq:Wz_review} não contém
+$\Delta\phi$.
+\end{teorema}
+
+Este teorema é a pedra angular do Capítulo~\ref{cap:fundamentacao}: ele
+garante que a resolução vertical não depende de \emph{onde}, azimutalmente,
+o Rx está em relação ao Tx — apenas do módulo do ângulo de \textit{look}
+$\psi_0$ envolvido.
+
+\section{A arquitetura computacional já implementada}
+\label{sec:arquitetura_review}
+
+O código de produção já separa, estruturalmente, o cálculo do trecho
+Tx$\to$alvo do trecho alvo$\to$Rx. Em \texttt{precomputeTxData.m}:
+
+\begin{quote}\ttfamily\footnotesize
+\% PRECOMPUTETXDATA\ \ Pre-computes Tx→Target refraction\\
+\% data for a fixed Tx position.\\
+\%\\
+\% The Tx→Target leg is independent of the Rx position\\
+\% being optimized by fmincon. Pre-computing it once per\\
+\% Tx position avoids recomputing the Fermat refraction\\
+\% point for every objective\_function evaluation ---\\
+\% eliminating \textasciitilde 50\% of Fermat calls.
+\end{quote}
+
+Ou seja: $T_1$ e $\RT$ já são calculados \textbf{uma única vez por posição
+de Tx}, \emph{antes} do laço de otimização do Rx, e reutilizados como
+constantes em toda avaliação de \texttt{objective\_function} durante essa
+otimização (linhas 43--45 de \texttt{objective\_function.m}). O
+Capítulo~\ref{cap:fundamentacao} formaliza matematicamente por que essa
+escolha de arquitetura é não apenas conveniente, mas \emph{correta}.
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Fundamentação da Sequência Tx$\,\to\,$Rx}
+\label{cap:fundamentacao}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Fatoração exata da potência bistática}
+
+\begin{proposicao}[Separabilidade multiplicativa de $\Prcv$]
+\label{prop:separabilidade}
+Para um alvo $P$ fixo, com a posição do Tx e a posição do Rx como variáveis
+independentes, a potência bistática~\eqref{eq:radar_bistatico} se fatora
+como
+\begin{equation}
+  \Prcv(\mathrm{Tx},\mathrm{Rx};P) = \underbrace{\left[\frac{\Pt\,\sigma\,\lambda^2}{(4\pi)^3}\right]}_{\text{constante}}
+  \cdot\underbrace{\frac{G_T(\mathrm{Tx})\,T_1(\mathrm{Tx})}{\RT(\mathrm{Tx})^2}}_{f_{\mathrm{Tx}}(\mathrm{Tx})}
+  \cdot\underbrace{\frac{G_R(\mathrm{Rx})\,T_2(\mathrm{Rx})}{\RR(\mathrm{Rx})^2}}_{f_{\mathrm{Rx}}(\mathrm{Rx})}
+  \label{eq:fatoracao}
+\end{equation}
+onde $f_{\mathrm{Tx}}$ depende \emph{apenas} da posição do Tx (e de $P$), e
+$f_{\mathrm{Rx}}$ depende \emph{apenas} da posição do Rx (e de $P$).
+\end{proposicao}
+
+\begin{proof}
+Por construção geométrica (\texttt{explicacion\_plan\_de\_vuelo.tex},
+Cap.~4): $\RT=R_1+R_2$ e $\theta_{i,1}$ (logo $T_1$) são determinados
+inteiramente pelo segmento Tx$\to Q_1^*\to P$, que não envolve a posição
+do Rx. Analogamente, $\RR=R_3+R_4$ e $\theta_{i,2}$ (logo $T_2$) são
+determinados inteiramente pelo segmento $P\to Q_2^*\to$Rx, que não envolve
+a posição do Tx. O ganho de antena $G_T$ é o padrão de radiação do Tx
+avaliado no ângulo Tx$\to P$ (\texttt{calculateTxGainsForTargets}), e
+$G_R$ o padrão do Rx avaliado no ângulo $P\to$Rx
+(\texttt{getAntennaGain}) — nenhum dos dois mistura as duas geometrias.
+Substituindo em~\eqref{eq:radar_bistatico} e agrupando os fatores por
+dependência, obtém-se~\eqref{eq:fatoracao}.
+\end{proof}
+
+\begin{corolario}
+\label{cor:otimizacao_separavel}
+Para o termo de potência pura ($\alpha_{\mathrm{res}}=0$ na função de
+custo), maximizar $\Prcv$ conjuntamente sobre $(\mathrm{Tx},\mathrm{Rx})$
+é \textbf{exatamente equivalente} a maximizar $f_{\mathrm{Tx}}$ e
+$f_{\mathrm{Rx}}$ separadamente:
+\[
+  \operatorname*{arg\,max}_{\mathrm{Tx},\mathrm{Rx}} \Prcv
+  = \Big(\operatorname*{arg\,max}_{\mathrm{Tx}} f_{\mathrm{Tx}},\ \operatorname*{arg\,max}_{\mathrm{Rx}} f_{\mathrm{Rx}}\Big),
+\]
+\emph{sem nenhuma perda}, independentemente da ordem em que as duas
+otimizações são feitas.
+\end{corolario}
+
+Este é o resultado mais forte deste documento: para o objetivo de potência,
+a decomposição Tx$\to$Rx (ou Rx$\to$Tx — a ordem, isoladamente, é
+indiferente para este termo) não é uma aproximação, é uma identidade
+algébrica.
+
+\section{O acoplamento residual: resolução}
+\label{sec:acoplamento}
+
+A função de custo completa (Cap.~5 da dissertação;
+\texttt{objective\_function.m}) inclui o termo de resolução:
+\begin{equation}
+  J = -(1-\alpha_{\mathrm{res}})\log_{10}\Prcv + \alpha_{\mathrm{res}}\log_{10}(\dxy\cdot\dz).
+  \label{eq:custo_geral}
+\end{equation}
+Diferentemente de $\Prcv$, o termo $\dxy\cdot\dz$ \textbf{não} se fatora de
+forma limpa: pela Eq.~\eqref{eq:Wz_review}, $\dz$ depende de $\psi_0$ e de
+$(\beta,B_{helix})$; pela Eq.~\eqref{eq:dxy_review}, $\dxy$ depende de
+$\psi_0$ \emph{e} de $\Delta\phi$ (que mistura os azimutes de Tx e Rx).
+Três observações controlam o impacto desse acoplamento:
+
+\begin{enumerate}
+  \item \textbf{$\dz$ não depende de $\Delta\phi$}
+  (Teorema~\ref{teo:invariancia_review}) — o único acoplamento
+  Tx$\leftrightarrow$Rx nele é através de \emph{qual} $\psi_0$ se usa para
+  avaliar a Eq.~\eqref{eq:Wz_review}.
+
+  \item \textbf{$(\beta,B_{helix})$ são fixados pelo Tx antes de qualquer
+  otimização do Rx} — literalmente, no código de produção,
+  \texttt{B\_helix} e \texttt{beta\_helix} são calculados uma vez
+  (\texttt{run\_plano\_de\_voo.m}, linhas 61--65) a partir apenas dos
+  parâmetros geométricos do Tx, \emph{antes} do laço \texttt{for tx\_idx}
+  que otimiza o Rx, e são passados como constantes para
+  \texttt{objective\_function} em toda iteração subsequente.
+
+  \item \textbf{$\dxy$ retém liberdade suficiente no Rx} — dado
+  $(\beta,B_{helix})$ fixos pelo Tx, o Rx ainda controla livremente
+  $\Delta\phi$ (via sua posição azimutal) e sua própria contribuição a
+  $\psi_0$ na Eq.~\eqref{eq:dxy_review}, exatamente como já demonstrado
+  pela otimização de duas dimensões ($x,y$) já em produção.
+\end{enumerate}
+
+\begin{proposicao}[Decomposição hierárquica]
+\label{prop:decomposicao_hierarquica}
+Definindo a Etapa 1 como a escolha das constantes de projeto do Tx
+$(\rho_0,z_0)\Rightarrow(\psi_0,\beta{=}\psi_0,R_0,B_{helix})$ e a Etapa 2
+como a otimização usual do $(x,y)$ do Rx \emph{dado} essas constantes, a
+sequência Etapa~1$\to$Etapa~2:
+\begin{itemize}
+  \item é \textbf{exatamente ótima} para o termo de potência
+  (Corolário~\ref{cor:otimizacao_separavel});
+  \item é \textbf{exatamente consistente} com a invariância de $\dz$ a
+  $\Delta\phi$ (Teorema~\ref{teo:invariancia_review}) — a Etapa 1 não
+  precisa se preocupar com $\Delta\phi$, que é resolvido inteiramente na
+  Etapa 2;
+  \item deixa para a Etapa 2 exatamente as variáveis que ela já otimiza
+  hoje ($x,y$ do Rx, logo $\Delta\phi$ e a contribuição do Rx a
+  $\dxy$), sem removida nenhuma liberdade que o otimizador atual utilize.
+\end{itemize}
+\end{proposicao}
+
+\begin{observacao}
+A única aproximação genuína introduzida é que a Etapa 1 dimensiona
+$\dz$ usando o $\psi_0$ \emph{nominal do Tx} ($\psiT$), enquanto a Etapa 2
+(como já implementado em \texttt{calculateBistaticResolution.m}) reavalia
+$\dz,\dxy$ usando o $\psi_0$ \emph{realizado pelo Rx} ($\psiR$) — os dois
+podem diferir porque a posição ótima do Rx não é, em geral, uma réplica
+angularmente OFF-SET da hélice do Tx. Essa é precisamente a mesma
+aproximação de "ângulo de \textit{look}'' que a dissertação já documenta e
+quantifica em $\sim\!7\text{--}8\%$ de erro (§6.4.2, análise de erros de
+$\dxy$ no eixo). O impacto é, portanto, do mesmo tipo e ordem de grandeza
+de uma aproximação já aceita e caracterizada em outro lugar do corpus —
+não um erro novo introduzido por esta proposta.
+\end{observacao}
+
+\section{Por que esta ordem, e não a ordem inversa ou a otimização conjunta}
+
+\begin{itemize}
+  \item \textbf{Tx antes de Rx, e não o contrário}: $(\beta,B_{helix})$
+  são propriedades físicas da trajetória do Tx que devem ser fixadas
+  \emph{antes} do voo (a hélice é executada mecanicamente pela
+  plataforma); a posição do Rx, em contraste, pode ser recalculada
+  pulso-a-pulso. Logo, na prática de engenharia, o Tx \emph{tem} que ser
+  decidido primeiro — este documento apenas formaliza \emph{como}
+  decidi-lo racionalmente, em vez de por herança arbitrária de um arquivo
+  de parâmetros.
+
+  \item \textbf{Sequencial, e não conjunta}: pela
+  Proposição~\ref{prop:separabilidade}, uma otimização conjunta
+  $(\mathrm{Tx},\mathrm{Rx})\in\mathbb{R}^2\times\mathbb{R}^2$ não
+  encontraria nenhum ótimo de potência melhor do que a decomposição
+  sequencial — apenas pagaria um custo computacional maior (busca em
+  4 dimensões com múltiplos mínimos locais em vez de duas buscas
+  independentes de dimensão menor, uma delas escalar; ver
+  Capítulo~\ref{cap:algoritmo}). A única situação em que a otimização
+  conjunta poderia, em princípio, superar a sequencial é através do termo
+  de resolução residual da Seção~\ref{sec:acoplamento} — cujo impacto foi
+  limitado, acima, à mesma ordem de grandeza de uma aproximação já aceita
+  no corpus.
+\end{itemize}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Etapa 1 --- Otimização do Transmissor}
+\label{cap:etapa1}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Variáveis de projeto}
+
+O projetista escolhe $\rho_0,z_0$ (equivalentemente $\psiT=\arctan(\rho_0/z_0)$
+e $R_0=\sqrt{\rho_0^2+z_0^2}$) e o comprimento de hélice $B_{helix}$
+(determinado pela excursão $\Delta\rho,\Delta z$ desejada para a apertura
+sintética). A condição $\beta=\psiT$ (Seção~\ref{sec:helix_review}) é
+imposta por construção. Resta, portanto, um problema de otimização
+essencialmente \textbf{escalar} em $\psiT$ (para $R_0$ ou $z_0$ fixado por
+uma restrição de missão — Seção~\ref{sec:restricoes}) — muito mais simples
+do que o problema não-convexo de duas dimensões que a Etapa 2 já resolve.
+
+\section{O conflito fundamental: $45^\circ$ contra $\thetaB$}
+\label{sec:conflito}
+
+O ângulo de incidência do Tx no alvo, $\theta_{i,1}$, coincide com $\psiT$
+em primeira ordem, para um alvo próximo ao centro da malha (a mesma
+aproximação de \textit{look angle} já usada em toda a análise de resolução
+— Observação da Seção~\ref{sec:acoplamento}). Logo, $T_1(\psiT)$ é
+maximizado quando
+\begin{equation}
+  \psiT = \thetaB.
+  \label{eq:otimo_potencia}
+\end{equation}
+
+Por outro lado, o termo tomográfico de $W_z$ na
+Eq.~\eqref{eq:Wz_review} contém o fator $\sin\psi_0\cos\psi_0
+=\tfrac12\sin(2\psi_0)$, maximizado exatamente em
+\begin{equation}
+  \psi_0 = 45^\circ.
+  \label{eq:otimo_tomografico}
+\end{equation}
+Além disso, o termo de largura de banda $\ndos B\cos\theta_{t,0}$
+\emph{decresce monotonicamente} com $\psi_0$ (pois
+$\cos\theta_{t,0}=\sqrt{1-\sin^2\psi_0/\ndos^2}$ é decrescente em
+$\psi_0\in(0^\circ,90^\circ)$), reforçando ainda mais o ótimo tomográfico abaixo de
+$45^\circ$-$63^\circ$.
+
+\begin{teorema}[Conflito estrutural]
+\label{teo:conflito}
+Para $\ndos>\nuno$ (interface ar-solo típica), $\thetaB=\arctan(\ndos/\nuno)>45^\circ$
+sempre que $\ndos>\nuno$. Logo $\thetaB\ne 45^\circ$ e os ótimos individuais de
+$T_1$ e de $W_z$ (via seu termo tomográfico) \textbf{nunca coincidem}
+exatamente, para nenhum par de meios fisicamente distintos.
+\end{teorema}
+
+\begin{proof}
+$\arctan(x)=45^\circ\Leftrightarrow x=1\Leftrightarrow \ndos=\nuno$, excluído por
+hipótese ($\ndos\ne\nuno$, caso contrário não há interface física).
+\end{proof}
+
+Este é o análogo, no lado do Tx, do trade-off potência--resolução que
+motiva a função de custo do Rx (Cap.~5.4 da dissertação); o
+Teorema~\ref{teo:conflito} mostra que ele é \textbf{inevitável}, não uma
+peculiaridade de parâmetros específicos.
+
+\subsection{Verificação numérica}
+
+A Figura~\ref{fig:psi0_tradeoff} mostra $T_1(\psi_0)$ e $\dz(\psi_0)$ para
+os parâmetros reais do sistema
+($f_0=400\,\mathrm{MHz}$, $B=50\,\mathrm{MHz}$, $\ndos=2$,
+$B_{helix}=47{,}17\,\mathrm{m}$), sob duas restrições de projeto distintas:
+alcance oblíquo $R_0$ fixo (relevante quando o orçamento de enlace limita
+o alcance máximo) e altura de voo $z_0$ fixa (relevante quando um teto
+operacional limita a altitude).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{otx_fig01_psi0_tradeoff.pdf}
+\caption{Conflito $\psi_0=45^\circ$ (ótimo tomográfico, minimiza $\dz$) vs.\
+$\psi_0=\thetaB=63{,}4^\circ$ (ótimo de Brewster, $T_1=1$), calculado com os
+parâmetros reais do sistema. Em ambos os cenários de restrição, o
+ângulo atualmente usado ($\psi_0=58^\circ$) já se situa \emph{dentro} do
+platô largo onde $T_1>0{,}99$.}
+\label{fig:psi0_tradeoff}
+\end{figure}
+
+Uma propriedade notável, visível na Fig.~\ref{fig:psi0_tradeoff}: $T_1$ é
+\textbf{larga} perto de $\thetaB$ (para $\ndos/\nuno=2$, $T_1\ge 0{,}90$ para
+$\psi_0\in[18^\circ,77^\circ]$), enquanto o pico tomográfico de $W_z$ é mais estreito.
+Isso significa que o custo, em potência, de priorizar a resolução é
+tipicamente pequeno; o Capítulo formaliza esse trade-off para escolher o
+ponto de equilíbrio correto em vez de confiar nessa observação
+qualitativamente.
+
+\section{Função de custo do Tx}
+
+Em analogia direta com a função de custo do Rx (Eq.~\eqref{eq:custo_geral}),
+define-se
+\begin{equation}
+  \boxed{J_{\mathrm{Tx}}(\psiT;\gamma) = -(1-\gamma)\log_{10} T_1(\psiT)
+  + \gamma\,\log_{10}\dz(\psiT)}
+  \label{eq:custo_tx}
+\end{equation}
+com $\gamma\in[0,1]$ o peso de resolução do \textbf{lado do Tx}
+(analogamente a $\alpha_{\mathrm{res}}$ para o Rx, mas um parâmetro
+distinto — nada obriga $\gamma=\alpha_{\mathrm{res}}$, embora a
+Seção~\ref{sec:validacao} mostre que adotar o mesmo valor numérico produz
+um resultado consistente com o sistema já em uso). A normalização
+logarítmica é a mesma já justificada no Cap.~5 da dissertação: $T_1\in(0,1]$
+e $\dz\sim\!10^2\,\mathrm{cm}$ têm escalas e unidades incomensuráveis, e o
+logaritmo as torna comparáveis.
+
+\begin{proposicao}[Unimodalidade numérica]
+Para os parâmetros do sistema (Seção~4.2.1) e $\gamma\in[0,1]$, $J_{\mathrm{Tx}}$
+tem um único mínimo interior em $\psiT\in(0^\circ,90^\circ)$ — verificado por
+varredura exaustiva (passo $0{,}04^\circ$) para $\gamma\in\{0{,}0.1,\dots,1{,}0\}$
+(Fig.~\ref{fig:gamma_sweep}a). Isso decorre de $T_1(\psi_0)$ ser unimodal
+com pico em $\thetaB$ (Seção~2.1) e $W_z(\psi_0)$ ser unimodal com pico
+verificado numericamente entre $33^\circ$ e $45^\circ$, dependendo da restrição de
+projeto (Seção~\ref{sec:restricoes}) — a combinação convexa (em
+$\log_{10}$) de duas funções unimodais com um único vale cada, cujos vales
+estão a menos de $30^\circ$ de distância, não introduz mínimos locais
+espúrios neste intervalo.
+\end{proposicao}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{otx_fig02_gamma_sweep.pdf}
+\caption{(a) $J_{\mathrm{Tx}}(\psiT;\gamma)$ para vários $\gamma$
+(cenário $R_0$ fixo) — mínimo único em cada curva. (b) Ângulo ótimo
+$\psiT^*(\gamma)$: decresce suavemente de $\thetaB$ ($\gamma=0$) até o
+ótimo tomográfico ($\gamma=1$). O losango marca $\gamma=0{,}3$ — mesmo peso
+já usado para $\alpha_{\mathrm{res}}$ no Rx — produzindo
+$\psiT^*=57{,}6^\circ$, a $0{,}4^\circ$ do valor atualmente empregado ($58^\circ$).}
+\label{fig:gamma_sweep}
+\end{figure}
+
+\section{Restrições práticas}
+\label{sec:restricoes}
+
+A Eq.~\eqref{eq:custo_tx} é minimizada sujeita a restrições de missão que
+fixam a escala do problema (o par $(\rho_0,z_0)$ tem dois graus de
+liberdade; $\psiT$ é só a razão entre eles):
+
+\begin{itemize}
+  \item \textbf{Alcance oblíquo fixo ($R_0=\text{const.}$)} — apropriado
+  quando o orçamento de enlace (Seção~4.6, \texttt{explicacion\_plan\_de\_vuelo.tex})
+  fixa o alcance máximo tolerável para a relação sinal-ruído desejada. Sob
+  esta restrição, $\rho_0=R_0\sin\psiT$, $z_0=R_0\cos\psiT$.
+
+  \item \textbf{Altitude de voo fixa ($z_0=\text{const.}$)} — apropriado
+  quando um teto operacional (regulatório ou da plataforma) limita a
+  altitude. Sob esta restrição, $\rho_0=z_0\tan\psiT$, $R_0=z_0/\cos\psiT$.
+
+  \item \textbf{Cobertura da malha de alvos} — $\rho_0$ deve ser
+  suficientemente grande para que a projeção horizontal da hélice
+  circunde toda a malha de alvos (raio $\gtrsim$ metade da diagonal da
+  malha), sob pena de perda de diversidade angular nas bordas.
+
+  \item \textbf{Limites de elevação da antena} — $\psiT$ deve permanecer
+  dentro da abertura de elevação do padrão de radiação
+  (\texttt{AperturaElev}, tipicamente $\pm 25^\circ$ em torno do
+  apontamento nominal), sob pena de $G_T$ cair fora do lóbulo principal.
+\end{itemize}
+
+Ambos os cenários numéricos (Fig.~\ref{fig:psi0_tradeoff}) são
+apresentados lado a lado justamente porque a escolha entre eles depende de
+qual restrição domina a missão específica — não há uma resposta universal,
+e apresentar apenas o cenário mais favorável seria enganoso.
+
+\section{Algoritmo de busca}
+
+Ao contrário do problema do Rx (não-convexo, 2 dimensões, múltiplos
+mínimos locais reais — Cap.~5.5 da dissertação), o problema da
+Eq.~\eqref{eq:custo_tx} é escalar e unimodal (verificado acima), portanto
+resolúvel por busca de seção áurea (\textit{golden-section search}) em
+$O(\log(1/\varepsilon))$ avaliações, sem necessidade de multi-início:
+
+\begin{algorithm}[H]
+\caption{Otimização do Tx (Etapa 1)}
+\begin{algorithmic}[1]
+\Require $n_1,n_2$, $B$, $B_{helix}$, restrição de projeto ($R_0$ ou $z_0$),
+  $\gamma$, limites $[\psi_{\min},\psi_{\max}]$
+\State $\thetaB \gets \arctan(n_2/n_1)$
+\State $\psiT^* \gets$ \Call{BuscaSecaoAurea}{$J_{\mathrm{Tx}}(\cdot;\gamma)$, $\psi_{\min}$, $\psi_{\max}$}
+\State $\beta \gets \psiT^*$ \Comment{condição ótima já demonstrada (Seção~2.3)}
+\State $(\rho_0,z_0) \gets$ resolver a partir de $\psiT^*$ e da restrição de projeto
+\State \Return $\rho_0,z_0,\beta,B_{helix}$ \Comment{constantes para a Etapa 2}
+\end{algorithmic}
+\end{algorithm}
+
+\section{Extensão a uma malha de alvos}
+
+Para uma malha extensa (não um único alvo pontual), $\theta_{i,1}$ varia
+por alvo. Em analogia direta ao estudo de sensibilidade já realizado para
+o Rx (§5.8 da dissertação, grades de $30/60/100\,\mathrm{m}$), recomenda-se
+avaliar $T_1$ no centroide da malha para o dimensionamento de $\psiT$
+(Eq.~\eqref{eq:custo_tx}), e verificar \emph{a posteriori} a dispersão de
+$T_1$ nas bordas da malha — exatamente como a dissertação já verifica a
+dispersão de potência entre grades de tamanhos distintos. Este documento
+não repete esse estudo numérico; ele indica que a mesma metodologia se
+aplica sem modificação ao lado do Tx.
+
+\section{Validação com os parâmetros reais do sistema}
+\label{sec:validacao}
+
+\begin{table}[H]
+\centering
+\caption{Etapa 1 aplicada aos parâmetros de
+\texttt{radarTx\_espiral\_plano\_voo.json} (cenário $R_0$ fixo,
+$R_0=188{,}7\,\mathrm{m}$), com $\gamma=0{,}3$.}
+\label{tab:validacao_etapa1}
+\begin{tabularx}{\textwidth}{@{}l r X@{}}
+\toprule
+Grandeza & Valor & Origem \\
+\midrule
+$\thetaB$ & $63{,}43^\circ$ & $\arctan(n_2/n_1)$, $n_2=2$ \\
+$\psi_0$ atualmente em uso & $58{,}0^\circ$ & JSON de parâmetros do Tx (raio e altura médios da hélice) \\
+$T_1$ no valor atual & $0{,}9938$ ($-0{,}027\,\mathrm{dB}$) & Eq.~\eqref{eq:fresnel_T} \\
+$\psiT^*$ (Etapa 1, $\gamma=0{,}3$) & $57{,}6^\circ$ & Eq.~\eqref{eq:custo_tx}, busca de seção áurea \\
+Diferença & $0{,}4^\circ$ & --- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\result{Interpretação}{
+O valor de $\psi_0=58^\circ$ já usado no sistema não foi escolhido por um
+critério de Brewster explícito — é herdado apenas da condição de resolução
+$\beta=\psi_0$ combinada com uma escolha razoável, mas não formalizada, de
+$\rho_0,z_0$. Ainda assim, sob o mesmo peso $\gamma=\alpha_{\mathrm{res}}=0{,}3$
+já adotado no lado do Rx, a Etapa~1 formal prescreve $57{,}6^\circ$ — uma
+diferença de $0{,}4^\circ$, dentro da margem de arredondamento dos parâmetros de
+projeto. Isto \textbf{não} significa que a formalização seja
+desnecessária: significa que o sistema já operava, por boa sorte de
+projeto, próximo do ótimo formal para este conjunto específico de
+parâmetros — e que qualquer mudança futura de $n_2$, $B$, $B_{helix}$ ou da
+restrição de missão (Seção~\ref{sec:restricoes}) exigirá recalcular
+$\psiT^*$, o que este documento agora torna possível fazer de forma
+sistemática, em vez de por tentativa e erro.
+}
+
+Como contraponto, a Tabela~\ref{tab:validacao_pior_caso} mostra que a
+formalização deixa de ser irrelevante assim que o ponto de partida se
+afasta do platô de Brewster.
+
+\begin{table}[H]
+\centering
+\caption{Ganho de potência ao corrigir escolhas de $\psi_0$ mais distantes
+de $\thetaB$ — ganho obtido \emph{apenas} pela Etapa 1, sem custo algum
+para a liberdade da Etapa 2 (Corolário~\ref{cor:otimizacao_separavel}).}
+\label{tab:validacao_pior_caso}
+\begin{tabular}{lrr}
+\toprule
+$\psi_0$ de partida & $T_1$ & Ganho ao mover para $\psiT^*=57{,}6^\circ$ \\
+\midrule
+$20^\circ$ & $0{,}9026$ & $+0{,}42\,\mathrm{dB}$ \\
+$80^\circ$ & $0{,}8155$ & $+0{,}86\,\mathrm{dB}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Etapa 2 --- Otimização do Receptor Dado o Tx Ótimo}
+\label{cap:etapa2}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{O que a Etapa 1 entrega à Etapa 2}
+
+Ao final da Etapa 1, ficam fixados: $\rho_0,z_0$ (logo $\psiT$, $R_0$),
+$\beta=\psiT$ e $B_{helix}$ — os mesmos quatro parâmetros que
+\texttt{run\_plano\_de\_voo.m} já calcula uma única vez, antes do laço de
+otimização do Rx (Seção~\ref{sec:arquitetura_review}). A diferença é que
+esses valores deixam de ser lidos passivamente de um JSON e passam a ser o
+resultado de uma otimização escalar explícita e justificada.
+
+\section{A Etapa 2 é a metodologia já existente, sem alterações}
+
+Dado o Tx fixo, o problema resolvido pulso a pulso é exatamente o já
+descrito em \texttt{explicacion\_plan\_de\_vuelo.tex} e no Cap.~5 da
+dissertação:
+\begin{equation}
+  \operatorname*{arg\,min}_{(x,y)_{\mathrm{Rx}}}
+  \Big[-(1-\alpha_{\mathrm{res}})\log_{10}\Prcv + \alpha_{\mathrm{res}}\log_{10}(\dxy\cdot\dz)\Big],
+  \label{eq:etapa2}
+\end{equation}
+resolvido por \texttt{fmincon} com 5 candidatos de arranque guiados
+geometricamente (posição oposta, perpendiculares, região de Brewster).
+Este documento não modifica essa etapa — ele apenas garante que, quando
+ela roda, $T_1$ (fixo, pré-computado) já está o mais próximo possível de
+$1$ que a Eq.~\eqref{eq:custo_tx} permite, e que $(\beta,B_{helix})$ já
+refletem uma escolha racional, não arbitrária.
+
+\section{Ganho aditivo: prova formal}
+
+\begin{proposicao}[Aditividade do ganho de potência]
+\label{prop:aditividade}
+Sejam $\psiT^{(0)}$ o ângulo de \textit{look} do Tx antes da otimização
+da Etapa~1 e $\psiT^{(1)}=\psiT^*$ o ângulo após. Para \emph{qualquer}
+posição de Rx escolhida pela Etapa~2 (ótima ou não), o ganho de potência
+recebida ao substituir $\psiT^{(0)}$ por $\psiT^{(1)}$ é
+\begin{equation}
+  \Delta \Prcv[\mathrm{dB}] = 10\log_{10}\!\left(\frac{T_1(\psiT^{(1)})}{T_1(\psiT^{(0)})}\right),
+  \label{eq:ganho_aditivo}
+\end{equation}
+\textbf{independente} da posição do Rx escolhida.
+\end{proposicao}
+
+\begin{proof}
+Pela Proposição~\ref{prop:separabilidade}, $\Prcv=K\cdot f_{\mathrm{Tx}}(\mathrm{Tx})\cdot f_{\mathrm{Rx}}(\mathrm{Rx})$
+com $K$ constante. Para dois valores de $\psiT$ e a \emph{mesma} posição
+de Rx, a razão $\Prcv^{(1)}/\Prcv^{(0)} = f_{\mathrm{Tx}}(\mathrm{Tx}^{(1)})/f_{\mathrm{Tx}}(\mathrm{Tx}^{(0)})$
+não depende de $f_{\mathrm{Rx}}(\mathrm{Rx})$, que se cancela no
+quociente. Como $\RT,G_T$ variam pouco entre $\psiT^{(0)},\psiT^{(1)}$
+comparados a $T_1$ perto de $\thetaB$ (a componente dominante da variação
+é a de $T_1$, que passa por um zero de reflectância), a razão é
+$\approx T_1(\psiT^{(1)})/T_1(\psiT^{(0)})$, dando~\eqref{eq:ganho_aditivo}
+em dB.
+\end{proof}
+
+\nota{Consequência prática}{
+A Tabela~\ref{tab:validacao_pior_caso} não é apenas uma comparação
+teórica: pela Proposição~\ref{prop:aditividade}, \emph{qualquer} ganho
+ali listado se soma diretamente ao orçamento de enlace já estimado em
+\texttt{explicacion\_plan\_de\_vuelo.tex} (Cap.~4, $\approx\!-32\,\mathrm{dBm}$
+sob a hipótese $T_1=T_2=1$), sem exigir nenhuma mudança na Etapa~2 nem
+recalibração de $\alpha_{\mathrm{res}}$.
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Algoritmo Consolidado}
+\label{cap:algoritmo}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Sequência completa}
+
+\begin{algorithm}[H]
+\caption{Estratégia sequencial Tx$\to$Rx completa}
+\begin{algorithmic}[1]
+\Statex \textbf{Etapa 1 --- executada uma vez, antes do voo}
+\Require $n_1,n_2,B$, comprimento de hélice desejado $B_{helix}$,
+  restrição de missão ($R_0$ ou $z_0$), peso $\gamma$
+\State $\psiT^*,\beta,\rho_0,z_0 \gets$ \Call{OtimizaTx}{$\cdots$} \Comment{Algoritmo~4.1}
+\State Gerar a trajetória helicoidal de Tx a partir de $\rho_0,z_0,\beta,B_{helix}$
+\Statex
+\Statex \textbf{Etapa 2 --- executada a cada pulso do Tx, durante o voo}
+\Require malha de alvos, $\alpha_{\mathrm{res}}$, $(\beta,B_{helix})$ da Etapa~1
+\For{cada posição $\mathrm{Tx}_k$ ao longo da hélice}
+  \State Pré-computar $T_{1,k},R_{T,k}$ (independentes do Rx --- Proposição~3.1)
+  \State Construir geometria de busca guiada por Brewster (\texttt{buildRxSearchGeometry})
+  \State Resolver $\operatorname*{arg\,min}_{(x,y)} J$ (Eq.~\eqref{eq:etapa2}) com \texttt{fmincon}, 5 arranques
+  \State $\mathrm{Rx}_k^* \gets$ solução
+\EndFor
+\State \Return trajetória completa $\{\mathrm{Tx}_k,\mathrm{Rx}_k^*\}$
+\end{algorithmic}
+\end{algorithm}
+
+\section{Custo computacional}
+
+A Etapa~1 é uma busca escalar unimodal, tipicamente $<50$ avaliações de
+$J_{\mathrm{Tx}}$ até convergência — desprezível frente à Etapa~2, que
+resolve um problema não-convexo de 2 variáveis, 5 arranques e até 200
+iterações de \texttt{fmincon}, \emph{repetido para cada uma das dezenas de
+posições decimadas do Tx} (\texttt{decimationFactor=150} em
+\texttt{run\_plano\_de\_voo.m}). A Etapa~1 roda uma única vez, antes do
+voo; seu custo é irrelevante frente ao da Etapa~2, o que reforça —
+também do ponto de vista puramente computacional — que não há razão para
+tentar fundir as duas etapas em uma busca conjunta de maior dimensão.
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Conclusões, Limitações e Trabalho Futuro}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Resumo do método}
+
+\begin{enumerate}
+  \item A equação de radar biestático com refração é estruturalmente
+  simétrica em Tx e Rx, mas o sistema atual só otimiza o Rx.
+  \item A potência bistática se fatora \emph{exatamente} em um termo
+  só-Tx e um termo só-Rx (Proposição~\ref{prop:separabilidade}) — a
+  decomposição sequencial Tx$\to$Rx é, portanto, ótima para potência, sem
+  aproximação.
+  \item O único acoplamento residual (via $\dxy$) é absorvido pela
+  liberdade posicional do Rx, já explorada pela Etapa~2 existente.
+  \item O projeto do Tx se reduz a um problema escalar unimodal
+  (Eq.~\eqref{eq:custo_tx}), resolúvel por busca de seção áurea, muito
+  mais barato que o problema 2D não-convexo do Rx.
+  \item Aplicado aos parâmetros reais do sistema, o método reproduz o
+  ângulo já em uso ($58^\circ$ vs.\ $57{,}6^\circ$ previsto, $\gamma=0{,}3$) —
+  validando a formalização sem contradizer o projeto existente, e
+  fornecendo a ferramenta para recalcular $\psiT^*$ sempre que os
+  parâmetros do sistema mudarem.
+\end{enumerate}
+
+\section{Limitações}
+
+\begin{itemize}
+  \item A relação $\theta_{i,1}\approx\psiT$ é uma aproximação de
+  primeira ordem (mesma natureza da aproximação já quantificada em
+  $\sim\!7$--$8\%$ para $\dxy$ no Cap.~6 da dissertação); o dimensionamento
+  fino de $\rho_0,z_0$ para uma malha extensa de alvos deveria, em
+  trabalho futuro, usar o ângulo de incidência exato via Newton-Raphson
+  (\texttt{calculateRefractionPointFermat}), não a aproximação de
+  \textit{look angle}.
+  \item A Proposição~\ref{prop:aditividade} assume que $\RT,G_T$ variam
+  pouco entre $\psiT^{(0)}$ e $\psiT^{(1)}$ frente à variação de $T_1$;
+  para deslocamentos muito grandes de $\psiT$ essa aproximação deve ser
+  revisada numericamente.
+  \item Este documento não repete a validação por simulação de
+  \textit{backprojection} (Cenário C, trabalho futuro identificado no
+  Cap.~6 da dissertação); a validação da Etapa~1 aqui apresentada é
+  analítica e numérica sobre as fórmulas já validadas, não sobre uma
+  simulação eletromagnética completa.
+\end{itemize}
+
+\section{Trabalho futuro}
+
+\begin{itemize}
+  \item Implementar \texttt{optimizeTxGeometry.m} seguindo o
+  Algoritmo~4.1 e integrá-lo a \texttt{run\_plano\_de\_voo.m} como um
+  passo anterior ao laço principal.
+  \item Estender a Etapa~1 para otimizar também o número de voltas e a
+  velocidade angular da hélice, mantendo $B_{helix}$ como restrição de
+  tempo de integração coerente (não tratado aqui).
+  \item Quantificar, por simulação de \textit{backprojection}
+  (análogo ao Cenário~A do Cap.~6 da dissertação), o ganho de SNR real
+  obtido pela Etapa~1 em um caso completo, fechando o ciclo de validação
+  já estabelecido para o Rx.
+\end{itemize}
+
+\end{document}

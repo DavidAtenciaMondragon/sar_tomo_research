@@ -19,6 +19,7 @@ txDirection = [TxPos(1), TxPos(2)] - searchGeo.target_center;
 searchGeo.azimut_opuesto = atan2(txDirection(2), txDirection(1)) + pi;
 
 targetDepth = abs(mean(tg(3,:)));
-alturaDiferencia = RxZ + targetDepth;
-searchGeo.distancia_brewster = alturaDiferencia / tan(anguloBrewster);
+
+searchGeo.distancia_brewster = RxZ * tan(anguloBrewster) + targetDepth / tan(anguloBrewster);
+
 end

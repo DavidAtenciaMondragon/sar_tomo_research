@@ -1,0 +1,147 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\title{Responses to Reviewer Comments\\
+\large Pseudo-Brewster Angle--Guided Bistatic SAR Optimization for Subsurface Sensing}
+\author{David Atencia Mondag\'on}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{General Response}
+We thank the Reviewer for the constructive and technically relevant comments. We have revised the manuscript and clarified the electromagnetic model, optimization formulation, reproducibility details, and the scope/limitations of the reported results. The numerical results discussed in the manuscript were generated with a pipeline incorporating: (i) helical Tx trajectory generation, (ii) Fermat-based refraction geometry, (iii) Fresnel TM power-transmittance computation, and (iv) multi-start optimization of bistatic receiver position.
+
+To facilitate line-by-line revision tracking, each response below is organized as:
+\begin{itemize}[leftmargin=2em]
+\item \textbf{Reviewer comment}
+\item \textbf{Response}
+\item \textbf{Action in manuscript}
+\end{itemize}
+
+\section*{Detailed Responses}
+
+\subsection*{Responses to Reviewer 1}
+
+\subsection*{Q1. Why was the sum of received power across all targets chosen as the optimization objective? How does this ensure fair performance for each target, especially if targets have different reflectivity or depths?}
+\textbf{Response:} The objective
+\begin{equation}
+\max_{\bm r_r}\;J(\bm r_r),\qquad J(\bm r_r)=\sum_{i=1}^{N_t} P_{r,i}(\bm r_r),
+\end{equation}
+was selected because it directly maximizes total electromagnetic coupling under the same acquisition geometry and physical model. This criterion is evaluated with full bistatic propagation and TM power transmittances in the optimization framework, making it physically interpretable and computationally stable.
+
+Fairness across targets is controlled by target-wise aggregation. If targets have heterogeneous reflectivity/depth, we agree that an unweighted sum can favor stronger scatterers. For that case, the generalized objective is:
+\begin{equation}
+J_w(\bm r_r)=\sum_{i=1}^{N_t} w_i\,P_{r,i}(\bm r_r),
+\end{equation}
+with $w_i$ chosen by design (e.g., inverse-depth, inverse-expected-reflectivity, or mission-priority maps). A max-min robust alternative is:
+\begin{equation}
+\max_{\bm r_r}\;\min_i\;P_{r,i}(\bm r_r),
+\end{equation}
+which enforces worst-target protection. We have clarified in the manuscript that the current study used homogeneous target assumptions ($\sigma_i=1$ in the simulation setup), where the sum criterion is appropriate, and we now explicitly list weighted and robust objectives as an extension.
+
+\textbf{Action in manuscript:} Added clarification that the reported experiments assume homogeneous target reflectivity and introduced weighted and max-min formulations for heterogeneous scenes.
+
+\subsection*{Q2. The authors claim that received power is a physics-driven criterion independent of signal processing. Can they provide evidence/discussion that maximizing received power improves downstream SNR, resolution, and coherence? Has the framework been validated with realistic platform motion/noise conditions?}
+\textbf{Response:} Received power is upstream of reconstruction and enters all downstream quality metrics through the measurement SNR budget. For a thermal-noise-limited receiver:
+\begin{equation}
+\mathrm{SNR}_i \propto \frac{P_{r,i}}{kT_0BF\,L},
+\end{equation}
+where $k$ is Boltzmann's constant, $T_0$ temperature, $B$ bandwidth, $F$ noise figure, and $L$ system losses. Therefore, increasing $P_{r,i}$ increases acquisition-domain SNR before algorithmic processing choices.
+
+For coherence-sensitive reconstruction, a practical approximation is
+\begin{equation}
+\gamma \approx \frac{\mathrm{SNR}}{1+\mathrm{SNR}},
+\end{equation}
+which is monotonic in SNR. Hence, improved received power tends to improve coherence robustness, although the final image also depends on navigation errors, calibration, and inversion regularization.
+
+We also clarify the key distinction: range/azimuth resolution are fundamentally governed by bandwidth/aperture, not directly by received power. Higher power mainly improves detectability, dynamic range, and estimator robustness at a fixed resolution setting.
+
+Regarding realistic perturbations: this manuscript validates the geometry-physics layer (not yet a full stochastic flight-error/noise benchmark). We now explicitly state this limitation and include a planned validation protocol with motion perturbations, oscillator phase noise, and additive noise to verify whether the power advantage persists under realistic conditions.
+
+\textbf{Action in manuscript:} Added explicit SNR/coherence linkage, clarified resolution dependence, and stated that motion/noise stress tests are future validation work.
+
+\subsection*{Q3. Under ``Enhanced Data Quality for Tomographic Processing'', can the authors quantify depth improvement and corresponding spatial resolution?}
+\textbf{Response:} We revised the wording to avoid over-claiming absolute depth gain in the absence of a complete end-to-end reconstruction benchmark against a monostatic reference under identical noise/motion conditions. The present paper demonstrates a coupling gain in the acquisition model; absolute depth and resolution gains require controlled inversion experiments.
+
+To provide quantitative physical context, for the interface model used in this work ($n_1=1$, $n_2=2$), TM power transmittance at normal incidence is approximately $T_{TM}(0^\circ)\approx0.889$, while at the Brewster-guided condition $T_{TM}(\theta_B)\approx1.0$ with $\theta_B=\arctan(n_2/n_1)\approx63.4^\circ$. This implies about $12.5\%$ gain per crossing and $\approx26.6\%$ for two crossings when compared to normal-incidence reference under the same simplified assumptions.
+
+A depth-equivalent interpretation follows from attenuation models. If subsurface return scales as $\exp(-2\alpha z)$, an additional power factor $F$ maps to
+\begin{equation}
+\Delta z \approx \frac{\ln F}{2\alpha}.
+\end{equation}
+We now present this as a theoretical conversion, not as a claimed measured depth increase.
+
+For resolution, we clarify that first-order range resolution remains $\delta_r\approx c/(2B\sqrt{\varepsilon_r})$ and is not improved by power optimization alone.
+
+\textbf{Action in manuscript:} Replaced qualitative ``significantly deeper'' wording by conservative, model-based statements; added depth-equivalent formula and explicit resolution caveat.
+
+\subsection*{Q4. Under ``Electromagnetic Performance'', can the authors provide quantitative metrics showing improved coverage and reduced blind spots?}
+\textbf{Response:} We agree and now define explicit coverage metrics to avoid qualitative-only claims. For a voxelized volume $\mathcal V$ and threshold $\eta$ (power or SNR):
+\begin{equation}
+C(\eta)=\frac{1}{|\mathcal V|}\sum_{v\in\mathcal V}\mathbf{1}\{P_r(v)\ge\eta\},
+\qquad
+B(\eta)=1-C(\eta),
+\end{equation}
+where $C$ is coverage ratio and $B$ is blind-spot ratio. Uniformity can be reported by coefficient of variation:
+\begin{equation}
+\mathrm{CV}=\frac{\mathrm{std}(P_r(v))}{\mathrm{mean}(P_r(v))}.
+\end{equation}
+These metrics will be reported in the revised experimental campaign using identical thresholds for Brewster-guided, perpendicular, and opposite configurations.
+
+For the current manuscript, the quantitative evidence reported is the strategy-level received-power improvement (average/max/min comparison). We now state explicitly that full voxel-level coverage/blind-spot maps are planned and were not yet included as a completed benchmark.
+
+\textbf{Action in manuscript:} Added formal definitions of coverage/blind-spot metrics and restricted current claim to the quantitative power comparison already reported.
+
+\subsection*{Q5. How does this unified workflow compare to existing bistatic SAR optimization frameworks? What is the measurable novelty/improvement over prior work?}
+\textbf{Response:} The measurable novelty is architectural and operational, not just algorithmic. Existing works typically optimize geometry, EM interface effects, or mission planning in partially decoupled stages. Our workflow unifies, in one executable chain:
+\begin{enumerate}[label=(\roman*)]
+\item pseudo-Brewster-aware flight-planning constraints,
+\item Fermat-consistent refracted path geometry,
+\item power-transmittance-aware bistatic objective,
+\item multi-start receiver optimization with physically informed initializations,
+\item exportable trajectory products for acquisition.
+\end{enumerate}
+The measurable improvement in the current benchmark is the received-power gain reported in the manuscript: Brewster-guided strategy outperforms perpendicular and opposite initializations by $4.11\%$ and $3.13\%$, respectively, under the same simulation assumptions and frequency.
+
+We now explicitly delimit this contribution as a physics-integrated optimization framework with demonstrated coupling gains, while leaving broad cross-dataset generalization and full reconstruction-level superiority as ongoing validation work.
+
+\textbf{Action in manuscript:} Strengthened the comparison narrative with prior framework categories and clarified which improvements are already measured versus under active validation.
+
+\subsection*{Responses to Reviewer 2}
+
+\textbf{Reviewer comment:} The Reviewer highlights that the manuscript is conceptually strong and physically grounded, but asks for a less overstated interpretation of the reported 3--4\% gain, stronger validation beyond simulations (including SNR/reconstruction evidence), and clearer discussion of model limitations (single-interface approximation, dielectric uncertainty, and subsurface complexity).
+
+\textbf{Response:} We appreciate this assessment and broadly agree with it. In the revision, we have reframed the contribution with a more conservative and precise scope: this work demonstrates a \emph{physics-guided acquisition optimization framework} that yields measurable coupling gains in simulation, rather than a completed end-to-end proof of tomographic superiority under field conditions.
+
+Regarding the magnitude of improvement, we now explicitly present the 3--4\% increase as \emph{moderate but consistent}. Our intended claim is not a dramatic jump in performance, but a physically explainable gain obtained at the planning stage by embedding TM transmission physics into geometry selection, without adding hardware or reconstruction complexity.
+
+We also clarified the distinction between what is directly demonstrated and what is inferred. The present results directly support improved modeled received power; they do not directly measure final reconstruction quality. Consequently, statements about data quality and penetration depth are now conditional. We explain that higher received power increases acquisition-domain SNR margin, which can improve detectability in attenuating media, and we include the theoretical conversion
+\begin{equation}
+\Delta z \approx \frac{\ln F}{2\alpha},
+\end{equation}
+strictly as model-based interpretation (not as experimentally verified depth gain).
+
+In response to the concerns on realism and robustness, we now state explicitly that the pseudo-Brewster criterion is used as a first-order interface-coupling guide. It does not fully capture volumetric heterogeneity, multiple internal reflections, layered complexity, or all target-dependent scattering effects. We further acknowledge that dielectric uncertainty can shift the predicted operating region, and we identify permittivity-sensitivity analysis as required follow-up work.
+
+Finally, to strengthen transparency, we added a clear validation roadmap separating acquisition-level optimization from reconstruction-level confirmation, including controlled RD350 field tests, motion/noise perturbation campaigns, and comparative backprojection/tomographic metrics (e.g., contrast, localization error, and point-spread behavior).
+
+\textbf{Action in manuscript:} We consolidated and moderated claims in the Abstract, Results, and Conclusions; clarified simulation-only scope; reformulated depth/data-quality statements as conditional; added explicit discussion of single-interface and dielectric-uncertainty limitations; and included a concrete experimental/reconstruction validation roadmap.
+
+\section*{Additional Technical Clarification Included in Revision}
+To avoid ambiguity between field coefficients and power quantities, we now consistently distinguish:
+\begin{equation}
+r_{TM} = \frac{n_2\cos\theta_1 - n_1\cos\theta_2}{n_2\cos\theta_1 + n_1\cos\theta_2},
+\qquad
+T_{TM}^{(P)} = \frac{n_2\cos\theta_2}{n_1\cos\theta_1}|t_{TM}|^2,
+\end{equation}
+where $T_{TM}^{(P)}$ is the power-transmittance term used in the radar-power objective.
+
+\end{document}

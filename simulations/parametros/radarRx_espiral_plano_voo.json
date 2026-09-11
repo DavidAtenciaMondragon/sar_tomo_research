@@ -7,7 +7,7 @@
         "RaioMenorEsp"  : 147.5,
         "AltMaiorEsp"   : 120,
         "AltMenorEsp"   : 80,
-        "Vt"            : 120,
+        "Vt"            : 20,
         "PRF"           : 400,
         "fs"            : 60e6,
         "GananciaAnt"   : 6,

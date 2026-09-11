@@ -2,12 +2,26 @@ clc;
 clear;
 close all;
 %
+% RUN_PLANO_DE_VOO_MONOESTATICO  Línea base monoestática (Rx = Tx) para comparar
+% contra la optimización bistática de run_plano_de_voo.m.
+%
+% Usa la misma trayectoria helicoidal, los mismos parámetros JSON y las mismas
+% funciones de potencia/resolución (objective_function.m, calculateBistaticResolution.m)
+% que run_plano_de_voo.m. No hay optimización: para cada posición del Tx a lo
+% largo de la hélice, la única posición de Rx es la del propio Tx, así que se
+% evalúa la función de costo una sola vez por posición (sin fmincon).
+%
+% El struct Resultados y el CSV de salida tienen exactamente los mismos campos
+% y columnas que run_plano_de_voo.m, para poder compararlos directamente
+% (p.ej. ganancia de potencia y resolución del biestático optimizado vs. este
+% monoestático).
+
 addpath(genpath('gs'))
 addpath(genpath('proc'))
 addpath(genpath('tools'))
 addpath(genpath('flightpath'))
 
-%% Cargar parámetros
+%% Cargar parámetros (mismos JSON que run_plano_de_voo.m, para comparabilidad directa)
 systemJSON = json2struct(strcat('parametros',filesep,'system_espiral_plano_voo.json'));
 strSystem  = systemJSON.system; clear systemJSON;
 
@@ -17,29 +31,22 @@ strRadarTx = radarJSON.radar; clear radarJSON;
 targetJSON = json2struct(strcat('parametros',filesep,'target_espiral_plano_voo.json'));
 strTarget  = targetJSON.target; clear targetJSON;
 
-%% Trayectoria del transmisor
+%% Trayectoria del transmisor (idéntica a run_plano_de_voo.m)
 [PxT_, PyT_, PzT_, t] = funcao_espiral(strRadarTx.NumVoltasEsp, strRadarTx.RaioMenorEsp, strRadarTx.RaioMaiorEsp,...
                                     strRadarTx.AltMaiorEsp, strRadarTx.AltMenorEsp, strRadarTx.Vt, strRadarTx.PRF, strRadarTx.NorthOffset);
 
-% Calculate Velocity of movement of PxT_, PyT_, PzT_ (optional), using t as time reference
-VxT_ = gradient(PxT_, t);
-VyT_ = gradient(PyT_, t);
-VzT_ = gradient(PzT_, t);
-
-% Now 3D 
-% Velocity vector of the transmitter
-V_T_ = [VxT_; VyT_; VzT_];
-V_T_magnitude = sqrt(sum(V_T_.^2, 1)); % Magnitude of the velocity vector
-
-
-% Decimar posiciones del transmisor para acelerar optimización
-decimationFactor = 150;
+% Decimar posiciones del transmisor (mismo factor que run_plano_de_voo.m, para
+% que la posición i de este script corresponda a la posición i del optimizado)
+decimationFactor = 200;
 PxT = PxT_(1:decimationFactor:end);
 PyT = PyT_(1:decimationFactor:end);
 PzT = PzT_(1:decimationFactor:end);
 t_  = t(1:decimationFactor:end);
 
 Tx_pos = [PxT; PyT; PzT];
+
+%% Configuración monoestática: el receptor coincide con el transmisor en todo instante
+Rx_opt_all = Tx_pos;
 
 %% Grid de targets subsuperficiales
 gridTarget = strTarget.grid;
@@ -48,7 +55,7 @@ tg = createGridTarget(gridTarget.xSize, gridTarget.ySize, gridTarget.zMin, gridT
 
 target_center_2d = mean(tg(1:2,:), 2);   % centroide horizontal del volumen [2x1]
 
-%% Parámetros del sistema
+%% Parámetros del sistema (idénticos a run_plano_de_voo.m)
 Pt     = strRadarTx.PotenciaTx;
 lambda = physconst('lightspeed') / strRadarTx.FreqPortadora;   % 0.75 m @ 400 MHz
 sigma  = strTarget.rcs;
@@ -70,80 +77,50 @@ fprintf('Ancho de banda B = %.0f MHz,  lambda = %.3f m\n', B/1e6, lambda);
 %% Patrón de antena
 radPattern = createRadiationPattern(strRadarTx.AperturaElev, strRadarTx.AperturaAzimut);
 
-%% Parámetro de tradeoff potencia–resolución
-% alpha_res = 0   → solo potencia (comportamiento original)
-% alpha_res = 1   → solo resolución
-% alpha_res = 0.3 → 70% peso en potencia, 30% en resolución (valor por defecto)
+%% Parámetro de tradeoff potencia–resolución (mismo valor que run_plano_de_voo.m,
+%  para que el costo J sea comparable entre ambos escenarios)
 alpha_res = 0.3;
 
-%% Ángulo de Brewster
+%% Ángulo de Brewster (solo como referencia/anotación de la figura; en el caso
+%  monoestático no guía ninguna búsqueda porque no hay optimización)
 angulo_brewster = atan(n2 / n1);
 fprintf('\nÁngulo de Brewster: %.1f°\n', angulo_brewster*180/pi);
-fprintf('Optimizando %d posiciones Tx  |  %d targets  |  alpha_res = %.2f\n', ...
+fprintf('Evaluando %d posiciones Tx=Rx (monoestático)  |  %d targets  |  alpha_res = %.2f\n', ...
     length(PxT), size(tg,2), alpha_res);
 
-%% Configuración del optimizador
-lb = [-strSystem.searchRadius, -strSystem.searchRadius];
-ub = [ strSystem.searchRadius,  strSystem.searchRadius];
-n_starts = 5;
-
-options = optimoptions('fmincon', 'Display', 'none', ...
-    'MaxIterations', 200, 'FunctionTolerance', 1e-10, ...
-    'Algorithm', 'interior-point');
-
-%% Arrays de resultados
-Rx_opt_all     = zeros(3, length(PxT));
+%% Arrays de resultados (mismos nombres que run_plano_de_voo.m)
 max_power_all  = zeros(1, length(PxT));
 delta_xy_all   = zeros(1, length(PxT));
 delta_z_all    = zeros(1, length(PxT));
 cost_opt_all   = zeros(1, length(PxT));
 
-%% Bucle de optimización por posición del transmisor
+%% Evaluación directa por posición del transmisor
+% Sin fmincon: Rx = Tx es la única posición posible, así que la función de
+% costo se evalúa una sola vez por posición (en vez de 5 arranques x fmincon).
 for tx_idx = 1:length(PxT)
 
     fprintf('\nTx %d/%d: [%.1f, %.1f, %.1f]...\n', tx_idx, length(PxT), PxT(tx_idx), PyT(tx_idx), PzT(tx_idx));
 
     Tx_pos_current = [PxT(tx_idx); PyT(tx_idx); PzT(tx_idx)];
     Rx_z           = PzT(tx_idx);
+    xy_mono        = [PxT(tx_idx); PyT(tx_idx)];   % posición horizontal del Rx = la del Tx
 
-    % Ganancias del transmisor hacia todos los targets (precalculadas, fijas para este Tx)
+    % Ganancias del transmisor hacia todos los targets
     [~, ~, Gt_current] = calculateTxGainsForTargets(Tx_pos_current, tg, radPattern);
 
-    % Datos de refracción Tx→Target (constantes para este Tx — evita recalcular en cada
-    % evaluación de fmincon, eliminando ~50% de los llamados a calculateRefractionPointFermat)
+    % Datos de refracción Tx→Target
     [R_T_pre, T1_pre] = precomputeTxData(Tx_pos_current, tg, n1, n2);
 
-    % Geometría de búsqueda guiada por el ángulo de Brewster
-    search_geo = buildRxSearchGeometry(Tx_pos_current, Rx_z, tg, angulo_brewster);
-
-    results = cell(n_starts, 1);
-    fvals   = zeros(n_starts, 1);
-
-    for i = 1:n_starts
-        x0 = chooseCandidateRxPos(i, search_geo.target_center, search_geo.targets_distance, ...
-            search_geo.opposite_dir, search_geo.perp_dir, search_geo.distancia_brewster, search_geo.azimut_opuesto);
-        x0 = max(lb, min(ub, x0));
-
-        [x_opt, fval] = fmincon(...
-            @(xy) objective_function(xy, tg, Tx_pos_current, Rx_z, radPattern, ...
-                Gt_current, Pt, sigma, lambda, n1, n2, ...
-                alpha_res, B, B_helix, beta_helix, target_center_2d, R_T_pre, T1_pre), ...
-            x0, [], [], [], [], lb, ub, [], options);
-
-        results{i} = x_opt;
-        fvals(i)   = fval;
-    end
-
-    % Mejor resultado (menor costo combinado)
-    [~, best_idx]       = min(fvals);
-    best_xy             = results{best_idx};
-    Rx_opt_all(:,tx_idx) = [best_xy(1); best_xy(2); Rx_z];
-    cost_opt_all(tx_idx) = fvals(best_idx);
-
-    % Evaluar potencia y resolución en el punto óptimo (para reporting)
-    c_power = objective_function(best_xy, tg, Tx_pos_current, Rx_z, radPattern, ...
+    % Costo combinado J en el punto monoestático (misma función y mismo alpha_res
+    % que usa el optimizador bistático, para que J sea directamente comparable)
+    cost_opt_all(tx_idx) = objective_function(xy_mono, tg, Tx_pos_current, Rx_z, radPattern, ...
         Gt_current, Pt, sigma, lambda, n1, n2, ...
-        0, B, B_helix, beta_helix, target_center_2d, R_T_pre, T1_pre);  % alpha=0 → cost = -log10(Pr)
+        alpha_res, B, B_helix, beta_helix, target_center_2d, R_T_pre, T1_pre);
+
+    % Potencia recibida pura (alpha=0 → cost = -log10(Pr)), igual que en run_plano_de_voo.m
+    c_power = objective_function(xy_mono, tg, Tx_pos_current, Rx_z, radPattern, ...
+        Gt_current, Pt, sigma, lambda, n1, n2, ...
+        0, B, B_helix, beta_helix, target_center_2d, R_T_pre, T1_pre);
     max_power_all(tx_idx) = 10^(-c_power);
 
     [delta_xy_all(tx_idx), delta_z_all(tx_idx)] = calculateBistaticResolution(...
@@ -152,9 +129,9 @@ for tx_idx = 1:length(PxT)
 end
 
 %% Resumen de resultados
-fprintf('\n=== RESULTADOS DE OPTIMIZACIÓN (alpha_res = %.2f) ===\n', alpha_res);
+fprintf('\n=== RESULTADOS MONOESTÁTICOS (alpha_res = %.2f) ===\n', alpha_res);
 fprintf('%-5s  %-20s  %-20s  %-12s  %-12s  %-12s\n', ...
-    'Tx', 'Rx_opt [m]', 'Pot [dBm]', 'δxy [cm]', 'δz [cm]', 'Costo J');
+    'Tx', 'Rx=Tx [m]', 'Pot [dBm]', 'δxy [cm]', 'δz [cm]', 'Costo J');
 for tx_idx = 1:length(PxT)
     fprintf('Tx%2d  [%6.1f,%6.1f,%5.1f]  %8.1f dBm  %8.2f cm  %8.2f cm  %8.4f\n', ...
         tx_idx, ...
@@ -168,15 +145,15 @@ end
 %% Guardar resultados
 fprintf('\n=== GUARDANDO RESULTADOS ===\n');
 
-outputDir = fullfile('io', 'plan_vuelo');
+outputDir = fullfile('io', 'plan_vuelo_monoestatico');
 if ~exist(outputDir, 'dir')
     mkdir(outputDir);
 end
 
 timestamp     = datestr(now, 'yyyymmdd_HHMMSS');
-filename_base = fullfile(outputDir, sprintf('optimizacion_%s', timestamp));
+filename_base = fullfile(outputDir, sprintf('monoestatico_%s', timestamp));
 
-% Estructura completa
+% Estructura completa (mismos campos que run_plano_de_voo.m)
 Resultados.Tx_positions   = Tx_pos;
 Resultados.targets        = tg;
 Resultados.target_center  = target_center_2d;
@@ -200,12 +177,12 @@ Resultados.fecha_calculo = datestr(now);
 save([filename_base '.mat'], 'Resultados');
 fprintf('Datos .mat guardados en: %s.mat\n', filename_base);
 
-% CSV con potencia y resolución
+% CSV con potencia y resolución (mismas columnas que run_plano_de_voo.m)
 fid = fopen([filename_base '.csv'], 'w');
-fprintf(fid, 'Tiempo_s,Tx_X,Tx_Y,Tx_Z,Rx_X,Rx_Y,Rx_Z,Pot_W,Pot_dBm,delta_xy_m,delta_z_m,costo_J\n');
+fprintf(fid, 'Tx_ID,Tx_X,Tx_Y,Tx_Z,Rx_X,Rx_Y,Rx_Z,Pot_W,Pot_dBm,delta_xy_m,delta_z_m,costo_J\n');
 for tx_idx = 1:length(PxT)
-    fprintf(fid, '%.6f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.6e,%.3f,%.6f,%.6f,%.6f\n', ...
-        t_(tx_idx), ...
+    fprintf(fid, '%d,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.6e,%.3f,%.6f,%.6f,%.6f\n', ...
+        tx_idx, ...
         Tx_pos(1,tx_idx), Tx_pos(2,tx_idx), Tx_pos(3,tx_idx), ...
         Rx_opt_all(1,tx_idx), Rx_opt_all(2,tx_idx), Rx_opt_all(3,tx_idx), ...
         max_power_all(tx_idx), 10*log10(max_power_all(tx_idx)*1000), ...
@@ -215,8 +192,8 @@ end
 fclose(fid);
 fprintf('CSV guardado en: %s.csv\n', filename_base);
 
-%% Visualización
-plot_bistatic_configuration(PxT, PyT, PzT, tg, Rx_opt_all, n1, n2, angulo_brewster);
+%% Visualización (Rx se traza superpuesto al Tx: es el caso Rx=Tx)
+plot_bistatic_configuration(PxT, PyT, PzT, tg, Rx_opt_all, n1, n2, angulo_brewster, outputDir);
 
 %% Interpolar trayectoria completa del receptor (PCHIP sobre puntos decimados)
 R_opt_x = interp1(t_, Rx_opt_all(1,:), t, 'pchip', 'extrap');
