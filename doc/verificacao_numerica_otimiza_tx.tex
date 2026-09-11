@@ -1,0 +1,867 @@
+%% verificacao_numerica_otimiza_tx.tex
+%% Verificação Numérica da Estratégia Sequencial Tx->Rx:
+%% Simulação com Geometria Real, Reotimização do Receptor e
+%% o Papel do Ângulo de Brewster na Equação de Radar Completa
+%%
+%% Idioma: Português
+%% Compilar: pdflatex -interaction=nonstopmode verificacao_numerica_otimiza_tx.tex  (duas passagens)
+
+\documentclass[12pt,a4paper,oneside]{book}
+
+%% ─── Pacotes ─────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{geometry}
+\geometry{left=3cm, right=2.5cm, top=3cm, bottom=2.5cm}
+
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{siunitx}
+\sisetup{output-decimal-marker={,}}
+
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{theorems,skins,breakable}
+
+\usepackage[unicode,colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=green!50!black,
+  urlcolor=cyan!60!black,
+  pdftitle={Verificacao Numerica da Otimizacao Sequencial Tx-Rx e o Papel do Angulo de Brewster},
+  pdfauthor={David Atencia}]{hyperref}
+
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\nouppercase{\leftmark}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+%% ─── Caixas de destaque (mesmo estilo de otimiza_tx.tex) ──────────────────────
+\newcommand{\result}[2]{%
+  \begin{tcolorbox}[enhanced, breakable,
+    colback=yellow!8, colframe=orange!70!black,
+    fonttitle=\bfseries,
+    title={\protect#1},
+    attach boxed title to top left={yshift=-2mm, xshift=5mm},
+    boxed title style={colback=orange!70!black}]
+    #2
+  \end{tcolorbox}}
+
+\newcommand{\nota}[2]{%
+  \begin{tcolorbox}[enhanced, breakable,
+    colback=green!5, colframe=green!50!black,
+    fonttitle=\bfseries\small,
+    title={\protect#1}]
+    #2
+  \end{tcolorbox}}
+
+\newcommand{\atencion}[2]{%
+  \begin{tcolorbox}[enhanced, breakable,
+    colback=red!5, colframe=red!60!black,
+    fonttitle=\bfseries\small,
+    title={\protect#1}]
+    #2
+  \end{tcolorbox}}
+
+%% ─── Teoremas ────────────────────────────────────────────────────────────────
+\newtheorem{teorema}{Teorema}[chapter]
+\newtheorem{proposicao}{Proposição}[chapter]
+\newtheorem{lema}{Lema}[chapter]
+\newtheorem{corolario}{Corolário}[chapter]
+\theoremstyle{definition}
+\newtheorem{definicaom}{Definição}[chapter]
+\theoremstyle{remark}
+\newtheorem*{observacao}{Observação}
+
+%% ─── Macros ──────────────────────────────────────────────────────────────────
+\newcommand{\RT}{R_T}
+\newcommand{\RR}{R_R}
+\newcommand{\thetaB}{\theta_B}
+\newcommand{\thetaBar}{\theta_{B,\mathrm{ar}}}
+\newcommand{\thetaBsolo}{\theta_{B,\mathrm{solo}}}
+\newcommand{\nuno}{n_1}
+\newcommand{\ndos}{n_2}
+\newcommand{\Prcv}{P_r}
+\newcommand{\Pt}{P_t}
+\newcommand{\dxy}{\delta_{xy}}
+\newcommand{\dz}{\delta_z}
+\newcommand{\psiT}{\psi_{0,\mathrm{Tx}}}
+\newcommand{\psiR}{\psi_{0,\mathrm{Rx}}}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{document}
+
+\frontmatter
+
+%%─── Capa ────────────────────────────────────────────────────────────────────
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\LARGE\bfseries Verificação Numérica da Estratégia\\
+Sequencial Tx$\,\to\,$Rx:\\[0.3cm]
+Simulação com Geometria Real, Reotimização\\
+do Receptor e o Papel do Ângulo de Brewster\\
+na Equação de Radar Completa}\\[1.2cm]
+{\large\itshape Resultados experimentais, diagnóstico das discrepâncias\\
+frente à teoria de forma fechada, e síntese comparativa\\
+de três estratégias de projeto do enlace biestático}\\[2cm]
+{\normalsize Documento técnico complementar a\\
+\texttt{otimiza\_tx.tex} (Otimização do Transmissor no SAR\\
+Biestático Helicoidal) e à dissertação\\
+\textit{Otimização da Trajetória do Receptor em SAR Biestático Helicoidal}}\\[2cm]
+{\normalsize David Atencia}\\[0.4cm]
+{\normalsize 2026}
+\vfill
+\end{titlepage}
+
+%%─── Resumo ──────────────────────────────────────────────────────────────────
+\chapter*{Resumo}
+\addcontentsline{toc}{chapter}{Resumo}
+
+O documento \texttt{otimiza\_tx.tex} propôs uma estratégia sequencial de duas
+etapas para o projeto do enlace biestático -- primeiro o transmissor (Tx),
+depois o receptor (Rx), ambos guiados pelo ângulo de Brewster -- e validou-a
+apenas de forma analítica, sobre uma aproximação de primeira ordem
+($\theta_{i,1}\approx\psi_0$, alvo único no centroide). Este documento fecha
+esse ciclo: implementa a Etapa~1 e a Etapa~2 com a geometria \emph{real} do
+sistema (refração de Fermat ponto a ponto, grade completa de alvos,
+reotimização de 5 arranques do Rx por posição de Tx) e confronta os
+resultados contra a teoria de forma fechada e contra a metodologia atual de
+uma única etapa (apenas Rx otimizado).
+
+Três achados centrais emergem. \textbf{Primeiro}, a simulação com geometria
+real reproduz a \emph{forma} da curva teórica de $T_1(\psi_0)$ e
+$\dz(\psi_0)$ com erro pequeno (RMS $\le 0{,}03$ em $T_1$), mas o ângulo
+ótimo $\psi_0^*$ se desloca $4$--$9^\circ$ em relação à previsão teórica,
+por efeito da aproximação de alvo único. \textbf{Segundo}, e mais
+relevante: sob o peso de projeto atualmente em uso ($\gamma=\alpha_{\mathrm{res}}=0{,}3$),
+o plano de voo de duas etapas resultante é \emph{pior} que a metodologia
+atual de uma etapa em todas as quatro métricas (potência, $\dxy$, $\dz$ e
+custo combinado) -- porque a demonstração de ``ganho aditivo'' do documento
+teórico assume implicitamente que a posição do Rx não muda com $\psi_0$ do
+Tx, o que deixa de valer quando o Rx é reotimizado de fato. Sob peso de
+potência pura ($\gamma=\alpha_{\mathrm{res}}=0$), a mesma estratégia
+\emph{sim} produz um ganho real ($+0{,}81\,\mathrm{dB}$, acima até do
+previsto só por $T_1$). \textbf{Terceiro}, uma investigação à parte
+confirma que os dois ângulos de Brewster do enlace (ar$\to$solo,
+$63{,}43^\circ$; solo$\to$ar, $26{,}57^\circ$, complementares) estão
+corretamente implementados em toda a base de código por três caminhos
+matematicamente distintos, e que a otimização de potência pura
+\emph{não} persegue Brewster -- por um motivo físico preciso e
+quantificado aqui (a perda por espalhamento $1/R^2$ domina o termo de
+transmitância $T(\theta)$ por mais de uma ordem de grandeza de faixa
+dinâmica). Isolando artificialmente a transmitância da equação de radar,
+confirma-se que o mecanismo de busca de Brewster em si está correto
+(desvio médio de $0{,}04^\circ$ em 275 posições).
+
+%%─── Sumário ─────────────────────────────────────────────────────────────────
+\tableofcontents
+
+\mainmatter
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Introdução e Objetivos desta Verificação}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{O que já estava estabelecido}
+
+O documento \texttt{otimiza\_tx.tex} demonstrou, de forma analítica, que a
+potência biestática recebida se fatora exatamente em um termo dependente
+apenas do Tx e um termo dependente apenas do Rx (Proposição de
+separabilidade multiplicativa), e propôs, a partir disso, uma estratégia
+sequencial de duas etapas:
+
+\begin{itemize}
+  \item \textbf{Etapa~1 (Tx):} escolher o ângulo de \textit{look} $\psi_0$ da
+  hélice do Tx minimizando $J_{\mathrm{Tx}}(\psi_0;\gamma)=-(1-\gamma)\log_{10}T_1(\psi_0)+\gamma\log_{10}\dz(\psi_0)$,
+  por busca de seção áurea.
+  \item \textbf{Etapa~2 (Rx):} com o Tx fixo, otimizar a posição $(x,y)$ do
+  Rx a cada pulso minimizando $J_{\mathrm{Rx}}(x,y;\alpha_{\mathrm{res}})=-(1-\alpha_{\mathrm{res}})\log_{10}\Prcv+\alpha_{\mathrm{res}}\log_{10}(\dxy\dz)$
+  -- a metodologia já validada e em uso.
+\end{itemize}
+
+A validação numérica apresentada ali, porém, usava exclusivamente a
+aproximação de primeira ordem $\theta_{i,1}\approx\psi_0$ (alvo único no
+centroide, sem refração de Fermat) para calcular $T_1$, e \textbf{não}
+executava a Etapa~2 de fato -- ou seja, nunca se verificou o que acontece
+quando o Rx é realmente reotimizado para o Tx que a Etapa~1 produz. O
+próprio documento identificava isso como limitação e como trabalho futuro
+(Seções~7.2--7.3 de \texttt{otimiza\_tx.tex}).
+
+\section{Perguntas respondidas neste documento}
+
+\begin{enumerate}
+  \item A simulação com geometria real (refração de Fermat, grade completa
+  de alvos) reproduz o $\psi_0^*$ previsto pela forma fechada? Que erro
+  numérico e que fonte física explicam a diferença, se houver?
+  \item Ao executar a Etapa~2 de fato sobre o Tx que a Etapa~1 produz, o
+  plano de voo resultante é realmente melhor que a metodologia atual (Rx
+  otimizado, Tx fixo)? Esse resultado depende do peso
+  $\gamma=\alpha_{\mathrm{res}}$ escolhido?
+  \item Os dois ângulos de Brewster do enlace -- ar$\to$solo e solo$\to$ar,
+  que são \emph{diferentes} e complementares -- estão calculados
+  corretamente em cada trecho do código de produção?
+  \item Por que a otimização de potência pura não posiciona o Rx exatamente
+  em Brewster, mesmo sendo esse o critério que maximiza a transmitância?
+  \item Isolando a transmitância do resto da equação de radar, o mecanismo
+  de busca de Brewster funciona como esperado?
+\end{enumerate}
+
+\nota{Sobre a natureza deste documento}{
+Este é um relatório de \textbf{verificação numérica}, não uma proposta de
+método novo. Os resultados aqui não substituem \texttt{otimiza\_tx.tex}; eles
+testam suas previsões contra uma implementação de geometria real e
+reportam onde a teoria se sustenta, onde se desvia, e por quê -- inclusive
+quando o resultado é negativo (Capítulo~\ref{cap:pipeline_completo}).
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Metodologia de Simulação com Geometria Real}
+\label{cap:metodologia}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Diferença frente à validação analítica original}
+
+A validação original de \texttt{otimiza\_tx.tex} calcula $T_1(\psi_0)$
+avaliando o coeficiente de Fresnel TM diretamente no ângulo
+$\theta_i=\psi_0$, para um único ponto (o centroide da grade de alvos), sem
+resolver a refração real. Este documento substitui esse cálculo, em toda a
+verificação, pelo pipeline de produção:
+
+\begin{enumerate}
+  \item Para cada posição candidata do Tx (ou do Rx), resolve-se o ponto de
+  refração exato na interface $z=0$ por Newton-Raphson sobre a condição de
+  Snell (3--5 iterações), não por aproximação de \textit{look angle}.
+  \item O ângulo de incidência é medido entre o segmento real
+  fonte$\to$refração e a normal -- no lado correto do meio (ar para o
+  trecho Tx$\to$alvo; solo para o trecho alvo$\to$Rx), exatamente como no
+  código de produção.
+  \item $T_1$ (ou $T_2$) é calculado por posição e \textbf{promediado sobre
+  toda a grade de alvos} ($4\times4\times4=64$ alvos, extensão horizontal
+  $\pm40\,\mathrm{m}$, profundidade $-2$ a $-10\,\mathrm{m}$) e sobre várias
+  posições ao longo da hélice candidata (8 amostras azimutais), não em um
+  único ponto no centroide.
+  \item $\dz$ usa a mesma fórmula $W_z$ já validada
+  (Eq.~\eqref{eq:Wz_verif}), avaliada no ângulo de \textit{look} real de
+  cada ponto simulado.
+\end{enumerate}
+
+\begin{equation}
+  \dz = \frac{c}{2W_z}, \qquad
+  W_z = \ndos B\cos\theta_{t,0} + \frac{c\,B_\perp\sin\psi_0\cos\psi_0}{\lambda_0 R_0\,\ndos\cos\theta_{t,0}}
+  \label{eq:Wz_verif}
+\end{equation}
+
+\section{Parâmetros do sistema usados em todas as corridas}
+
+\begin{table}[H]
+\centering
+\caption{Parâmetros físicos e geométricos, extraídos dos arquivos de
+configuração do sistema em uso.}
+\begin{tabular}{ll}
+\toprule
+Grandeza & Valor \\
+\midrule
+Frequência portadora $f_0$ & $400\,\mathrm{MHz}$ \\
+Largura de banda $B$ & $50\,\mathrm{MHz}$ \\
+Comprimento de onda $\lambda_0$ & $0{,}749\,\mathrm{m}$ \\
+Índices de refração $\nuno,\ndos$ & $1{,}0\,;\,2{,}0$ \\
+$\thetaBar=\arctan(\ndos/\nuno)$ & $63{,}43^\circ$ \\
+$\thetaBsolo=\arctan(\nuno/\ndos)$ & $26{,}57^\circ$ \\
+Comprimento de arco da hélice $B_{helix}$ & $47{,}17\,\mathrm{m}$ \\
+$\psi_0$ do sistema atualmente em uso & $57{,}98^\circ\approx58^\circ$ \\
+Alcance oblíquo nominal $R_0$ & $188{,}68\,\mathrm{m}$ \\
+Grade de alvos & $4\times4\times4=64$, $\pm40\,\mathrm{m}$ horiz., $-2$ a $-10\,\mathrm{m}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Escala do experimento}
+
+A varredura fina de $\psi_0$ (Etapa~1) cobre $5^\circ$ a $85^\circ$ em
+passos de $1^\circ$ (81 pontos) para dois cenários de restrição de missão
+($R_0$ fixo e $z_0$ fixo), cada ponto promediado sobre 8 posições da hélice
+candidata e 64 alvos -- do total de \emph{simulações independentes} de
+refração de Fermat por corrida completa. A Etapa~2, quando executada com a
+equação de radar completa, repete a busca não-convexa de 5 arranques por
+\texttt{fmincon} já validada, para cada uma de até 275 posições decimadas
+do Tx.
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Etapa 1 (Tx): Simulação com Geometria Real vs. Forma Fechada}
+\label{cap:etapa1_verif}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Resultado}
+
+A Tabela~\ref{tab:etapa1_verif} resume o contraste, para $\gamma=0{,}3$ (o
+mesmo peso já usado para $\alpha_{\mathrm{res}}$ do lado do Rx), nos dois
+cenários de restrição de missão.
+
+\begin{table}[H]
+\centering
+\caption{Ótimo $\psi_0^*$ da Etapa~1: simulação com geometria real vs.
+forma fechada, $\gamma=0{,}3$.}
+\label{tab:etapa1_verif}
+\begin{tabular}{lrrrr}
+\toprule
+Cenário & $\psi_0^*$ simulado & $\psi_0^*$ teórico & Diferença & RMS$(T_1)$ \\
+\midrule
+$R_0$ fixo & $53{,}39^\circ$ & $57{,}57^\circ$ & $-4{,}18^\circ$ & $0{,}0247$ \\
+$z_0$ fixo & $38{,}96^\circ$ & $47{,}56^\circ$ & $-8{,}60^\circ$ & $0{,}0215$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{ver_fig01_etapa1_sim_vs_teoria.jpg}
+\caption{$T_1(\psi_0)$ e $\dz(\psi_0)$: simulação com geometria real
+(tracejado) vs. forma fechada (sólido), para os dois cenários de
+restrição. As curvas praticamente coincidem em forma; o ótimo se desloca.}
+\label{fig:etapa1_sim_vs_teoria}
+\end{figure}
+
+\section{Diagnóstico}
+
+O erro ponto a ponto em $T_1$ é pequeno (RMS $\le 0{,}025$, ou seja, as
+curvas $T_1(\psi_0)$ \emph{quase coincidem} -- Figura~\ref{fig:etapa1_sim_vs_teoria}).
+O deslocamento do ótimo, porém, é substancial ($4$--$9^\circ$) porque
+$T_1(\psi_0)$ e $\dz(\psi_0)$ são funções largas e relativamente planas
+perto de seus respectivos picos (a própria Seção~4.3.1 de
+\texttt{otimiza\_tx.tex} já observa que $T_1\ge0{,}90$ em uma faixa de
+quase $60^\circ$). Um viés sistemático pequeno entre a curva de um único
+ponto (teoria) e a média sobre os 64 alvos reais mais 8 posições da hélice
+(simulação) -- originado da extensão finita da grade e da profundidade não
+nula dos alvos, que a aproximação $\theta_{i,1}\approx\psi_0$ ignora --
+basta para mover o argmín de forma perceptível, mesmo com pouco impacto no
+valor da função em si.
+
+\result{Conclusão do Capítulo}{
+A forma fechada de \texttt{otimiza\_tx.tex} prevê corretamente a
+\emph{forma} do trade-off potência--resolução do Tx, mas \textbf{não} o
+ponto exato do ótimo quando o alvo não é pontual no centroide -- confirma
+numericamente a limitação que o próprio documento teórico já apontava
+(Seção~7.2, ``a relação $\theta_{i,1}\approx\psi_0$ é uma aproximação de
+primeira ordem''). Para dimensionamento fino, deve-se usar a simulação de
+geometria real, não a forma fechada isolada.
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Pipeline Completo (Etapas 1+2): O Ganho Aditivo Não Se Sustenta}
+\label{cap:pipeline_completo}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Desenho do experimento}
+
+Usando o $\psi_0^*=53{,}39^\circ$ (cenário $R_0$ fixo, $\gamma=0{,}3$) do
+capítulo anterior, construiu-se a hélice final do Tx e executou-se a
+Etapa~2 completa (5 arranques de \texttt{fmincon} por posição, guiados por
+Brewster, $\alpha_{\mathrm{res}}=0{,}3$) sobre 254 posições decimadas.
+Comparou-se contra uma corrida fresca da metodologia atual de uma etapa
+(Tx fixo no $\psi_0\approx58^\circ$ do sistema em uso, mesmo
+$\alpha_{\mathrm{res}}=0{,}3$, 268 posições) -- as duas corridas com
+\emph{exatamente} os mesmos parâmetros de sistema, grade de alvos e peso de
+custo, diferindo apenas em qual $\psi_0$ do Tx foi usado.
+
+\section{Resultado}
+
+\begin{table}[H]
+\centering
+\caption{Duas etapas (Tx otimizado) vs. uma etapa (Tx fixo), $\gamma=\alpha_{\mathrm{res}}=0{,}3$.}
+\label{tab:pipeline_03}
+\begin{tabular}{lrrr}
+\toprule
+Métrica & Uma etapa (base) & Duas etapas & Diferença \\
+\midrule
+$\psi_0$ do Tx & $57{,}98^\circ$ & $53{,}39^\circ$ & $-4{,}59^\circ$ \\
+Potência média & $-33{,}97\,\mathrm{dBm}$ & $-35{,}38\,\mathrm{dBm}$ & $\mathbf{-1{,}41\,dB}$ \\
+$\dxy$ médio & $26{,}08\,\mathrm{cm}$ & $27{,}82\,\mathrm{cm}$ & $\mathbf{+6{,}7\%}$ (pior) \\
+$\dz$ médio & $114{,}77\,\mathrm{cm}$ & $117{,}55\,\mathrm{cm}$ & $\mathbf{+2{,}4\%}$ (pior) \\
+Custo $J$ médio & $4{,}3194$ & $4{,}4299$ & pior \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\atencion{Resultado contraintuitivo}{
+As \textbf{quatro} métricas pioram ao adicionar a Etapa~1. Isso contradiz
+diretamente a Proposição de ``ganho aditivo'' de \texttt{otimiza\_tx.tex}
+(Seção~5.3), que afirma que o ganho de potência ao mover $\psi_0$ é
+$10\log_{10}(T_1(\psi_0^{(1)})/T_1(\psi_0^{(0)}))$,
+\textbf{independente} da posição do Rx escolhida pela Etapa~2.
+}
+
+\section{Diagnóstico: por que a aditividade falha}
+
+A demonstração da Proposição de aditividade fatora $\Prcv=K\cdot
+f_{\mathrm{Tx}}(\mathrm{Tx})\cdot f_{\mathrm{Rx}}(\mathrm{Rx})$ e observa
+que, para a \emph{mesma} posição de Rx, a razão de potências depende só de
+$f_{\mathrm{Tx}}$. Isso é algebricamente correto -- mas na prática o Rx
+\textbf{não} fica na mesma posição: a Etapa~2 o reotimiza do zero para cada
+$\psi_0$ do Tx, e essa nova posição também entra no termo de resolução
+$\dz$, que depende do ângulo de \textit{look} do \textbf{Rx} (não do Tx) na
+fórmula $W_z$ já validada.
+
+Mediu-se o ângulo de \textit{look} real do Rx (da posição ótima ao
+centroide) em cada corrida:
+
+\begin{table}[H]
+\centering
+\caption{Ângulo de \textit{look} real do Rx e linha de base tomográfica
+perpendicular efetiva.}
+\begin{tabular}{lrr}
+\toprule
+& Uma etapa (base) & Duas etapas \\
+\midrule
+$\psi_{0,\mathrm{Rx}}$ real, média & $34{,}68^\circ$ & $32{,}78^\circ$ \\
+$B_\perp$ médio & $43{,}24\,\mathrm{m}$ & $44{,}11\,\mathrm{m}$ ($B_{helix}=47{,}17\,\mathrm{m}$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+$B_\perp$ na verdade \emph{melhora} ligeiramente entre as duas corridas --
+descartando um descasamento $\beta$--$\psi_{0,\mathrm{Rx}}$ como causa. A
+causa real está no termo tomográfico de $W_z$, proporcional a
+$\sin\psi_0\cos\psi_0=\tfrac12\sin(2\psi_0)$, que é máximo em
+$\psi_0=45^\circ$: \textbf{ambos} os ângulos de Rx medidos já estão abaixo
+de $45^\circ$, e o da corrida de duas etapas está \emph{ainda mais}
+distante ($32{,}78^\circ$ vs.\ $34{,}68^\circ$) -- o que piora, não
+melhora, esse termo.
+
+\result{Conclusão do Capítulo}{
+A Proposição de ganho aditivo é válida \emph{condicionalmente}: só se
+sustenta se a posição do Rx não mudar entre as duas configurações de Tx
+comparadas. Como a Etapa~2 sempre reotimiza o Rx, essa condição não se
+verifica em geral -- e, para os parâmetros aqui testados
+($\gamma=\alpha_{\mathrm{res}}=0{,}3$), o acoplamento residual (via
+$\psi_{0,\mathrm{Rx}}$ e o termo tomográfico de $W_z$) é grande o
+suficiente para \textbf{reverter} o ganho esperado. O
+Capítulo~\ref{cap:limitacoes_recomendacoes} retoma isso como recomendação
+de trabalho futuro.
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Dependência do Resultado no Peso Potência--Resolução}
+\label{cap:peso_gamma}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Repetição do experimento com peso de potência pura}
+
+Repetiu-se o experimento do Capítulo~\ref{cap:pipeline_completo} com
+$\gamma=\alpha_{\mathrm{res}}=0$ (potência pura, sem peso de resolução) em
+ambas as etapas e em ambas as corridas (uma etapa e duas etapas), mantendo
+todo o resto idêntico.
+
+\begin{table}[H]
+\centering
+\caption{Duas etapas vs. uma etapa, $\gamma=\alpha_{\mathrm{res}}=0$ (potência pura).}
+\label{tab:pipeline_00}
+\begin{tabular}{lrrr}
+\toprule
+Métrica & Uma etapa (base) & Duas etapas & Diferença \\
+\midrule
+$\psi_0$ do Tx & $57{,}98^\circ$ & $60{,}57^\circ$ & $+2{,}59^\circ$ \\
+Potência média & $-33{,}31\,\mathrm{dBm}$ & $-32{,}49\,\mathrm{dBm}$ & $\mathbf{+0{,}81\,dB}$ \\
+$\dz$ médio & $134{,}59\,\mathrm{cm}$ & $132{,}37\,\mathrm{cm}$ & $-1{,}7\%$ (melhor, efeito colateral) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Ganho de potência: previsto só por $T_1(\psi_0)$ vs.\ medido (com a
+Etapa~2 completa).}
+\begin{tabular}{lrr}
+\toprule
+Cenário de peso & Ganho previsto (só $T_1$) & Ganho medido \\
+\midrule
+$\gamma=\alpha_{\mathrm{res}}=0{,}3$ & $+0{,}019\,\mathrm{dB}$ & $-1{,}415\,\mathrm{dB}$ \\
+$\gamma=\alpha_{\mathrm{res}}=0$    & $+0{,}019\,\mathrm{dB}$ & $+0{,}811\,\mathrm{dB}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Interpretação}
+
+Com $\gamma=0$, a Etapa~1 move $\psi_0$ de $58^\circ$ para $60{,}57^\circ$
+-- \textbf{aproximando-se} de $\thetaBar=63{,}43^\circ$ -- ao passo que com
+$\gamma=0{,}3$ ela o move para $53{,}39^\circ$, \textbf{afastando-se} de
+Brewster rumo ao ótimo tomográfico de $45^\circ$. No primeiro caso, o
+reposicionamento do Rx na Etapa~2 \emph{amplifica} o ganho já previsto por
+$T_1$ isolado ($+0{,}81\,\mathrm{dB}$ medido contra $+0{,}02\,\mathrm{dB}$
+previsto); no segundo, o mesmo mecanismo o \emph{reverte} por completo.
+
+\result{Conclusão do Capítulo}{
+O benefício da Etapa~1 \textbf{não é universal} -- depende de \emph{para
+que lado} do ótimo tomográfico de $45^\circ$ o peso de projeto empurra
+$\psi_0$. Quando a Etapa~1 se move em direção a Brewster
+($\gamma$ pequeno), o acoplamento com a Etapa~2 ajuda; quando se move
+para longe de Brewster ($\gamma$ maior, priorizando resolução), o mesmo
+acoplamento prejudica. Um valor único de $\gamma$ (como $0{,}3$, herdado
+por analogia de $\alpha_{\mathrm{res}}$) não é uma escolha segura sem
+verificar seu efeito na Etapa~2 -- o que só é possível rodando o pipeline
+completo, não a Etapa~1 isolada.
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Verificação dos Ângulos de Brewster em Cada Trecho}
+\label{cap:verificacao_angulos}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Os dois ângulos de Brewster do enlace}
+
+Para uma interface TM sem perdas, o ângulo de Brewster depende de qual lado
+é o meio incidente:
+
+\begin{equation}
+  \thetaBar = \arctan\!\left(\frac{\ndos}{\nuno}\right) = 63{,}43^\circ
+  \quad\text{(trecho ar$\to$solo, medido no ar)}
+\end{equation}
+\begin{equation}
+  \thetaBsolo = \arctan\!\left(\frac{\nuno}{\ndos}\right) = 26{,}57^\circ
+  \quad\text{(trecho solo$\to$ar, medido no solo)}
+\end{equation}
+
+Os dois são complementares ($\thetaBar+\thetaBsolo=90^\circ$) e descrevem o
+\emph{mesmo} raio físico de Brewster visto de cada lado da interface.
+
+\section{Três implementações, uma física}
+
+Verificou-se que a base de código calcula esses dois ângulos corretamente
+no trecho Tx$\to$alvo (ar, $\thetaBar$) e no trecho alvo$\to$Rx (solo,
+$\thetaBsolo$), por \textbf{três} caminhos matematicamente distintos e
+equivalentes:
+
+\begin{enumerate}
+  \item \textbf{Troca explícita de meios:} o coeficiente de Fresnel é
+  chamado com a ordem dos índices invertida entre os dois trechos, e o
+  ângulo de incidência é medido no lado físico correto (ar ou solo) em
+  cada um -- o Brewster interno resultante é $\thetaBar$ para um trecho e
+  $\thetaBsolo$ para o outro, automaticamente.
+  \item \textbf{Identidade algébrica de ângulos complementares:} a
+  heurística de posicionamento inicial do Rx usa uma única fórmula com
+  $\tan\thetaBar$ para o trecho do ar e $1/\tan\thetaBar$ para o trecho do
+  solo -- que é exatamente $\tan\thetaBsolo$, pois
+  $\tan\thetaBar\cdot\tan\thetaBsolo=1$ para ângulos complementares.
+  \item \textbf{Reciprocidade de Fresnel:} a implementação multicamada usa
+  o ângulo do lado do ar em ambos os trechos, o que é válido porque a
+  refletância (e portanto a transmitância) de Fresnel é idêntica nas duas
+  direções quando avaliada em ângulos conjugados por Snell, para
+  \emph{qualquer} ângulo -- não só em Brewster.
+\end{enumerate}
+
+\section{Verificação visual}
+
+Desenvolveu-se uma ferramenta de verificação que, para um par Tx--Rx
+escolhido, traça o raio real refratado (Tx$\to$ponto de refração$\to$alvo,
+e alvo$\to$ponto de refração$\to$Rx) junto com um vetor de referência na
+direção exata de Brewster, ancorado no mesmo ponto de refração e com o
+mesmo comprimento do trecho real -- permitindo comparar visualmente a
+direção real contra a ideal.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{ver_fig02_verificacao_angulos.jpg}
+\caption{Verificação visual para um par Tx--Rx: rayo real (sólido) vs.
+referência de Brewster (tracejado), em ambos os trechos. A separação
+angular visível no trecho Tx$\to$alvo é de $6{,}62^\circ$; no trecho
+alvo$\to$Rx, de $20{,}22^\circ$ (investigado no Capítulo~\ref{cap:potencia_vs_brewster}).}
+\label{fig:verificacao_angulos}
+\end{figure}
+
+\result{Conclusão do Capítulo}{
+Os ângulos de Brewster de ambos os trechos estão corretamente calculados
+em toda a base de código, por três estratégias de implementação distintas
+mas fisicamente equivalentes. Qualquer separação angular observada entre o
+raio real e a referência de Brewster (como na
+Figura~\ref{fig:verificacao_angulos}) reflete uma decisão real do
+otimizador, não um erro de cálculo -- questão que o próximo capítulo
+resolve quantitativamente.
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Por Que a Potência Pura Não Persegue Brewster}
+\label{cap:potencia_vs_brewster}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{A observação}
+
+Ao aplicar a ferramenta de verificação visual sobre uma corrida com
+$\alpha_{\mathrm{res}}=0$ (potência pura), observou-se que o Rx otimizado
+fica $20{,}22^\circ$ longe de $\thetaBsolo$ -- uma diferença grande, apesar
+de o objetivo ser exclusivamente potência, que Brewster deveria maximizar.
+
+\section{Decomposição numérica}
+
+Comparou-se a posição real do Rx ótimo contra o candidato ``Brewster puro''
+(o mesmo ponto que a heurística de arranque usa como uma de suas 5
+sementes, sem ruído aleatório), para a mesma posição de Tx:
+
+\begin{table}[H]
+\centering
+\caption{Rx ótimo real vs.\ candidato de Brewster puro (mesma posição de Tx).}
+\label{tab:brewster_vs_rango}
+\begin{tabular}{lrr}
+\toprule
+& Rx ótimo (real) & Rx em Brewster puro \\
+\midrule
+Distância horizontal ao alvo & $26{,}4\,\mathrm{m}$ & $229{,}5\,\mathrm{m}$ \\
+Ângulo de incidência (solo) & $6{,}35^\circ$ & $26{,}57^\circ$ (Brewster exato) \\
+$T_2$ & $0{,}894$ & $1{,}000$ \\
+$R_R$ (alvo$\to$Rx total) & $122{,}2\,\mathrm{m}$ & $260{,}0\,\mathrm{m}$ \\
+Potência recebida & $\mathbf{-35{,}57\,dBm}$ & $-40{,}27\,\mathrm{dBm}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O ótimo real vence por $+4{,}70\,\mathrm{dB}$. Decompondo essa diferença:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lr}
+\toprule
+Componente & Contribuição \\
+\midrule
+Só por $T_2$ (transmitância) & $-0{,}48\,\mathrm{dB}$ (Brewster ganharia) \\
+Só por $R_R^2$ (espalhamento geométrico) & $\mathbf{+6{,}56\,dB}$ (posição próxima ganha) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Explicação física}
+
+A equação de radar biestático é $\Prcv\propto T_1T_2/(\RT^2\RR^2)$. $T_2$
+só pode variar entre $\approx0{,}33$ (rasante) e $1{,}0$ (Brewster exato)
+-- no máximo $\approx4{,}8\,\mathrm{dB}$ de faixa dinâmica total, e no caso
+medido, como o ângulo real ($6{,}35^\circ$) já está perto de incidência
+normal, $T_2=0{,}894$ não está longe do máximo (perder-se-ia só
+$0{,}48\,\mathrm{dB}$ ao não estar em Brewster). Em compensação, $\RR^2$
+depende do quadrado da distância: triplicar a distância para alcançar
+Brewster ($26\,\mathrm{m}\to230\,\mathrm{m}$) custa
+$20\log_{10}(230/26)\approx19\,\mathrm{dB}$ de perda de propagação --
+muito mais do que Brewster pode compensar.
+
+\result{Conclusão do Capítulo}{
+Quando o objetivo é potência pura, aproximar-se do alvo quase sempre vence
+alinhar-se com Brewster, porque o termo $1/R^2$ tem muito mais faixa
+dinâmica (dezenas de dB) que $T(\theta)$ (poucos dB). O candidato de
+Brewster na heurística de arranque é apenas \emph{uma} de cinco sementes
+para o otimizador não-convexo -- não uma restrição -- e o otimizador a
+descarta corretamente quando ela não é competitiva. Isso também explica,
+retrospectivamente, a origem do ganho de $+0{,}81\,\mathrm{dB}$ do
+Capítulo~\ref{cap:peso_gamma}: vem majoritariamente do efeito de alcance,
+não de uma perseguição de Brewster pelo sistema.
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Isolando o Critério de Brewster: Otimização de Transmitância Pura}
+\label{cap:brewster_puro}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Desenho do experimento}
+
+Para confirmar que o mecanismo de busca de Brewster está correto -- e que
+o resultado do Capítulo~\ref{cap:potencia_vs_brewster} é uma decisão
+correta do otimizador, não um defeito de implementação -- construiu-se um
+pipeline de duas etapas que otimiza \textbf{apenas} $T_1$ (Etapa~1) e
+\textbf{apenas} $T_2$ (Etapa~2), removendo completamente o ganho de antena
+e o termo $1/R^2$ do custo (ambos continuam sendo calculados e reportados
+como diagnóstico, mas não entram na otimização).
+
+Como $T_2$ depende só do ângulo de incidência no solo -- que por sua vez
+depende só da distância radial do Rx ao alvo, não do azimute -- o conjunto
+de posições que maximizam $T_2$ é um \textbf{círculo completo} ao redor do
+alvo, não um ponto único. Resolveu-se essa degenerescência fixando o
+azimute (oposto ao Tx, mesma convenção já usada na heurística de arranque
+do Rx) e buscando por seção áurea apenas a distância radial.
+
+\section{Resultado}
+
+\begin{table}[H]
+\centering
+\caption{Otimização de transmitância pura: ângulo real vs.\ Brewster, 275 posições.}
+\label{tab:brewster_puro}
+\begin{tabular}{lrrr}
+\toprule
+& Ângulo médio & $\theta_B$ correspondente & $\lvert$diferença média$\rvert$ \\
+\midrule
+Etapa~1 (Tx, ar) & $\psi_0^*=60{,}57^\circ$ & $\thetaBar=63{,}43^\circ$ & $2{,}87^\circ$ \\
+Etapa~2 (Rx, solo, via Fermat) & $26{,}57^\circ$ & $\thetaBsolo=26{,}57^\circ$ & $\mathbf{0{,}04^\circ}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+$T_1$ médio $=0{,}984$; $T_2$ médio $=0{,}986$ -- ambos muito perto do
+máximo teórico de $1{,}0$. Como diagnóstico (não otimizado): potência
+média $-36{,}48\,\mathrm{dBm}$, $\dz$ médio $136{,}94\,\mathrm{cm}$ -- pior
+em potência que a otimização de potência completa
+(Capítulo~\ref{cap:potencia_vs_brewster}), confirmando outra vez que
+Brewster puro sacrifica alcance.
+
+\result{Conclusão do Capítulo}{
+Isolada do resto da equação de radar, a Etapa~2 encontra o ângulo de
+Brewster do solo com desvio médio de apenas $0{,}04^\circ$ em 275
+posições -- confirma que o mecanismo de refração de Fermat, medição de
+ângulo e busca por seção áurea está correto. A distância de $20{,}22^\circ$
+observada no Capítulo~\ref{cap:potencia_vs_brewster} não é um erro: é o
+resultado correto de uma otimização de potência completa, onde $1/R^2$
+domina.
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Síntese Comparativa dos Três Enfoques}
+\label{cap:sintese}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Os três enfoques}
+
+\begin{enumerate}
+  \item \textbf{Só Rx (linha de base):} Tx fixo (hélice do sistema em
+  uso), apenas o Rx otimizado pela equação de radar completa a cada pulso.
+  \item \textbf{Tx+Rx, equação de radar:} Etapa~1 e Etapa~2, ambas
+  otimizando a equação de radar completa (potência e/ou resolução,
+  conforme $\gamma$/$\alpha_{\mathrm{res}}$).
+  \item \textbf{Tx+Rx, transmitância pura:} Etapa~1 e Etapa~2, ambas
+  otimizando só $T_1$/$T_2$ (Capítulo~\ref{cap:brewster_puro}).
+\end{enumerate}
+
+\begin{table}[H]
+\centering
+\caption{Comparação agregada dos três enfoques (corrida de potência pura,
+$\gamma=\alpha_{\mathrm{res}}=0$ para os enfoques 1--2).}
+\label{tab:sintese}
+\begin{tabular}{lrrrr}
+\toprule
+Enfoque & $\psi_0$ [$^\circ$] & Potência [dBm] & $\dz$ [cm] & Ganho de potência vs.\ base \\
+\midrule
+Só Rx (base)          & $57{,}98$ & $-33{,}31$ & $134{,}59$ & --- \\
+Tx+Rx, eq.\ radar      & $60{,}57$ & $-32{,}49$ & $132{,}37$ & $+0{,}81\,\mathrm{dB}$ \\
+Tx+Rx, transm.\ pura   & $60{,}57$ & $-36{,}86$ & $136{,}94$ & $-3{,}56\,\mathrm{dB}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{ver_fig03_comparacao_3enfoques_3d.jpg}
+\caption{Trajetórias Tx/Rx dos três enfoques sobrepostas (vista 3D e planta).
+Azul: linha de base. Laranja: equação de radar completa. Verde:
+transmitância pura -- o Rx traça um círculo muito mais amplo, perseguindo
+Brewster sem a penalização de $1/R^2$.}
+\label{fig:sintese_3d}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{ver_fig04_comparacao_3enfoques_barras.jpg}
+\caption{Potência média, $\dz$ médio e $\psi_0$ do Tx, com desvio padrão,
+para os três enfoques.}
+\label{fig:sintese_barras}
+\end{figure}
+
+\result{Conclusão do Capítulo}{
+Entre os três, a equação de radar completa (enfoque~2) é a única que supera
+a linha de base nesta corrida específica -- e por uma margem modesta
+($+0{,}81\,\mathrm{dB}$), majoritariamente por efeito de alcance
+(Capítulo~\ref{cap:potencia_vs_brewster}), não por perseguição de Brewster.
+A transmitância pura (enfoque~3) perde potência de forma considerável
+frente aos outros dois, por desenhar deliberadamente um enlace mais longo
+para maximizar $T$ -- é a estratégia certa \emph{se e somente se}
+transmitância for de fato a métrica que importa, não potência recebida.
+}
+
+%%═══════════════════════════════════════════════════════════════════════════════
+\chapter{Conclusões, Limitações e Recomendações}
+\label{cap:limitacoes_recomendacoes}
+%%═══════════════════════════════════════════════════════════════════════════════
+
+\section{Síntese dos achados}
+
+\begin{enumerate}
+  \item A simulação com geometria real confirma a forma da teoria de
+  \texttt{otimiza\_tx.tex} para a Etapa~1 (Capítulo~\ref{cap:etapa1_verif}),
+  mas o ótimo $\psi_0^*$ se desloca $4$--$9^\circ$ por efeito da
+  aproximação de alvo único -- limitação já antecipada no documento
+  teórico, agora quantificada.
+  \item A Proposição de ganho aditivo (Etapa~1 independente da Etapa~2)
+  \textbf{não se sustenta} quando o Rx é de fato reotimizado: sob o peso
+  de projeto atual ($\gamma=\alpha_{\mathrm{res}}=0{,}3$), o pipeline de
+  duas etapas piora as quatro métricas frente à metodologia de uma etapa
+  (Capítulo~\ref{cap:pipeline_completo}).
+  \item Esse resultado \textbf{depende do sinal} do deslocamento de
+  $\psi_0$ relativo a $45^\circ$: sob potência pura
+  ($\gamma=\alpha_{\mathrm{res}}=0$), o mesmo pipeline \emph{ganha}
+  $+0{,}81\,\mathrm{dB}$ (Capítulo~\ref{cap:peso_gamma}).
+  \item Os dois ângulos de Brewster do enlace estão corretamente
+  implementados em toda a base de código (Capítulo~\ref{cap:verificacao_angulos}).
+  \item A otimização de potência pura não persegue Brewster porque o termo
+  $1/R^2$ domina $T(\theta)$ em faixa dinâmica -- confirmado numericamente
+  ($+6{,}56\,\mathrm{dB}$ de alcance vs.\ $-0{,}48\,\mathrm{dB}$ de
+  transmitância, Capítulo~\ref{cap:potencia_vs_brewster}) e por
+  contraprova isolando a transmitância pura
+  (Capítulo~\ref{cap:brewster_puro}, desvio de $0{,}04^\circ$).
+\end{enumerate}
+
+\section{Limitações}
+
+\begin{itemize}
+  \item Os resultados dos Capítulos~\ref{cap:pipeline_completo}
+  e~\ref{cap:peso_gamma} foram obtidos para o cenário $R_0$ fixo e um
+  único par de valores de $\gamma=\alpha_{\mathrm{res}}$ de cada vez; não
+  se varreu $\gamma$ continuamente para mapear onde exatamente o sinal do
+  ganho se inverte, nem se repetiu para o cenário $z_0$ fixo.
+  \item A comparação de três enfoques do Capítulo~\ref{cap:sintese} usa
+  corridas específicas de potência pura para os enfoques 1--2; os valores
+  numéricos mudariam sob outro peso de projeto (como já demonstra o
+  Capítulo~\ref{cap:peso_gamma} para os enfoques 1--2 isolados).
+  \item A distância de Brewster medida no Capítulo~\ref{cap:potencia_vs_brewster}
+  foi decomposta para uma única posição de Tx representativa; não se
+  verificou se a decomposição $T$ vs.\ $1/R^2$ muda de sinal em algum
+  ponto da hélice.
+\end{itemize}
+
+\section{Recomendações}
+
+\begin{itemize}
+  \item \textbf{Não adotar $\gamma=\alpha_{\mathrm{res}}$ por analogia.} A
+  Etapa~1 deveria ser calibrada rodando o pipeline completo (Etapas~1+2)
+  para uma grade de valores de $\gamma$, escolhendo o que de fato melhora
+  as métricas finais -- não copiando o peso já usado do lado do Rx.
+  \item \textbf{Revisar a Proposição de ganho aditivo} de
+  \texttt{otimiza\_tx.tex} para incorporar explicitamente o acoplamento via
+  $\psi_{0,\mathrm{Rx}}$ real (não assumir posição de Rx fixa), ou
+  reformulá-la como um limite superior válido apenas quando o Rx não muda.
+  \item \textbf{Formalizar o critério de decisão} entre otimizar potência
+  vs.\ transmitância: são objetivos genuinamente distintos
+  (Capítulo~\ref{cap:sintese}), e a escolha deveria ser explícita no
+  projeto do sistema, não implícita na escolha de $\alpha_{\mathrm{res}}$.
+  \item Estender esta verificação com uma varredura fina de $\gamma$ (como
+  já existe para a Etapa~1 isolada) executando a Etapa~2 completa em cada
+  ponto, para mapear a curva de ganho real vs.\ $\gamma$ e identificar o
+  ponto de cruzamento onde o sinal se inverte.
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,13 @@
+{"otimiza_tx_brewster_puro":[
+    {
+        "psiMinDeg"    : 5,
+        "psiMaxDeg"    : 85,
+        "psiStepDeg"   : 1.0,
+        "azimuthSamples": 8,
+        "scenarios"    : ["R0fixed", "z0fixed"],
+        "goldenSectionTolDeg": 1e-3,
+        "scenarioFinal": "R0fixed",
+        "decimationFactor": 150
+    }
+]
+}

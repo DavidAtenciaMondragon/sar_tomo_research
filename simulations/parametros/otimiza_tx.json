@@ -1,0 +1,16 @@
+{"otimiza_tx":[
+    {
+        "gammaRef"     : 0.3,
+        "gammaSweep"   : [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+        "psiMinDeg"    : 5,
+        "psiMaxDeg"    : 85,
+        "psiStepDeg"   : 1.0,
+        "azimuthSamples": 8,
+        "scenarios"    : ["R0fixed", "z0fixed"],
+        "goldenSectionTolDeg": 1e-3,
+        "scenarioFinal": "R0fixed",
+        "alphaRes"     : 0.3,
+        "decimationFactor": 150
+    }
+]
+}

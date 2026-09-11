@@ -1,0 +1,8 @@
+metrica,linea_base,etapa1_2,diferencia
+psi0_deg,57.9803,60.5685,2.5882
+N_posiciones,268,275,7
+potencia_media_dBm,-33.3055,-32.4942,0.8113
+delta_xy_media_cm,670.0406,1121.7416,451.7010
+delta_z_media_cm,134.5950,132.3724,-2.2226
+costo_J_medio,6.330553,6.249424,-0.081129
+ganancia_T1_teorica_dB,,,0.0186
