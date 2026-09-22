@@ -1,0 +1,711 @@
+%% revision_literatura_bistatica.tex
+%% Revisión de literatura: SAR biestático (criterio imprescindible de selección)
+%%               + búsqueda dirigida: optimización basada en ángulo de Brewster
+%%               para maximizar potencia recibida (biestático y monoestático)
+%% Uso previsto: insumo para el capítulo de estado del arte / trabajos relacionados
+%%               de la tesis doctoral (doc/dissertacao_tomo_sar.tex)
+%%
+%% Compilar: pdflatex revision_literatura_bistatica.tex (dos pasadas)
+
+\documentclass[11pt,a4paper]{article}
+
+% ─── paquetes ────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\geometry{left=2.7cm, right=2.5cm, top=2.7cm, bottom=2.7cm}
+
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\usepackage{titlesec}
+
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5\baselineskip}
+
+\title{\bfseries Revisión de literatura: sistemas SAR biestáticos\\
+\large Estudios afines al presente trabajo doctoral\\
+(criterio imprescindible de selección: configuración biestática)}
+\author{David Atencia}
+\date{Septiembre de 2026}
+
+\begin{document}
+\maketitle
+
+\section{Introducción y criterio de selección}
+
+Este documento reúne 22 trabajos de la literatura que abordan, en distintos
+niveles de la cadena de procesado SAR (geometría, resolución, formación de
+imagen, tomografía 3D, sistemas experimentales y explotación del ángulo de
+Brewster), el caso en que el transmisor y el receptor \textbf{no comparten
+la misma plataforma} —condición \emph{imprescindible} de selección para los
+bloques A--D, ya que es la que define el marco de trabajo de la presente
+tesis: SAR biestático helicoidal con propagación en uno o varios medios
+(aire--suelo). El bloque E amplía la búsqueda al caso monoestático de forma
+deliberada, por tratarse de una comprobación de novedad específica (véase
+\S\ref{sec:brewster}).
+
+Se priorizaron publicaciones recientes (2018--2025) para capturar el estado
+del arte actual, complementadas con tres referencias fundacionales
+(Arikan~\&~Munson 1989, Ding~\&~Munson 2002, Horne~\&~Yates 2002) que ya
+forman parte del marco teórico de esta tesis y de la carpeta
+\texttt{papers/} del repositorio, incluidas aquí para contextualizar la
+evolución del campo. Cada entrada indica una síntesis del abstract original
+y el beneficio concreto de leerla/implementarla para el trabajo desarrollado
+en \texttt{simulations/} y \texttt{doc/dissertacao\_tomo\_sar.tex}.
+
+Los trabajos se agrupan en cinco bloques temáticos:
+\begin{enumerate}[itemsep=2pt]
+  \item Fundamentos geométricos y resolución espacial biestática (\S\ref{sec:fundamentos}).
+  \item Formación de imagen y algoritmos de reconstrucción biestática (\S\ref{sec:algoritmos}).
+  \item Tomografía SAR biestática y multiestática 3D (\S\ref{sec:tomografia}).
+  \item Sistemas biestáticos aerotransportados y UAV (\S\ref{sec:uav}).
+  \item Ángulo de Brewster y optimización de potencia recibida, biestático y monoestático (\S\ref{sec:brewster}).
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Fundamentos geométricos y resolución espacial biestática}
+\label{sec:fundamentos}
+
+\begin{enumerate}[label=\textbf{[A\arabic*]}, leftmargin=2.2cm, itemsep=10pt]
+
+\item Horne, A.M.; Yates, G. (2002). \textit{Bistatic synthetic aperture
+radar.} En \emph{Proc. RADAR 2002}, Edimburgo, IEE Publication No.\,490,
+pp.\,6--10. \cite{horne2002}\\
+\textbf{Síntesis del abstract:} el SAR es cada vez más importante en
+vigilancia terrestre militar por su capacidad de operar en cualquier clima,
+de día y de noche, y de detectar, clasificar y geolocalizar objetos a largo
+alcance. El biestático (Tx/Rx en plataformas separadas) se ve como un medio
+de contrarrestar la vulnerabilidad electrónica, manteniendo la plataforma
+receptora encubierta mientras el transmisor —más vulnerable— puede
+desplegarse más lejos. El artículo repasa la investigación en curso de
+QinetiQ sobre las técnicas de procesado para SAR biestático, los problemas
+fundamentales que introduce (sincronización, ruido de fase, ejes de imagen
+no ortogonales) y cómo superarlos.\\
+\textbf{Beneficio:} da el marco conceptual completo que sostiene el modelo
+geométrico biestático de esta tesis; leerlo ayuda a anticipar problemas
+prácticos (sincronización Tx/Rx, ruido de fase acumulado) antes de un
+eventual despliegue real con dos UAV.
+
+\item Homer, J.; Donskoi, E.; Mojarrabi, B.; Palmer, J.; Kubik, K. (2005).
+\textit{Three-dimensional bistatic synthetic aperture radar imaging system:
+spatial resolution analysis.} \emph{IEE Proceedings -- Radar, Sonar and
+Navigation}, 152(6), 391--394. \cite{homer2005}\\
+\textbf{Síntesis del abstract:} presentan un marco matemático para analizar
+la capacidad de resolución espacial de un sistema SAR biestático 3D
+general, en el que transmisor, receptor y objeto (o región de interés)
+pueden ser no coplanares y en el que el transmisor y/o el receptor pueden
+estar en movimiento. Con aplicaciones de observación de la Tierra en mente,
+el marco se usa para caracterizar cuantitativamente la capacidad de
+resolución 2D en el plano del terreno del sistema de imagen 3D; los
+resultados teóricos se confirman mediante simulación.\\
+\textbf{Beneficio:} es la referencia teórica más cercana a la derivación de
+$\delta_{xy}$, $\delta_z$ de esta tesis pero para geometría arbitraria (no
+solo circular/espiral); permite generalizar el análisis de resolución a
+trayectorias de vuelo no ideales (deriva, viento) y validar
+cuantitativamente la fórmula de resolución en el plano de terreno con un
+caso 3D genérico.
+
+\item Garza, G.; Qiao, Z. (2010). \textit{Resolution analysis of bistatic
+SAR.} En \emph{Proc. SPIE 8021, Radar Sensor Technology XV}, 80210F.
+\cite{garza2010}\\
+\textbf{Síntesis del abstract:} analizan la resolución de imágenes BISAR de
+objetos estacionarios reconstruidas mediante un método de inversión por
+backprojection filtrado, derivado de un modelo de ecuación de onda escalar,
+que permite tener en cuenta los efectos de los patrones de haz de la antena
+y de trayectorias de vuelo arbitrarias. El análisis se realiza examinando
+la variedad (\emph{manifold}) de recolección de datos para distintas
+geometrías experimentales y parámetros del sistema.\\
+\textbf{Beneficio:} su función de dispersión puntual (PSF), ligada
+explícitamente al patrón de haz de la antena, es aplicable para refinar el
+modelo de resolución de esta tesis incorporando el diagrama de radiación
+real de la antena Tx/Rx (hoy en \texttt{getAntennaGain.m}), que las
+fórmulas actuales asumen idealizado.
+
+\item Chen, Y.; Chen, R.; Liu, H.; Guo, J.; Wang, Y.; Zhang, J. (2022).
+\textit{Research on configuration constraints of airborne bistatic SARs.}
+\emph{Sensors}, 22(17), 6534.
+\href{https://doi.org/10.3390/s22176534}{doi:10.3390/s22176534}
+\cite{chen2022}\\
+\textbf{Síntesis del abstract:} a partir del análisis de la geometría de
+imagen del SAR biestático aerotransportado, emplean un algoritmo de chirp
+scaling no lineal extendido para simular y verificar el efecto de imagen.
+Proponen un modelo de resolución 2D biestático basado en teoría de
+gradientes y analizan las restricciones de los parámetros de trayectoria de
+vuelo multiplataforma que satisfacen la precisión de imagen requerida.
+Mediante simulación de imagen biestática con trayectorias de vuelo
+cooperativas en distintos escenarios, revelan la envolvente de restricción
+de configuración espacial entre los vehículos para lograr la resolución
+óptima.\\
+\textbf{Beneficio:} su ``envolvente de configuración válida'' entre Tx y Rx
+es una herramienta directamente aplicable para acotar el espacio de
+búsqueda del optimizador \texttt{run\_plano\_de\_voo.m}/\texttt{\_multislab.m}
+(hoy basado en multi-start sin restricción geométrica derivada
+analíticamente), lo que podría acelerar su convergencia.
+
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Formación de imagen y algoritmos de reconstrucción biestática}
+\label{sec:algoritmos}
+
+\begin{enumerate}[label=\textbf{[B\arabic*]}, leftmargin=2.2cm, itemsep=10pt]
+
+\item Arikan, O.; Munson, D.C.\,Jr. (1989). \textit{A tomographic
+formulation of bistatic synthetic aperture radar.} En Porter, W.A.; Kak,
+S.C. (eds.), \emph{Advances in Communications and Signal Processing},
+Lecture Notes in Control and Information Sciences, vol.\,129, pp.\,418--431,
+Springer. (Presentado en \emph{Proc. ComCon '88}, Baton Rouge, LA, oct.\,1988.)
+\cite{arikan1989}\\
+\textbf{Síntesis del abstract:} un radar biestático es aquel con antenas
+transmisora y receptora separadas por una distancia comparable a la
+distancia al objetivo; el concepto no es nuevo pero fue eclipsado durante
+décadas por el monoestático. En años recientes ha habido interés militar
+considerable en el SAR biestático de modo spotlight (BSSAR), donde un
+transmisor de alta potencia opera a distancia segura mientras un receptor
+encubierto vuela cerca del área objetivo. Dan una derivación básica de
+BSSAR desde primeros principios, mostrando —de forma análoga al caso
+monoestático (MSSAR)— que puede explicarse mediante el teorema de
+corte-proyección de la tomografía asistida por computador (CAT), sin
+depender del efecto Doppler: a cada ángulo de mira, los datos BSSAR
+demodulados son muestras aproximadamente banda-limitadas de una rebanada de
+la transformada de Fourier 2D de la reflectividad del objetivo. Examinan la
+ubicación de las muestras en el dominio de Fourier y la curvatura del
+frente de onda para varios casos especiales de movimiento de Tx y Rx.\\
+\textbf{Beneficio:} es la base tomográfica (dominio-$k$) que sostiene el
+Cap.~2--3 de la disertación; releerlo con foco en la curvatura del frente
+de onda ayuda a verificar que la aproximación de campo lejano usada en
+\texttt{precomputeTxDataMultislab.m} sigue siendo válida para las
+distancias Tx--blanco del escenario UAV de esta tesis.
+
+\item Ding, Y.; Munson, D.C.\,Jr. (2002). \textit{A fast back-projection
+algorithm for bistatic SAR imaging.} En \emph{Proc. IEEE Int. Conf. on Image
+Processing (ICIP)}, vol.\,II, pp.\,449--452. \cite{ding2002}\\
+\textbf{Síntesis del abstract:} usando un modelo de campo lejano, el SAR
+biestático adquiere datos de Fourier en una grilla no cartesiana poco
+habitual. Los algoritmos previos de formación de imagen se basaban
+principalmente en reconstrucción directa de Fourier (DFR) para aprovechar
+la FFT, pero la cobertura irregular de los datos disponibles y la
+interpolación 2D en el dominio de Fourier pueden afectar la precisión de la
+reconstrucción. El backprojection (BP) evita estos problemas pero tiene un
+costo computacional enorme, $O(N^3)$ frente a $O(N^2\log_2 N)$ de la DFR.
+Presentan un algoritmo BP rápido para SAR biestático, motivado por un
+algoritmo rápido de BP propuesto recientemente para tomografía, que logra
+un costo computacional del mismo orden que la DFR y que además puede
+usarse para imagen de campo cercano; validan el rendimiento mediante
+simulación.\\
+\textbf{Beneficio:} es el antecedente algorítmico directo del backprojection
+implementado en \texttt{simulations/proc/}; portar su versión rápida
+(jerárquica) permitiría escalar el pipeline PROC a grillas de procesamiento
+volumétricas más finas sin el costo $O(N^3)$ actual, beneficio directo de
+rendimiento para \texttt{run\_snell\_volumetrico\_pipeline.m}.
+
+\item Zhang, H.; Tang, J.; Wang, R.; Deng, Y.; Wang, W.; Li, N. (2018).
+\textit{An accelerated backprojection algorithm for monostatic and bistatic
+SAR processing.} \emph{Remote Sensing}, 10(1), 140.
+\href{https://doi.org/10.3390/rs10010140}{doi:10.3390/rs10010140}
+\cite{zhang2018}\\
+\textbf{Síntesis del abstract:} proponen un algoritmo BP acelerado a partir
+de Block\_FFBP en el que un número fijo de ``pivotes'' —en vez de centros de
+haz que crecen con cada etapa de factorización— construye la relación de
+retardo de propagación, y los datos de rango se procesan como un bloque
+completo sin partición en la dimensión de rango, gracias a un esquema
+integrado de procesamiento de rango. El esquema se extiende a SAR
+biestático (BiBulk\_FFBP) y monoestático (MoBulk\_FFBP), transfiriendo el
+cálculo de rango oblicuo del sistema polar al cartesiano para simplificarlo.
+Validan el algoritmo con datos reales del experimento SAR biestático
+espacial/estacionario TerraSAR-X en modo staring spotlight, y con un
+experimento SAR spotlight aerotransportado de 2016.\\
+\textbf{Beneficio:} ruta de aceleración computacional validada con datos
+reales de una misión biestática espacial; referencia de eficiencia
+aplicable a la escalabilidad del backprojection volumétrico de
+\texttt{run\_snell\_volumetrico\_pipeline.m} si se busca portarlo a un
+esquema jerárquico (FFBP).
+
+\item Wang, Z.; Liu, M.; Ai, G.; Wang, P.; Lv, K. (2020). \textit{Focusing of
+bistatic SAR with curved trajectory based on extended azimuth nonlinear
+chirp scaling.} \emph{IEEE Transactions on Geoscience and Remote Sensing},
+58(6), 4160--4179. \cite{wang2020}\\
+\textbf{Síntesis del abstract:} proponen un modelo de rango de movimiento
+de alto orden y un algoritmo de chirp scaling no lineal acimutal extendido
+(EANLCS) con corrección residual del centroide Doppler, para enfocar datos
+SAR biestáticos con trayectoria curva de las plataformas. El trabajo aborda
+el acoplamiento rango-acimut adicional y la variación espacial de la
+migración de celda de rango y de la tasa de modulación Doppler causadas por
+la trayectoria curva, efectos que los algoritmos tradicionales —derivados
+para trayectorias rectilíneas de velocidad uniforme— no pueden procesar.\\
+\textbf{Beneficio:} es la referencia más cercana al caso de trayectorias
+helicoidales cónicas de esta tesis, ya que ninguno de los algoritmos
+``clásicos'' biestáticos (Arikan, Ding) asume trayectoria curva; revisar su
+modelo de rango de alto orden es un candidato de mejora de precisión de
+fase para el procesador si en el futuro se simplifica el cálculo exacto de
+distancia vía Fermat que usa hoy el pipeline.
+
+\item Sun, H.; Sun, Z.; Chen, T.; Miao, Y.; Wu, J.; Yang, J. (2022).
+\textit{An efficient backprojection algorithm based on wavenumber-domain
+spectral splicing for monostatic and bistatic SAR configurations.}
+\emph{Remote Sensing}, 14(8), 1885.
+\href{https://doi.org/10.3390/rs14081885}{doi:10.3390/rs14081885}
+\cite{sun2022}\\
+\textbf{Síntesis del abstract:} en el FBP tradicional, cada subapertura usa
+su propio sistema de coordenadas polares centrado en el centro de dicha
+subapertura, por lo que las imágenes de subapertura deben proyectarse a un
+sistema de coordenadas uniforme antes de poder sumarse coherentemente,
+demandando mucho cálculo. Proponen usar el mismo sistema de coordenadas
+polares para todas las subaperturas y empalmar (\emph{splice}) sus imágenes
+en el dominio del número de onda, sumándolas directamente tras
+sobremuestreo, evitando la proyección a un sistema uniforme y mejorando así
+precisión y eficiencia; el método es aplicable a configuraciones mono y
+biestáticas.\\
+\textbf{Beneficio:} técnica de fusión en dominio-$k$ directamente
+relacionada con el análisis de $k_z$/$k_{xy}$ de
+\texttt{notes/modelo\_conceptual.md}; útil para acelerar el post-procesado
+de imagen volumétrica sin sacrificar la precisión de fase que determina la
+resolución $\delta_z$ de esta tesis.
+
+\item Zhao, T.; Wang, J.; Cheng, Z.; Huang, Z.; Song, J. (2025). \textit{A
+subimage autofocus bistatic ground Cartesian back-projection algorithm for
+passive bistatic SAR based on GEO satellites.} \emph{Remote Sensing}, 17(9),
+1576. \href{https://doi.org/10.3390/rs17091576}{doi:10.3390/rs17091576}
+\cite{zhao2025}\\
+\textbf{Síntesis del abstract:} el SAR biestático pasivo (PBSAR) basado en
+señales de satélites geoestacionarios (GEO) muestra potencial significativo
+para imagen de alta resolución, pero enfrenta desafíos duales de
+eficiencia computacional y compensación de errores de fase. Proponen un
+algoritmo de backprojection Cartesiano en tierra biestático con
+autoenfoque de subimagen (SIAF-BGCBP), mediante corrección del espectro de
+número de onda de subimagen, que reduce en un 90\,\% la complejidad de la
+estimación de fase al optimizar la densidad de píxeles de subimagen,
+manteniendo la precisión de estimación.\\
+\textbf{Beneficio:} relevante si en el futuro se explora una arquitectura
+biestática pasiva de bajo costo (iluminador fijo/satelital + receptor UAV)
+como alternativa al esquema Tx/Rx activo dual actual; su autoenfoque por
+subimagen es transferible al problema de corrección de fase por errores de
+posicionamiento GPS del receptor durante el vuelo.
+
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Tomografía SAR biestática y multiestática 3D}
+\label{sec:tomografia}
+
+\begin{enumerate}[label=\textbf{[C\arabic*]}, leftmargin=2.2cm, itemsep=10pt]
+
+\item Ge, N.; Zhu, X.X. (2019). \textit{Bistatic-like differential SAR
+tomography.} \emph{IEEE Transactions on Geoscience and Remote Sensing},
+57(8), 5883--5893. \cite{ge2019}\\
+\textbf{Síntesis del abstract:} abordan la tomografía SAR diferencial
+(D-TomoSAR) en áreas urbanas usando adquisiciones espaciales biestáticas o
+``pursuit monostatic''. Los interferogramas biestáticos/pursuit-monostatic
+no sufren decorrelación temporal significativa ni pantalla de fase
+atmosférica, por lo que son ideales para la reconstrucción de elevación.
+Proponen un marco de dos etapas: primero reconstruyen la elevación de los
+dispersores con interferogramas biestáticos-\emph{like}, y luego incorporan
+esa elevación como prior determinístico para estimar la deformación a
+partir de interferogramas convencionales de paso repetido
+(\emph{repeat-pass}).\\
+\textbf{Beneficio:} su estrategia de ``dos etapas'' (elevación biestática
+como prior + refinamiento con datos repeat-pass) es transferible para
+separar el problema de localización 3D del blanco enterrado (elevación o
+profundidad) del problema de estimación de reflectividad, potencialmente
+reduciendo el espacio de búsqueda del backprojection volumétrico de esta
+tesis.
+
+\item Chen, Z.; Li, Y.; Hu, C. et al. (2024). \textit{Repeat-pass
+space-surface bistatic SAR tomography: accurate imaging and first
+experiment.} \emph{Science China Information Sciences}, 67, 192304.
+\href{https://doi.org/10.1007/s11432-024-4089-2}{doi:10.1007/s11432-024-4089-2}
+\cite{chenz2024}\\
+\textbf{Síntesis del abstract:} la tomografía SAR biestática
+espacio-superficie (SS-BiSAR) ofrece un ángulo de observación adicional al
+SAR monoestático espacial, siendo prometedora para la recuperación de
+deformación de alta precisión en regiones locales. Presentan el primer
+experimento de tomografía SS-BiSAR de paso repetido, usando el satélite
+gemelo chino LuTan-1 en banda L, adquiriendo 11 imágenes de pista repetida
+y recuperando nubes de puntos 3D de un área edificada con
+$\sim$4\,m de precisión. Proponen un método de corrección de efemérides
+basado en la transformada chirp-Z para corregir la distorsión geométrica de
+la imagen y los errores de fase interferométrica causados por
+imprecisiones orbitales.\\
+\textbf{Beneficio:} primera demostración experimental de tomografía
+biestática 3D real en banda L —misma banda que la configuración
+\texttt{\_EMIRADOS} de este proyecto—; su método de corrección de
+``efemérides''/posición de plataforma es directamente análogo al problema
+de errores de posicionamiento GPS del receptor UAV que afectaría la fase
+del backprojection de esta tesis en campo.
+
+\item Wu, J.; Yang, J.; Li, Z.; Pu, W.; Sun, Z.; An, H.; Yang, Q. (2025).
+\textit{Review of bistatic synthetic aperture radar imaging methods.}
+\emph{Journal of Radars}, 14(5), 1115--1141.
+\href{https://doi.org/10.12000/JR25067}{doi:10.12000/JR25067}
+\cite{wu2025}\\
+\textbf{Síntesis del abstract:} el sistema SAR biestático emplea
+plataformas de transmisión y recepción espacialmente separadas para
+proveer imágenes de alta resolución de escenas y blancos terrestres y
+marítimos en entornos complejos, con ventajas de configuración flexible,
+fuerte capacidad de ocultamiento, alta resistencia a interferencia y
+adquisición más completa de información del blanco. El procesado de imagen
+es crítico para obtener imágenes BiSAR de alta resolución, ya que el
+modelo de eco y las características del BiSAR difieren sustancialmente de
+las del SAR monoestático tradicional. La revisión examina desafíos y
+soluciones clave para varias configuraciones BiSAR —aerotransportado, de
+plataformas de alta velocidad y maniobrabilidad, espacial heterogéneo y
+espacial homogéneo—, junto con compensación de movimiento e imagen de
+blancos móviles, repasa avances de investigación nacionales e
+internacionales, y da una perspectiva de tendencias futuras.\\
+\textbf{Beneficio:} es el mapa más actualizado (2025) del campo completo
+del SAR biestático; leerlo íntegramente es la forma más eficiente de
+verificar que el capítulo de estado del arte de la disertación no omite
+ninguna línea de investigación activa (p.\,ej. BiSAR espacial
+homogéneo/heterogéneo) antes de la defensa.
+
+\item He, J.; Xie, H.; Liu, H.; Wu, Z.; Xu, B.; Zhu, N.; Lu, Z.; Qin, P.
+(2025). \textit{Multi-baseline bistatic SAR three-dimensional imaging
+method based on phase error calibration combining PGA and EB-ISOA.}
+\emph{Remote Sensing}, 17(3), 363.
+\href{https://doi.org/10.3390/rs17030363}{doi:10.3390/rs17030363}
+\cite{he2025}\\
+\textbf{Síntesis del abstract:} la tomografía SAR (TomoSAR) multi-línea de
+base monoestática sufre decorrelación temporal en escenas como bosques;
+además, el \emph{jitter} de plataforma y los errores de medición de
+posición contaminan los datos multi-línea de base con errores de fase que
+degradan la calidad de la reconstrucción. Proponen un método de imagen 3D
+biestático multi-línea de base que combina la calibración de fase PGA
+(\emph{Phase Gradient Autofocus}) con un nuevo método EB-ISOA para corregir
+estos errores en un escenario biestático.\\
+\textbf{Beneficio:} aborda exactamente el problema de ``jitter de
+plataforma + error de posición degradando la fase'' que enfrentaría
+cualquier implementación real de esta tesis con dos UAV volando
+trayectorias helicoidales independientes; su combinación PGA+EB-ISOA es un
+candidato concreto de autoenfoque a incorporar en el pipeline PROC antes
+de una validación experimental en campo.
+
+\item Andre, D.; Krishnan, V.P.; Nolan, C. (2025). \textit{Artefact analysis
+of multistatic three-dimensional SAR imaging with two linear
+trajectories.} arXiv:2503.11323. \cite{andre2025}\\
+\textbf{Síntesis del abstract:} con la mejora de la tecnología de radar, el
+SAR multiestático es hoy una posibilidad realista, por ejemplo en
+constelaciones satelitales o sistemas de aeronaves no tripuladas, lo que
+plantea la necesidad de investigar geometrías multiestáticas útiles. Dan un
+análisis microlocal de una geometría de adquisición de datos multiestática
+para imagen SAR 3D, en la que el transmisor y el receptor se mueven
+independientemente a lo largo de dos líneas rectas que cubren una región de
+interés (ROI). Usando técnicas microlocales, muestran cómo la geometría de
+adquisición determina la presencia de artefactos en la imagen resultante y
+cómo evitarlos; su aporte principal es una condición de ``time-gating''
+sobre los datos que garantiza la ausencia de artefactos en la ROI, y la
+verifican con varias simulaciones numéricas bajo una formulación
+independiente del tiempo.\\
+\textbf{Beneficio:} herramienta analítica rigurosa para predecir y evitar
+artefactos de imagen antes de simular; aplicar su condición de time-gating
+al pipeline GS$\to$PROC de esta tesis permitiría filtrar a priori qué
+combinaciones de posición Tx/Rx en la trayectoria helicoidal aportan
+energía ``limpia'' al blanco, reduciendo artefactos en el backprojection
+volumétrico sin necesidad de barridos de prueba y error.
+
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Sistemas biestáticos aerotransportados y UAV}
+\label{sec:uav}
+
+\begin{enumerate}[label=\textbf{[D\arabic*]}, leftmargin=2.2cm, itemsep=10pt]
+
+\item Liu, M. et al. (2024). \textit{Unmanned airborne bistatic
+interferometric synthetic aperture radar data processing method using
+bi-directional synchronization chain signals.} \emph{Remote Sensing},
+16(5), 769. \href{https://doi.org/10.3390/rs16050769}{doi:10.3390/rs16050769}
+\cite{liu2024}\\
+\textbf{Síntesis del abstract:} los UAV equipados con InSAR biestático
+tienen costo relativamente bajo y alta flexibilidad, útiles para mapeo y
+exploración de recursos terrestres. Debido a desafíos como la
+sincronización espaciotemporal y los errores de movimiento, proponen un
+método integral de procesamiento de datos para InSAR biestático UAV de
+pequeño porte, integrando señales de cadena de sincronización
+bidireccional, compensación de errores de sincronización temporal y de
+fase, refinamiento de trayectoria, imagen InSAR biestático de alta
+precisión y procesamiento interferométrico. Los resultados muestran que el
+método mejora la precisión de medición interferométrica en puntos de
+calibración de 0.66\,m a 0.42\,m.\\
+\textbf{Beneficio:} es un sistema UAV biestático real y completo (hardware
++ procesado) con el mismo desafío de sincronización de dos plataformas
+aéreas independientes que enfrentaría una implementación física de esta
+tesis; su técnica de sincronización bidireccional es un candidato directo
+de diseño de hardware para una futura validación experimental del
+escenario Tx/Rx helicoidal.
+
+\item Grathwohl, A.; Meinecke, B.; Widmann, M.; Kanz, J.; Waldschmidt, C.
+(2023). \textit{UAV-based bistatic SAR-imaging using a stationary
+repeater.} \emph{IEEE Journal of Microwaves}, 3(2), 625--634.
+\href{https://doi.org/10.1109/JMW.2023.3253667}{doi:10.1109/JMW.2023.3253667}
+\cite{grathwohl2023}\\
+\textbf{Síntesis del abstract:} el SAR es una técnica establecida de imagen
+de radar de alta resolución que se apoya en el automovimiento del radar y
+en un largo tiempo de integración coherente, iluminando el blanco desde
+distintos ángulos de observación; usar una configuración biestática para
+adquirir simultáneamente múltiples ángulos de observación incrementa aún
+más estos beneficios. Proponen un sistema SAR biestático usando un
+repetidor activo estacionario (Bistatic Repeater-SAR, BR-SAR), donde el
+repetidor actúa como segundo observador proporcionando una vía biestática
+con bajo costo y esfuerzo de hardware; describen las consideraciones de
+procesado de señal y hardware necesarias, validando el enfoque con
+imágenes monoestáticas, biestáticas y multiestáticas combinadas de alta
+resolución.\\
+\textbf{Beneficio:} demuestra que un sistema biestático UAV puede
+construirse con hardware simple (repetidor pasivo/estacionario) en vez de
+dos plataformas activas sincronizadas —alternativa de bajo costo a
+considerar para una futura validación experimental de campo de la
+trayectoria de receptor optimizada por \texttt{run\_plano\_de\_voo.m}.
+
+\item Kanz, J.; Gesell, C.; Bonfert, C.; Werbunat, D.; Grathwohl, A.;
+Aguilar, J.; Vossiek, M.; Waldschmidt, C. (2025). \textit{UAV-borne digital
+radar system for coherent multistatic SAR imaging.} arXiv:2507.20792.
+\cite{kanz2025}\\
+\textbf{Síntesis del abstract:} los avances en conversores
+analógico-digitales (ADC) permiten adoptar arquitecturas de radar digital
+que muestrean directamente la señal de radiofrecuencia, eliminando la
+necesidad de downconversión analógica y dando mayor flexibilidad en el
+diseño de forma de onda, en particular mediante esquemas de modulación
+digital como OFDM. Presentan un sistema de radar digital montado en un UAV
+que emplea formas de onda OFDM para imagen SAR multiestática coherente en
+banda L: un nodo primario transmite y adquiere datos monoestáticos,
+mientras nodos secundarios operan solo en modo recepción, capturando tanto
+la señal reflejada por la escena como una señal de enlace lateral directo.
+El sistema mantiene coherencia tanto en tiempo rápido como en tiempo lento,
+esencial para la imagen multiestática; al ser pasivos, los nodos
+secundarios permiten escalar fácilmente a un enjambre mayor de UAV.
+Detallan el flujo de procesamiento completo, incluyendo el análisis y
+corrección de errores de sincronización derivados de la operación
+desacoplada de los nodos, y validan el método con mediciones estáticas y
+un experimento SAR biestático UAV que produce imágenes monoestáticas,
+biestáticas y multiestáticas combinadas de alta resolución.\\
+\textbf{Beneficio:} arquitectura de radar digital OFDM con nodo Tx activo +
+nodos Rx pasivos escalables es la ruta más directa para extender el
+escenario ``Tx fijo + Rx optimizado'' de esta tesis a validación de campo
+real; su solución de sincronización mediante enlace lateral directo
+(\emph{sidelink}) resuelve el mismo problema de sincronización de fase
+Tx/Rx que sería crítico para trasladar
+\texttt{run\_plano\_de\_voo\_multislab.m} de simulación a vuelo real.
+
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Ángulo de Brewster y optimización de potencia recibida (biestático y monoestático)}
+\label{sec:brewster}
+
+Esta sección responde a una búsqueda dirigida y específica: \emph{¿existe en
+la literatura algún trabajo de SAR tomográfico que optimice la trayectoria
+o geometría de adquisición en función del ángulo de Brewster para maximizar
+la potencia recibida, ya sea en configuración biestática o monoestática?}
+Deliberadamente se relaja aquí el criterio ``imprescindiblemente biestático''
+de las secciones A--D para cubrir también el caso monoestático, tal como se
+solicitó.
+
+\textbf{Resultado de la búsqueda:} no se encontró ningún trabajo que combine
+(i) formación de imagen SAR \emph{tomográfica} (reconstrucción 3D) con (ii)
+optimización activa de la trayectoria o geometría Tx/Rx en función del
+ángulo de Brewster para maximizar la potencia recibida —ni en biestático ni
+en monoestático—. Los trabajos más cercanos encontrados se dividen en dos
+categorías, ninguna de las cuales cierra esa brecha:
+
+\begin{enumerate}[label=\textbf{[E\arabic*]}, leftmargin=2.2cm, itemsep=10pt]
+
+\item Ouchi, K.; Yang, C.-S. (2017). \textit{Direct evidence and
+implications of Brewster's angle damping observed by synthetic aperture
+radar images.} En \emph{Proc. IGARSS 2017.} \cite{ouchi2017}\\
+\textbf{Síntesis del abstract:} reportan evidencia directa del
+amortiguamiento (\emph{damping}) por ángulo de Brewster y sus implicaciones
+en análisis polarimétrico, observado en imágenes SAR de estructuras de
+concreto como espigones y rompeolas.\\
+\textbf{Categoría:} monoestático, \emph{observación pasiva} del efecto
+Brewster en imágenes ya adquiridas (no hay optimización de trayectoria ni
+tomografía 3D).\\
+\textbf{Beneficio:} confirma que el efecto Brewster es medible y
+significativo en SAR monoestático de superficie con datos reales
+(TerraSAR-X); útil como evidencia empírica independiente de que el
+contraste de potencia por ángulo de incidencia que explota esta tesis en
+biestático (Cap.~6) es un fenómeno físicamente observable y no solo
+teórico.
+
+\item Ouchi, K.; Yang, C.-S. (2018). \textit{Brewster Angle Damping
+Observed in the TerraSAR-X Synthetic Aperture Radar Images of Man-Made
+Targets.} \emph{IEEE Geoscience and Remote Sensing Letters}, 15(4),
+532--536. \cite{ouchi2018}\\
+\textbf{Síntesis del abstract:} versión de revista, ampliada, del trabajo
+anterior: analizan el amortiguamiento por ángulo de Brewster observado en
+imágenes SAR co-polarizadas de TerraSAR-X sobre blancos artificiales
+(estructuras de concreto), cuantificando el fenómeno y discutiendo sus
+implicaciones para la interpretación polarimétrica de imágenes SAR de
+superficie.\\
+\textbf{Categoría:} monoestático, análisis polarimétrico \emph{a
+posteriori} (no hay optimización de trayectoria ni reconstrucción 3D).\\
+\textbf{Beneficio:} aporta un modelo cuantitativo del amortiguamiento por
+Brewster en datos SAR reales, útil como referencia de contraste para
+validar experimentalmente —con datos de campo, si estuvieran disponibles—
+la ganancia de potencia predicha por el modelo de Fresnel/Brewster usado en
+\texttt{objective\_function\_multislab.m}.
+
+\item Thirion-Lefevre, L.; Guinvarc'h, R. (2018). \textit{The double
+Brewster angle effect.} \emph{Comptes Rendus Physique}, 19(1--2), 43--53.
+\href{https://doi.org/10.1016/j.crhy.2018.02.003}{doi:10.1016/j.crhy.2018.02.003}
+\cite{thirion2018}\\
+\textbf{Síntesis del abstract:} el efecto de doble ángulo de Brewster (DBE)
+extiende el concepto de ángulo de Brewster a la doble reflexión sobre dos
+superficies dieléctricas ortogonales, resultante de la combinación de dos
+pseudo-ángulos de Brewster que ocurren en dominios de ángulo de incidencia
+complementarios. Demuestran teórica y experimentalmente que el DBE puede
+observarse potencialmente en cualquier imagen de radar monoestático de la
+superficie terrestre.\\
+\textbf{Categoría:} monoestático, fenómeno físico de doble reflexión (no
+hay optimización de trayectoria ni SAR tomográfico).\\
+\textbf{Beneficio:} generaliza el concepto de ángulo de Brewster simple
+(usado en esta tesis para la interfaz plana aire-suelo) al caso de
+esquinas/superficies dieléctricas ortogonales; relevante como línea de
+trabajo futura si se extiende el modelo de esta tesis a geometrías de
+subsuelo no planas (zanjas, esquinas de estructuras enterradas).
+
+\item Orfeo, D.; Zhang, Y.; Burns, D.; Miller, J.S.; Huston, D.R.; Xia, T.
+(2019). \textit{Bistatic antenna configurations for air-launched ground
+penetrating radar.} \emph{Journal of Applied Remote Sensing}, 13(2),
+027501. \href{https://doi.org/10.1117/1.JRS.13.027501}{doi:10.1117/1.JRS.13.027501}
+\cite{orfeo2019}\\
+\textbf{Síntesis del abstract:} el GPR es valioso para detectar objetos
+subsuperficiales con poco o ningún contenido metálico (plásticos,
+cerámicas, tuberías de concreto), pero los efectos de los parámetros de
+configuración de antena —como altura y ángulo— no están bien estudiados
+para todas las aplicaciones de sensado. Realizan simulaciones de GPR y
+experimentos de laboratorio para evaluar los efectos del ángulo y la
+altura de antena en la sensibilidad de un GPR biestático de lanzamiento
+aéreo, en la búsqueda de objetos no metálicos enterrados. Los resultados
+dan una guía para el desarrollo de sistemas GPR de lanzamiento aéreo
+instalados en UAV para escaneo subsuperficial en vuelo.\\
+\textbf{Categoría:} \textbf{biestático}, optimización de ángulo/altura de
+antena orientada a UAV —el más cercano en espíritu a la optimización de
+esta tesis—, pero sin formación de imagen SAR/tomográfica: es un único par
+Tx/Rx fijo por medición (``point sensing''), no una síntesis de apertura
+con trayectoria continua, y no menciona expresamente el ángulo de Brewster
+como criterio de diseño (aunque el efecto físico que exploran —mínimo de
+reflexión en la interfaz según ángulo y polarización— es el mismo
+fenómeno).\\
+\textbf{Beneficio:} es el antecedente más próximo al problema concreto de
+esta tesis (GPR biestático UAV con geometría Tx/Rx variable para maximizar
+señal transmitida al subsuelo); su validación experimental de laboratorio
+es una referencia útil para diseñar un experimento de campo que confirme
+la ganancia de potencia predicha por el término $P_r(\theta)$ del costo
+$J$ en \texttt{objective\_function\_multislab.m}, y su ausencia de
+formación de imagen 3D subraya la brecha que esta tesis cierra.
+
+\end{enumerate}
+
+\textbf{Conclusión de la búsqueda dirigida:} el uso del ángulo de Brewster
+como criterio físico para maximizar la transmisión de potencia hacia el
+subsuelo está bien establecido en la literatura de GPR de punto único
+(antena fija a ángulo/altura óptimos) y se ha \emph{observado} de forma
+pasiva en imágenes SAR monoestáticas de superficie. Sin embargo, en
+septiembre de 2026 no se encontró ningún trabajo —biestático ni
+monoestático— que integre ese criterio dentro de un \emph{optimizador de
+trayectoria} acoplado a una \emph{formación de imagen SAR tomográfica 3D}
+de blancos subsuperficiales, que es exactamente la contribución de
+\texttt{run\_plano\_de\_voo.m}/\texttt{run\_plano\_de\_voo\_multislab.m} en
+esta tesis (función de costo
+$J=-(1-\alpha)\log_{10}P_r+\alpha\log_{10}(\delta_{xy}\delta_z)$). Esto
+refuerza la conclusión de \S\ref{sec:sintesis}: la combinación específica
+de SAR biestático tomográfico + refracción multicapa + optimización de
+trayectoria por ángulo de Brewster no tiene, hasta donde permite establecer
+esta búsqueda, antecedente directo en la literatura.
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Síntesis: posicionamiento de esta tesis respecto a la literatura}
+\label{sec:sintesis}
+
+\begin{longtable}{@{}p{3.6cm}p{3.2cm}p{3.2cm}p{5.3cm}@{}}
+\toprule
+\textbf{Trabajo} & \textbf{Geometría Tx/Rx} & \textbf{Medio de propagación} & \textbf{Diferencia con esta tesis} \\
+\midrule
+\endhead
+Horne \& Yates 2002 / Arikan \& Munson 1989 & Lineal / spotlight & Aire & Sin refracción ni trayectoria helicoidal \\
+Homer et al. 2005 / Garza \& Qiao 2010 & General 3D & Aire & Resolución general, sin caso subsuperficial \\
+Wang et al. 2020 / Chen et al. 2022 & Curva (aeronave) & Aire & Trayectoria curva pero sin interfaz de dos medios \\
+Ge \& Zhu 2019 / Chen Z. et al. 2024 / He et al. 2025 & Multi-baseline / repeat-pass & Aire & Tomografía 3D biestática, pero orientada a superficie/deformación, no a blancos enterrados \\
+Liu 2024 / Grathwohl 2023 / Kanz 2025 & UAV, dos plataformas & Aire & Sistemas biestáticos UAV reales, sin modelo de refracción Snell \\
+Zhao et al. 2025 & Pasivo (GEO) & Aire & Biestático pasivo, geometría fija del iluminador \\
+Wu et al. 2025 (revisión) & Todas & Aire & Mapa de estado del arte, no aborda subsuelo \\
+Ouchi \& Yang 2017/2018 / Thirion-Lefevre \& Guinvarc'h 2018 & Monoestático & Aire (observación de superficie) & Observan el efecto Brewster \emph{a posteriori}, sin optimizar trayectoria ni reconstruir en 3D \\
+Orfeo et al. 2019 & Biestático, par fijo & Aire + suelo (interfaz plana) & Optimiza ángulo/altura de antena para un punto de medición único, sin síntesis de apertura ni imagen 3D \\
+\textbf{Esta tesis} & \textbf{Helicoidal cónica Tx/Rx} & \textbf{Aire + suelo (N capas, Snell/Brewster)} & \textbf{Único trabajo que combina SAR biestático 3D con refracción multicapa y optimización de trayectoria del receptor por ángulo de Brewster} \\
+\bottomrule
+\end{longtable}
+
+Ningún trabajo revisado combina simultáneamente: (i) geometría biestática
+con trayectorias helicoidales cónicas independientes para Tx y Rx, (ii)
+propagación con refracción en interfaz aire--suelo (o multicapa), y
+(iii) optimización conjunta de potencia recibida (ángulo de Brewster) y
+resolución 3D mediante síntesis de apertura SAR/tomográfica. La búsqueda
+dirigida de \S\ref{sec:brewster} confirma que ni siquiera relajando la
+condición biestática (es decir, incluyendo el caso monoestático) existe
+antecedente que cierre esta brecha. Esta combinación constituye la
+contribución diferencial de la presente tesis dentro del panorama de la
+literatura SAR biestática actual.
+
+% ══════════════════════════════════════════════════════════════════════════
+\section*{Referencias}
+\addcontentsline{toc}{section}{Referencias}
+
+\begin{thebibliography}{99}
+
+\bibitem{andre2025} D.~Andre, V.~P.~Krishnan, C.~Nolan, ``Artefact Analysis of Multistatic Three-Dimensional SAR Imaging with Two Linear Trajectories,'' arXiv:2503.11323, 2025.
+
+\bibitem{arikan1989} O.~Arikan, D.~C.~Munson~Jr., ``A tomographic formulation of bistatic synthetic aperture radar,'' in \emph{Advances in Communications and Signal Processing}, W.~A.~Porter, S.~C.~Kak, Eds., Lecture Notes in Control and Information Sciences, vol.~129, pp.~418--431, Springer, 1989.
+
+\bibitem{chen2022} Y.~Chen, R.~Chen, H.~Liu, J.~Guo, Y.~Wang, J.~Zhang, ``Research on Configuration Constraints of Airborne Bistatic SARs,'' \emph{Sensors}, vol.~22, no.~17, art.~6534, 2022. doi:10.3390/s22176534
+
+\bibitem{chenz2024} Z.~Chen, Y.~Li, C.~Hu, et~al., ``Repeat-pass space-surface bistatic SAR tomography: accurate imaging and first experiment,'' \emph{Science China Information Sciences}, vol.~67, art.~192304, 2024. doi:10.1007/s11432-024-4089-2
+
+\bibitem{ding2002} Y.~Ding, D.~C.~Munson~Jr., ``A fast back-projection algorithm for bistatic SAR imaging,'' in \emph{Proc. IEEE Int. Conf. on Image Processing (ICIP)}, vol.~II, pp.~449--452, 2002.
+
+\bibitem{garza2010} G.~Garza, Z.~Qiao, ``Resolution analysis of bistatic SAR,'' in \emph{Proc. SPIE 8021, Radar Sensor Technology XV}, 80210F, 2010.
+
+\bibitem{ge2019} N.~Ge, X.~X.~Zhu, ``Bistatic-like Differential SAR Tomography,'' \emph{IEEE Transactions on Geoscience and Remote Sensing}, vol.~57, no.~8, pp.~5883--5893, 2019.
+
+\bibitem{grathwohl2023} A.~Grathwohl, B.~Meinecke, M.~Widmann, J.~Kanz, C.~Waldschmidt, ``UAV-Based Bistatic SAR-Imaging Using a Stationary Repeater,'' \emph{IEEE Journal of Microwaves}, vol.~3, no.~2, pp.~625--634, 2023. doi:10.1109/JMW.2023.3253667
+
+\bibitem{he2025} J.~He, H.~Xie, H.~Liu, Z.~Wu, B.~Xu, N.~Zhu, Z.~Lu, P.~Qin, ``Multi-Baseline Bistatic SAR Three-Dimensional Imaging Method Based on Phase Error Calibration Combining PGA and EB-ISOA,'' \emph{Remote Sensing}, vol.~17, no.~3, art.~363, 2025. doi:10.3390/rs17030363
+
+\bibitem{homer2005} J.~Homer, E.~Donskoi, B.~Mojarrabi, J.~Palmer, K.~Kubik, ``Three-dimensional bistatic synthetic aperture radar imaging system: spatial resolution analysis,'' \emph{IEE Proceedings -- Radar, Sonar and Navigation}, vol.~152, no.~6, pp.~391--394, 2005.
+
+\bibitem{horne2002} A.~M.~Horne, G.~Yates, ``Bistatic synthetic aperture radar,'' in \emph{Proc. RADAR 2002}, Edinburgh, IEE Publication No.~490, pp.~6--10, 2002.
+
+\bibitem{kanz2025} J.~Kanz, C.~Gesell, C.~Bonfert, D.~Werbunat, A.~Grathwohl, J.~Aguilar, M.~Vossiek, C.~Waldschmidt, ``UAV-Borne Digital Radar System for Coherent Multistatic SAR Imaging,'' arXiv:2507.20792, 2025.
+
+\bibitem{liu2024} M.~Liu et~al., ``Unmanned Airborne Bistatic Interferometric Synthetic Aperture Radar Data Processing Method Using Bi-Directional Synchronization Chain Signals,'' \emph{Remote Sensing}, vol.~16, no.~5, art.~769, 2024. doi:10.3390/rs16050769
+
+\bibitem{orfeo2019} D.~Orfeo, Y.~Zhang, D.~Burns, J.~S.~Miller, D.~R.~Huston, T.~Xia, ``Bistatic Antenna Configurations for Air-Launched Ground Penetrating Radar,'' \emph{Journal of Applied Remote Sensing}, vol.~13, no.~2, art.~027501, 2019. doi:10.1117/1.JRS.13.027501
+
+\bibitem{ouchi2017} K.~Ouchi, C.-S.~Yang, ``Direct Evidence and Implications of Brewster's Angle Damping Observed by Synthetic Aperture Radar Images,'' in \emph{Proc. IGARSS 2017}, 2017.
+
+\bibitem{ouchi2018} K.~Ouchi, C.-S.~Yang, ``Brewster Angle Damping Observed in the TerraSAR-X Synthetic Aperture Radar Images of Man-Made Targets,'' \emph{IEEE Geoscience and Remote Sensing Letters}, vol.~15, no.~4, pp.~532--536, 2018.
+
+\bibitem{sun2022} H.~Sun, Z.~Sun, T.~Chen, Y.~Miao, J.~Wu, J.~Yang, ``An Efficient Backprojection Algorithm Based on Wavenumber-Domain Spectral Splicing for Monostatic and Bistatic SAR Configurations,'' \emph{Remote Sensing}, vol.~14, no.~8, art.~1885, 2022. doi:10.3390/rs14081885
+
+\bibitem{thirion2018} L.~Thirion-Lefevre, R.~Guinvarc'h, ``The Double Brewster Angle Effect,'' \emph{Comptes Rendus Physique}, vol.~19, no.~1--2, pp.~43--53, 2018. doi:10.1016/j.crhy.2018.02.003
+
+\bibitem{wang2020} Z.~Wang, M.~Liu, G.~Ai, P.~Wang, K.~Lv, ``Focusing of Bistatic SAR With Curved Trajectory Based on Extended Azimuth Nonlinear Chirp Scaling,'' \emph{IEEE Transactions on Geoscience and Remote Sensing}, vol.~58, no.~6, pp.~4160--4179, 2020.
+
+\bibitem{wu2025} J.~Wu, J.~Yang, Z.~Li, W.~Pu, Z.~Sun, H.~An, Q.~Yang, ``Review of Bistatic Synthetic Aperture Radar Imaging Methods,'' \emph{Journal of Radars}, vol.~14, no.~5, pp.~1115--1141, 2025. doi:10.12000/JR25067
+
+\bibitem{zhang2018} H.~Zhang, J.~Tang, R.~Wang, Y.~Deng, W.~Wang, N.~Li, ``An Accelerated Backprojection Algorithm for Monostatic and Bistatic SAR Processing,'' \emph{Remote Sensing}, vol.~10, no.~1, art.~140, 2018. doi:10.3390/rs10010140
+
+\bibitem{zhao2025} T.~Zhao, J.~Wang, Z.~Cheng, Z.~Huang, J.~Song, ``A Subimage Autofocus Bistatic Ground Cartesian Back-Projection Algorithm for Passive Bistatic SAR Based on GEO Satellites,'' \emph{Remote Sensing}, vol.~17, no.~9, art.~1576, 2025. doi:10.3390/rs17091576
+
+\end{thebibliography}
+
+\end{document}
