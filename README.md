@@ -6,12 +6,13 @@ Research project on 3D image formation via **bistatic helical SAR with two-mediu
 
 The system models two radar platforms (transmitter and receiver) flying helical cone trajectories around a buried target volume. The electromagnetic signal crosses a flat air-soil interface (or a stack of soil layers) governed by Snell's law. A backprojection algorithm reconstructs the 3D image from the bistatic phase history, and a separate optimization pipeline computes, for a fixed transmitter trajectory, the receiver position that best balances received power and spatial resolution at every instant of the flight.
 
-**Key results:** analytical resolution formulas validated against simulation with < 12% error across all tested configurations; receiver flight-path optimization exploiting the Brewster angle, generalized to layered (multislab) soils.
+**Key results:** analytical resolution formulas validated against simulation with < 12% error across all tested configurations; receiver flight-path optimization exploiting the Brewster angle, generalized to layered (multislab) soils. A dedicated literature review (22 references, including a targeted mono/bistatic search) found no prior work combining 3D tomographic SAR imaging with Brewster-angle-driven trajectory optimization — see [`revision_literatura_bistatica.tex`](revision_literatura_bistatica.tex).
 
 ## Repository Structure
 
 ```
 sar_tomo_research/
+├── revision_literatura_bistatica.tex     # Bibliographic review: bistatic SAR + Brewster-angle novelty check
 ├── simulations/
 │   ├── run_snell_pipeline.m              # Bistatic 2-medium image formation (GS→PROC)
 │   ├── run_snell_multislab_pipeline.m    # Same, generalized to N soil layers
@@ -109,4 +110,5 @@ Full derivation in [`models/derivacion_modelo_resolucion.md`](models/derivacion_
 | `doc/proposta_voo_bistatico.tex` | Receiver flight-path optimization: theory, reasoning, parameters and benefits |
 | `doc/explicacion_plan_de_vuelo.tex` | Full derivation of the two-medium flight-path optimizer |
 | `doc/plan_de_vuelo_multislab.md` | Multislab extension of the flight-path optimizer |
-| `doc/dissertacao_tomo_sar.tex` | PhD dissertation draft (Portuguese) |
+| `doc/dissertacao_tomo_sar.tex` | PhD dissertation draft (Portuguese) — 40 references, state-of-the-art sections completed |
+| `revision_literatura_bistatica.tex` | Bibliographic review of bistatic SAR literature (18 refs) plus a targeted mono/bistatic search on Brewster-angle power optimization (4 refs), with abstract syntheses and a novelty/gap analysis feeding the dissertation's state-of-the-art sections |

@@ -661,6 +661,17 @@ reflexão se anula por razões intrínsecas ao mecanismo de radiação dipolar~[
 Para $n_2 = 2$ (solo com $\varepsilon_r = 4$, valor típico de solo seco):
 $\theta_B = \arctan(2) \approx 63{,}4^\circ$.
 
+O amortecimento da reflexão nas proximidades de $\theta_B$ não é apenas um
+resultado teórico: Ouchi e Yang~[\ref{ref:ouchi2017},\,\ref{ref:ouchi2018}]
+reportam evidência direta do amortecimento por ângulo de Brewster em
+imagens SAR reais (TerraSAR-X, monoestático) de estruturas de concreto, e
+Thirion-Lefevre e Guinvarc'h~[\ref{ref:thirion2018}] mostram que o efeito
+—generalizado ao caso de duas superfícies dielétricas ortogonais (efeito de
+duplo ângulo de Brewster)— é observável em qualquer imagem de radar
+monoestático de superfície terrestre. Isso confirma que o contraste de
+potência explorado nesta tese é um fenômeno fisicamente mensurável, e não
+apenas uma idealização do modelo de Fresnel para meios sem perdas.
+
 O ângulo de Brewster é o alvo geométrico fundamental do sistema proposto nesta
 tese: posicionar o receptor de modo que o raio alvo$\to$Rx incida na interface
 ar-solo com $\theta_R \approx \theta_B$ maximiza a transmitância $T_{\text{TM}}$
@@ -882,13 +893,45 @@ maximizar no problema de otimização do Capítulo~\ref{cap:otimizacao}.
 \section{Introdução e Estado da Arte}
 \label{sec:res_arte}
 
-% TODO: Revisar a literatura sobre resolução em SAR circular/helicoidal e SAR
-%       biestático. Citar Nolan & Fahnestock (2004), Ponce et al. (2014),
-%       Knaell & Cardillo (1995), Reigber & Moreira (2000), Góes (2022).
-%       Identificar a brecha: nenhum trabalho derivou δ_z e δ_xy para SAR
-%       biestático helicoidal com refração na interface ar-solo.
+% NOTA: a referência "Nolan & Fahnestock (2004)" citada na versão anterior
+% deste TODO não pôde ser localizada/verificada de forma confiável durante a
+% revisão bibliográfica; foi substituída abaixo por referências equivalentes
+% e verificadas. Se o autor possuir a citação exata, deve reincorporá-la.
 
-\textit{[Estado da arte a ser desenvolvido.]}
+A derivação de fórmulas de resolução espacial para SAR tomográfico tem uma
+linhagem bem estabelecida na literatura monoestática. Knaell e
+Cardillo~[\ref{ref:knaell1995}] introduziram a tomografia de radar para
+geração de imagens tridimensionais; Reigber e Moreira~[\ref{ref:reigber2000}]
+demonstraram pela primeira vez tomografia SAR aerotransportada multi-linha
+de base em banda L; Ponce et al.~[\ref{ref:ponce2014}] estenderam a técnica
+a SAR circular totalmente polarimétrico em banda L; e Góes~[\ref{ref:goes2022}]
+derivou as expressões de $\delta_z$ e $\delta_{xy}$ para SAR circular e
+espiral (multicircular) monoestático, identificando e corrigindo um erro na
+expressão do deslocamento vertical do número de onda presente em Ponce et
+al.~(2016).
+
+No caso biestático, Homer et al.~[\ref{ref:homer2005}] apresentam um marco
+matemático geral para a resolução espacial 3D de um SAR biestático com
+transmissor, receptor e alvo não coplanares e plataformas em movimento, e
+Garza e Qiao~[\ref{ref:garza2010}] analisam a função de dispersão de ponto
+(PSF) de imagens BISAR reconstruídas por \textit{backprojection} filtrado,
+incorporando o padrão de radiação da antena e trajetórias arbitrárias. Wang
+et al.~[\ref{ref:wang2020}] tratam o foco de SAR biestático com trajetória
+\emph{curva} — relevante para hélices cônicas, ao contrário do caso linear
+clássico —, e Andre et al.~[\ref{ref:andre2025}] fornecem uma análise
+microlocal de artefatos em imagem SAR multiestática 3D com duas
+trajetórias independentes, propondo uma condição de \textit{time-gating}
+para garantir imagens livres de artefatos.
+
+Nenhum desses trabalhos, contudo, deriva $\delta_z$ e $\delta_{xy}$ para a
+geometria específica desta tese: um SAR biestático \emph{helicoidal cônico}
+com refração na interface ar-solo. Os resultados biestáticos gerais
+(Homer et al., Garza e Qiao) não incorporam refração nem trajetória
+helicoidal; os resultados de SAR circular/espiral com refração (Góes)
+tratam do caso monoestático. O Capítulo~\ref{cap:resolucao} preenche essa
+lacuna generalizando a análise do $k$-espaço biestático de
+Arikan e Munson~[\ref{ref:arikan1988}] e a correção de Góes~[\ref{ref:goes2022}]
+para incluir o efeito de refração na interface ar-solo.
 
 \section{Análise no Espaço de Números de Onda}
 \label{sec:kspace}
@@ -1110,13 +1153,30 @@ explorado pelo otimizador do Capítulo~\ref{cap:otimizacao}.
 \section{Introdução e Estado da Arte}
 \label{sec:multi_arte}
 
-% TODO: Revisar literatura sobre propagação em meios estratificados, formalismo
-%       de matrizes de transferência, e aplicações em GPR e subsuperfície.
-%       Citar Pozar (2011), Born & Wolf (1999), Daniels (2004), Ishimaru (1991),
-%       Banda et al. (2016). Identificar a brecha: aplicação do formalismo ABCD
-%       assimétrico (Z_in ≠ Z_out) ao sistema SAR biestático helicoidal.
+O formalismo de matrizes de transferência (ABCD) para propagação de ondas
+planas através de pilhas de camadas dielétricas é uma ferramenta clássica da
+engenharia de micro-ondas, sistematizada por Pozar~[\ref{ref:pozar2011}] no
+contexto de linhas de transmissão e redes de duas portas, e derivável
+diretamente das condições de contorno das equações de Maxwell conforme
+Born e Wolf~[\ref{ref:bornwolf1999}]. Na literatura de GPR, Daniels~[\ref{ref:daniels2004}]
+descreve o tratamento padrão de meios estratificados para radar de
+penetração no solo, enquanto Ishimaru~[\ref{ref:ishimaru1991}] fornece o
+arcabouço de espalhamento e propagação em meios aleatórios estratificados
+aplicável a solos heterogêneos. Banda et al.~[\ref{ref:banda2016}] aplicam
+tomografia SAR P-band multi/polarimétrica a estruturas subsuperficiais de
+gelo estratificado, demonstrando a relevância prática de modelos
+multicamada em sensoriamento remoto tomográfico.
 
-\textit{[Estado da arte a ser desenvolvido.]}
+Em todos esses trabalhos, contudo, o formalismo ABCD é aplicado a ondas
+planas normalmente incidentes ou a geometrias de propagação fixas (linhas de
+transmissão, radar de incidência quase-normal). O Capítulo~\ref{cap:multicamadas}
+estende o formalismo ao caso de incidência oblíqua variável — determinada
+dinamicamente pela geometria biestática helicoidal — com impedâncias de
+entrada e saída assimétricas ($Z_{\text{in}} \neq Z_{\text{out}}$), tratando
+a última camada como semi-infinita. Essa aplicação do formalismo ABCD
+assimétrico ao sistema SAR biestático helicoidal, integrada ao critério de
+otimização de trajetória do Capítulo~\ref{cap:otimizacao}, não possui
+antecedente direto na literatura revisada.
 
 \section{Geometria do Modelo de $N$ Camadas}
 \label{sec:multi_geom}
@@ -1331,14 +1391,79 @@ Seção~\ref{sec:val_multi}.
 \section{Introdução e Estado da Arte}
 \label{sec:otim_arte}
 
-% TODO: Revisar literatura sobre otimização de trajetória em SAR biestático,
-%       otimização multi-objetivo em sistemas de radar, e uso do ângulo de
-%       Brewster para maximizar penetração. Citar Willis (1995), Griffiths (2003),
-%       García-Fernández et al. (2019), Flores (2019).
-%       Brecha: nenhum trabalho utilizou o ângulo de Brewster como guia
-%       geométrico para otimização de trajetória do receptor biestático.
+A otimização de geometria em SAR biestático tem sido tratada principalmente
+sob dois ângulos independentes na literatura: (i) restrições de configuração
+espacial Tx/Rx para garantir qualidade de imagem, e (ii) uso do ângulo de
+Brewster (ou pseudo-Brewster) para maximizar a potência transmitida ao
+subsolo. Nenhum dos dois é combinado, na literatura revisada, com formação
+de imagem SAR tomográfica tridimensional — o que constitui a lacuna que esta
+tese preenche.
 
-\textit{[Estado da arte a ser desenvolvido.]}
+\textbf{Restrições de configuração Tx/Rx em SAR biestático.} Chen et
+al.~[\ref{ref:chen2022}] propõem um modelo de resolução 2D biestático
+baseado em teoria de gradientes e derivam, por simulação de trajetórias
+cooperativas, a envolvente de restrição de configuração espacial entre
+veículos que garante resolução ótima em SAR biestático aerotransportado. O
+trabalho não considera, porém, nem a maximização de potência via ângulo de
+incidência nem a reconstrução tridimensional do alvo.
+Willis~[\ref{ref:willis1995}] sistematiza as vantagens operacionais do
+biestático (encobrimento do receptor, robustez a contramedidas), mas sem
+tratar otimização geométrica formal. A revisão recente de Wu et
+al.~[\ref{ref:wu2025}] mapeia o estado da arte do processamento de imagem
+SAR biestático (aerotransportado, GNSS, GEO, alta manobrabilidade) sem, no
+entanto, abordar otimização de trajetória guiada por potência transmitida
+ao subsolo.
+
+\textbf{O ângulo de Brewster como critério físico de maximização de
+potência.} O uso do ângulo de Brewster (ou pseudo-Brewster, em meios com
+perdas) para maximizar a energia transmitida através de uma interface
+dielétrica é bem estabelecido na literatura de GPR de sensor único: Orfeo
+et al.~[\ref{ref:orfeo2019}] avaliam, mediante simulação e experimento de
+laboratório, os efeitos do ângulo e da altura da antena na sensibilidade de
+um GPR biestático de lançamento aéreo para detecção de objetos não
+metálicos enterrados, fornecendo diretrizes de projeto para sistemas
+embarcados em VANTs — porém tratam um único par Tx/Rx fixo por medição
+(\emph{point sensing}), sem síntese de abertura SAR nem otimização contínua
+de trajetória. Já a existência física do amortecimento por ângulo de
+Brewster foi confirmada em imagens SAR reais: Ouchi e
+Yang~[\ref{ref:ouchi2017},\,\ref{ref:ouchi2018}] reportam evidência direta
+do amortecimento por ângulo de Brewster em imagens TerraSAR-X
+(monoestático) de estruturas de concreto, e Thirion-Lefevre e
+Guinvarc'h~[\ref{ref:thirion2018}] estendem o conceito ao efeito de duplo
+ângulo de Brewster em superfícies dielétricas ortogonais, demonstrando
+teórica e experimentalmente que o fenômeno é observável em qualquer imagem
+de radar monoestático de superfície terrestre. Esses três trabalhos,
+contudo, \emph{observam} o efeito Brewster \textit{a posteriori} em imagens
+já adquiridas — não o utilizam como critério ativo de otimização de
+trajetória.
+
+\textbf{Tomografia SAR biestática tridimensional.} Trabalhos recentes
+demonstram a viabilidade prática da tomografia biestática 3D: Ge e
+Zhu~[\ref{ref:ge2019}] propõem tomografia diferencial biestática para
+reconstrução de elevação urbana; Chen et al.~[\ref{ref:chenz2024}] realizam
+o primeiro experimento de tomografia SAR biestática espaço-superfície com o
+satélite LuTan-1 (banda L), recuperando nuvens de pontos 3D com
+$\sim$4\,m de precisão; e He et al.~[\ref{ref:he2025}] combinam calibração
+de fase PGA com o método EB-ISOA para imagem 3D biestática multi-linha de
+base. Esses trabalhos, no entanto, visam reconstrução de superfície e
+deformação urbana — não sensoriamento subsuperficial — e não incorporam o
+ângulo de Brewster nem qualquer otimização de trajetória baseada em
+potência recebida.
+
+\textbf{A lacuna identificada.} Uma revisão bibliográfica dirigida,
+incluindo uma busca específica que relaxou deliberadamente o critério
+biestático para também cobrir o caso monoestático, não encontrou nenhum
+trabalho — biestático ou monoestático — que combine (i) formação de imagem
+SAR \emph{tomográfica} tridimensional com (ii) otimização ativa de
+trajetória ou geometria de aquisição em função do ângulo de Brewster para
+maximizar a potência recebida. Esta é precisamente a contribuição original
+desta tese: a função de custo multi-objetivo $J(\vect{r}_{Rx};\alpha)$
+formulada na Seção~\ref{sec:otim_form} acopla, pela primeira vez na
+literatura revisada, o critério de potência guiado pelo ângulo de Brewster
+(via os coeficientes de Fresnel TM do Capítulo~\ref{cap:fundamentos}) à
+resolução espacial 3D de um SAR biestático tomográfico helicoidal
+(Capítulo~\ref{cap:resolucao}), estendido a meios multicamada
+(Capítulo~\ref{cap:multicamadas}).
 
 \section{Formulação do Problema de Otimização}
 \label{sec:otim_form}
@@ -2144,8 +2269,12 @@ que é precisamente a matriz $\mathbf{M}_i$ da Eq.~\eqref{eq:ABCD_matrix}.
 \chapter*{Referências}
 \addcontentsline{toc}{chapter}{Referências}
 
-% TODO: Expandir para 40–50 referências seguindo padrão IEEE [N].
-%       Mínimo recomendado: 55% artigos de periódico, 25% livros, 20% conferências.
+% Lista expandida para 40 referências (set./2026) via revisão bibliográfica
+% dirigida de SAR biestático e otimização por ângulo de Brewster — ver
+% revision_literatura_bistatica.tex na raiz do repositório para as sínteses
+% de abstract e a análise de lacuna que fundamentam as citações [21]--[40].
+% As citações no corpo do texto usam \ref{ref:<chave>} (não números fixos)
+% para permanecerem corretas mesmo que a lista seja reordenada/expandida.
 
 \begin{enumerate}
 
@@ -2249,6 +2378,116 @@ que é precisamente a matriz $\mathbf{M}_i$ da Eq.~\eqref{eq:ABCD_matrix}.
   \item \label{ref:elachi2006}
   C.\ Elachi e J.\ van Zyl, \textit{Introduction to the Physics and Techniques
   of Remote Sensing}, 2ª~ed., Hoboken, NJ: Wiley, 2006.
+
+  % ─── Referências adicionadas: revisão bibliográfica SAR biestático + ────
+  % ─── ângulo de Brewster (setembro de 2026) ───────────────────────────────
+
+  \item \label{ref:ding2002}
+  Y.\ Ding e D.\ C.\ Munson Jr., ``A fast back-projection algorithm for
+  bistatic SAR imaging,'' in \textit{Proc.\ IEEE Int.\ Conf.\ on Image
+  Processing (ICIP)}, vol.\ II, pp.\ 449--452, 2002.
+
+  \item \label{ref:homer2005}
+  J.\ Homer, E.\ Donskoi, B.\ Mojarrabi, J.\ Palmer e K.\ Kubik,
+  ``Three-dimensional bistatic synthetic aperture radar imaging system:
+  spatial resolution analysis,'' \textit{IEE Proceedings --- Radar, Sonar
+  and Navigation}, vol.\ 152, n.\ 6, pp.\ 391--394, 2005.
+
+  \item \label{ref:garza2010}
+  G.\ Garza e Z.\ Qiao, ``Resolution analysis of bistatic SAR,'' in
+  \textit{Proc.\ SPIE 8021, Radar Sensor Technology XV}, 80210F, 2010.
+
+  \item \label{ref:chen2022}
+  Y.\ Chen, R.\ Chen, H.\ Liu, J.\ Guo, Y.\ Wang e J.\ Zhang, ``Research on
+  configuration constraints of airborne bistatic SARs,'' \textit{Sensors},
+  vol.\ 22, n.\ 17, art.\ 6534, 2022.
+
+  \item \label{ref:zhang2018}
+  H.\ Zhang, J.\ Tang, R.\ Wang, Y.\ Deng, W.\ Wang e N.\ Li, ``An
+  accelerated backprojection algorithm for monostatic and bistatic SAR
+  processing,'' \textit{Remote Sensing}, vol.\ 10, n.\ 1, art.\ 140, 2018.
+
+  \item \label{ref:wang2020}
+  Z.\ Wang, M.\ Liu, G.\ Ai, P.\ Wang e K.\ Lv, ``Focusing of bistatic SAR
+  with curved trajectory based on extended azimuth nonlinear chirp
+  scaling,'' \textit{IEEE Transactions on Geoscience and Remote Sensing},
+  vol.\ 58, n.\ 6, pp.\ 4160--4179, 2020.
+
+  \item \label{ref:sun2022}
+  H.\ Sun, Z.\ Sun, T.\ Chen, Y.\ Miao, J.\ Wu e J.\ Yang, ``An efficient
+  backprojection algorithm based on wavenumber-domain spectral splicing for
+  monostatic and bistatic SAR configurations,'' \textit{Remote Sensing},
+  vol.\ 14, n.\ 8, art.\ 1885, 2022.
+
+  \item \label{ref:zhao2025}
+  T.\ Zhao, J.\ Wang, Z.\ Cheng, Z.\ Huang e J.\ Song, ``A subimage
+  autofocus bistatic ground Cartesian back-projection algorithm for passive
+  bistatic SAR based on GEO satellites,'' \textit{Remote Sensing}, vol.\ 17,
+  n.\ 9, art.\ 1576, 2025.
+
+  \item \label{ref:ge2019}
+  N.\ Ge e X.\ X.\ Zhu, ``Bistatic-like differential SAR tomography,''
+  \textit{IEEE Transactions on Geoscience and Remote Sensing}, vol.\ 57,
+  n.\ 8, pp.\ 5883--5893, 2019.
+
+  \item \label{ref:chenz2024}
+  Z.\ Chen, Y.\ Li, C.\ Hu et al., ``Repeat-pass space-surface bistatic SAR
+  tomography: accurate imaging and first experiment,'' \textit{Science
+  China Information Sciences}, vol.\ 67, art.\ 192304, 2024.
+
+  \item \label{ref:wu2025}
+  J.\ Wu, J.\ Yang, Z.\ Li, W.\ Pu, Z.\ Sun, H.\ An e Q.\ Yang, ``Review of
+  bistatic synthetic aperture radar imaging methods,'' \textit{Journal of
+  Radars}, vol.\ 14, n.\ 5, pp.\ 1115--1141, 2025.
+
+  \item \label{ref:he2025}
+  J.\ He, H.\ Xie, H.\ Liu, Z.\ Wu, B.\ Xu, N.\ Zhu, Z.\ Lu e P.\ Qin,
+  ``Multi-baseline bistatic SAR three-dimensional imaging method based on
+  phase error calibration combining PGA and EB-ISOA,'' \textit{Remote
+  Sensing}, vol.\ 17, n.\ 3, art.\ 363, 2025.
+
+  \item \label{ref:andre2025}
+  D.\ Andre, V.\ P.\ Krishnan e C.\ Nolan, ``Artefact analysis of
+  multistatic three-dimensional SAR imaging with two linear
+  trajectories,'' arXiv:2503.11323, 2025.
+
+  \item \label{ref:liu2024}
+  M.\ Liu et al., ``Unmanned airborne bistatic interferometric synthetic
+  aperture radar data processing method using bi-directional
+  synchronization chain signals,'' \textit{Remote Sensing}, vol.\ 16, n.\ 5,
+  art.\ 769, 2024.
+
+  \item \label{ref:grathwohl2023}
+  A.\ Grathwohl, B.\ Meinecke, M.\ Widmann, J.\ Kanz e C.\ Waldschmidt,
+  ``UAV-based bistatic SAR-imaging using a stationary repeater,''
+  \textit{IEEE Journal of Microwaves}, vol.\ 3, n.\ 2, pp.\ 625--634, 2023.
+
+  \item \label{ref:kanz2025}
+  J.\ Kanz, C.\ Gesell, C.\ Bonfert, D.\ Werbunat, A.\ Grathwohl,
+  J.\ Aguilar, M.\ Vossiek e C.\ Waldschmidt, ``UAV-borne digital radar
+  system for coherent multistatic SAR imaging,'' arXiv:2507.20792, 2025.
+
+  \item \label{ref:ouchi2017}
+  K.\ Ouchi e C.-S.\ Yang, ``Direct evidence and implications of Brewster's
+  angle damping observed by synthetic aperture radar images,'' in
+  \textit{Proc.\ IGARSS 2017}, 2017.
+
+  \item \label{ref:ouchi2018}
+  K.\ Ouchi e C.-S.\ Yang, ``Brewster angle damping observed in the
+  TerraSAR-X synthetic aperture radar images of man-made targets,''
+  \textit{IEEE Geoscience and Remote Sensing Letters}, vol.\ 15, n.\ 4,
+  pp.\ 532--536, 2018.
+
+  \item \label{ref:thirion2018}
+  L.\ Thirion-Lefevre e R.\ Guinvarc'h, ``The double Brewster angle
+  effect,'' \textit{Comptes Rendus Physique}, vol.\ 19, n.\ 1--2,
+  pp.\ 43--53, 2018.
+
+  \item \label{ref:orfeo2019}
+  D.\ Orfeo, Y.\ Zhang, D.\ Burns, J.\ S.\ Miller, D.\ R.\ Huston e T.\ Xia,
+  ``Bistatic antenna configurations for air-launched ground penetrating
+  radar,'' \textit{Journal of Applied Remote Sensing}, vol.\ 13, n.\ 2,
+  art.\ 027501, 2019.
 
 \end{enumerate}
 
