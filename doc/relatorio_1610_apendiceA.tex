@@ -1,0 +1,210 @@
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Resolución mono y biestática en forma cerrada}
+\label{ap:resolucion}
+
+Este apéndice da las expresiones cerradas de $\delta_x$, $\delta_y$ y $\delta_z$ para un
+blanco enterrado en una posición arbitraria (dentro o fuera del eje de la órbita) y
+para cualquier geometría Tx--Rx. Las compara con las resoluciones medidas en la imagen.
+En todo el relatorio, $\delta_x$, $\delta_y$, $\delta_z$ denotan el ancho a $-3$\,dB de
+$|\chi|$ (la PSF en amplitud) en cortes por el pico. Equivale al FWHM en potencia; en los
+CSV las columnas se llaman \texttt{fwhm\_x}, \texttt{fwhm\_y}, \texttt{fwhm\_z}. Código:
+\texttt{bisar/resolucion.py}; verificación: \texttt{t\_resolucion\_analitica.py}.
+
+\section{Modelo}
+
+Sea el blanco $\vect P=(x_P,y_P,z_P)$ a profundidad $d=-z_P$ en un suelo de índice
+$n=\mathrm{Re}\sqrt{\varepsilon_r}$, y sean el Tx y el Rx en $\vect p_i=(x_i,y_i,h_i)$,
+$i\in\{T,R\}$. Para cada pulso $m$ y frecuencia $f$, la fase del eco tras la
+back-projection en $\vect P+\Delta\vect r$ es $\vect K_{m,f}\cdot\Delta\vect r$, con el
+vector de onda biestático
+\begin{equation}
+  \vect K_{m,f}=\frac{2\pi f}{c}\,n\,\big(\hat{\vect u}_{T,m}+\hat{\vect u}_{R,m}\big),
+  \qquad
+  \chi(\Delta\vect r)=\sum_{m}\sum_{f} e^{\,j\vect K_{m,f}\cdot\Delta\vect r},
+  \label{eq:A_psf}
+\end{equation}
+donde $\hat{\vect u}_i$ es el vector unitario, dentro del suelo, desde el blanco hacia el
+punto de refracción de la plataforma $i$. Se toman pesos uniformes (ventana espectral
+rectangular, como en el Exp.~B).
+
+\paragraph{Geometría vista desde el blanco.} Para cada pulso,
+\begin{gather}
+  D_i=\sqrt{(x_i-x_P)^2+(y_i-y_P)^2},\qquad
+  \phi'_i=\operatorname{atan2}(y_i-y_P,\;x_i-x_P),\label{eq:A_geo}\\
+  D_i=h_i\tan\psi_i+d\tan\theta_i,\qquad \sin\psi_i=n\sin\theta_i .\label{eq:A_snell}
+\end{gather}
+$\psi_i$ es la incidencia en el aire y $\theta_i$ la refractada. La ecuación de Snell
+(\ref{eq:A_snell}) se resuelve en forma explícita con un paso de corrección:
+\begin{equation}
+  \psi_i^{(0)}=\arctan\frac{D_i}{h_i},\qquad
+  \psi_i=\arctan\!\left(\frac{D_i-d\,\sin\psi_i^{(0)}\big/\sqrt{n^2-\sin^2\psi_i^{(0)}}}{h_i}\right).
+  \label{eq:A_psi}
+\end{equation}
+Con $d=2$\,m y $h\approx94$--$131$\,m, el resultado coincide con la solución exacta en
+cuatro cifras. Entonces
+$\hat{\vect u}_i=(\sin\theta_i\cos\phi'_i,\ \sin\theta_i\sin\phi'_i,\ \cos\theta_i)$.
+
+\section{Resolución horizontal}
+
+Como $n\sin\theta_i=\sin\psi_i$, la componente horizontal de (\ref{eq:A_psf}) no depende
+del suelo:
+\begin{equation}
+  \vect K_h=k_0\big[\sin\psi_T\,\hat{\vect e}(\phi'_T)+\sin\psi_R\,\hat{\vect e}(\phi'_R)\big],
+  \qquad k_0=\frac{2\pi f}{c},
+\end{equation}
+\begin{equation}
+  |\vect K_h|=2k_0\,S,\qquad
+  S=\tfrac12\sqrt{\sin^2\psi_T+\sin^2\psi_R+2\sin\psi_T\sin\psi_R\cos(\phi'_R-\phi'_T)} .
+  \label{eq:A_S}
+\end{equation}
+Para el monoestático $S=\sin\psi_T$. Con $\psi_T=\psi_R=\psi$, $S=\sin\psi\,|\cos(\Delta\phi'/2)|$.
+
+La apertura recorre $360^{\circ}$ alrededor del blanco, de modo que el soporte horizontal es
+un anillo de radio $R_c=2k_0\langle S\rangle$, y la PSF horizontal es
+$\chi(\rho)\propto J_0(R_c\rho)$. El ancho a $-3$\,dB sale de $J_0(x_{J_0})=1/\sqrt2$, con
+$x_{J_0}=1.1264$:
+\begin{equation}
+  \boxed{\;\delta_x=\delta_y=\frac{2x_{J_0}}{R_c}=\frac{x_{J_0}\,\lambda_0}{2\pi\,\langle S\rangle}
+  =\frac{0.1793\,\lambda_0}{\langle S\rangle}\;}
+  \label{eq:A_dxy}
+\end{equation}
+donde $\langle\cdot\rangle$ es la media sobre los pulsos de la apertura y $\lambda_0=c/f_c$.
+Nota: \texttt{explicacion\_resolucion.tex} usa la constante 1.20; como
+$J_0(1.20)=0.67$ ($-3.5$\,dB), esa constante sobreestima $\delta_{xy}$ en un 6.5\,\%.
+
+\section{Resolución vertical}
+
+La componente vertical no depende del acimut:
+\begin{equation}
+  K_z=\frac{2\pi f}{c}\,q,\qquad
+  q=n(\cos\theta_T+\cos\theta_R)=\sqrt{n^2-\sin^2\psi_T}+\sqrt{n^2-\sin^2\psi_R}.
+  \label{eq:A_q}
+\end{equation}
+El soporte en $k_z$ es el producto de dos dispersiones: la banda ($f\in f_c\pm B/2$) y la
+variación de $q$ a lo largo de la apertura. Para una distribución casi uniforme de cada una,
+la PSF vertical es el producto de dos funciones sinc. Igualando la curvatura del lóbulo
+principal, el ancho a $-3$\,dB es el de una sola sinc con banda equivalente
+$\sqrt{(B\bar q)^2+12f_c^2\sigma_q^2}$:
+\begin{equation}
+  \boxed{\;\delta_z=\frac{c_w\,c}{\sqrt{(B\,\bar q)^2+12\,f_c^2\,\sigma_q^2}}\;},\qquad
+  \bar q=\langle q\rangle,\quad \sigma_q^2=\operatorname{var}(q),
+  \label{eq:A_dz}
+\end{equation}
+con $c_w=0.886$ para espectro rectangular y $c_w=1.443$ para Hann. El primer término es la
+resolución por banda, $c_w c/(B\bar q)$; el segundo, la apertura tomográfica en incidencia.
+
+\section{Caso del Exp.~B en forma totalmente explícita}
+
+Con el blanco en el eje y el Rx en la misma hélice desfasada $\Delta\phi$, se cumple
+$\psi_R=\psi_T$ y $\phi'_R-\phi'_T=\Delta\phi$ en cada pulso. Si la incidencia se barre
+linealmente entre $\psi_1$ y $\psi_2$, las medias de (\ref{eq:A_dxy}) y (\ref{eq:A_dz})
+se integran en forma cerrada. Con $Q(\psi)=\sqrt{n^2-\sin^2\psi}$:
+\begin{align}
+  \delta_x=\delta_y&=\frac{x_{J_0}\,\lambda_0}{2\pi\,|\cos(\Delta\phi/2)|}\;
+  \frac{\psi_2-\psi_1}{\cos\psi_1-\cos\psi_2},\label{eq:A_dxy_eje}\\
+  \delta_z&=\frac{c_w\,c}{\sqrt{B^2\,[Q(\psi_1)+Q(\psi_2)]^2+4f_c^2\,[Q(\psi_1)-Q(\psi_2)]^2}} .
+  \label{eq:A_dz_eje}
+\end{align}
+En (\ref{eq:A_dz_eje}) se usa que, para $q$ lineal en el tiempo, $12\sigma_q^2=\Delta q^2$ con
+$\Delta q=2[Q(\psi_1)-Q(\psi_2)]$. La ecuación (\ref{eq:A_dz_eje}) no contiene $\Delta\phi$.
+
+\paragraph{Sustitución numérica.} Hélice óptima vista desde $(0,0,-2)$\,m por
+(\ref{eq:A_psi}): $\psi_1=46.11^{\circ}$, $\psi_2=60.37^{\circ}$. Con $f_c=425$\,MHz
+($\lambda_0=0.7059$\,m), $B=50$\,MHz y $n=2.0$:
+\begin{itemize}[itemsep=1pt]
+  \item $\langle\sin\psi\rangle=(\cos\psi_1-\cos\psi_2)/(\psi_2-\psi_1)=0.7991$ y
+  $x_{J_0}\lambda_0/2\pi=0.12655$\,m, de donde
+  $\delta_{xy}^{mono}=0.158$\,m y $\delta_{xy}(90^{\circ})=0.158/\cos45^{\circ}=0.224$\,m;
+  \item $Q(\psi_1)=1.8656$ y $Q(\psi_2)=1.8012$, de donde $B\bar q=1.833\times10^{8}$\,Hz y
+  $f_c\Delta q=0.548\times10^{8}$\,Hz, con lo que
+  $\delta_z=0.886\cdot3\times10^{8}/1.913\times10^{8}=1.389$\,m para todo $\Delta\phi$.
+\end{itemize}
+La imagen da 0.159, 0.223 y 1.387\,m (Tabla~\ref{tab:A_verif}).
+
+\section{Blanco fuera del eje}
+
+Las ecuaciones (\ref{eq:A_dxy}) y (\ref{eq:A_dz}) son válidas para cualquier $\vect P$; sólo
+cambian las medias. A primer orden en $r_P/\rho$ (con $r_P=|\vect P_h|$ y $\rho$ el radio de
+la órbita), para Tx y Rx en la misma hélice:
+\begin{gather}
+  \Delta\phi'(t)\simeq\Delta\phi-\frac{2r_P}{\rho}\,\sin\frac{\Delta\phi}{2}\,
+  \cos\!\Big(\phi_T+\frac{\Delta\phi}{2}-\phi_P\Big),\label{eq:A_dphiap}\\
+  q(t)\simeq q_0(t)-2\,\big|Q'(\psi)\big|\,\frac{\cos^2\psi}{h}\,r_P\,
+  \cos\frac{\Delta\phi}{2}\,\cos\!\Big(\phi_T+\frac{\Delta\phi}{2}-\phi_P\Big),
+  \qquad Q'(\psi)=-\frac{\sin\psi\cos\psi}{\sqrt{n^2-\sin^2\psi}} .\label{eq:A_qap}
+\end{gather}
+Hay dos consecuencias:
+\begin{enumerate}[itemsep=1pt]
+  \item La separación aparente oscila alrededor de $\Delta\phi$; en $(6,4,-2)$\,m y a $90^{\circ}$,
+  la amplitud de (\ref{eq:A_dphiap}) es $3.9^{\circ}$ (medida: $86.1^{\circ}$--$94.3^{\circ}$). La
+  oscilación tiene media nula, de modo que $\langle S\rangle$ y $\delta_{xy}$ no cambian a
+  primer orden: fuera del eje vale la misma ley $\delta_{xy}^{mono}/|\cos(\Delta\phi/2)|$.
+  \item La diferencia de incidencia entre el lado cercano y el lejano añade a $q$ una
+  oscilación que aumenta $\sigma_q$ y mejora ligeramente $\delta_z$. En el canal bi esa
+  oscilación se escala por $|\cos(\Delta\phi/2)|$, porque Tx y Rx están en lados distintos y
+  sus variaciones se compensan. Por eso, fuera del eje, $\delta_z$ pasa de 1.378\,m (mono)
+  a 1.386\,m a $90^{\circ}$ y vuelve al valor del eje (1.387\,m) a $180^{\circ}$.
+\end{enumerate}
+
+\section{¿Cuándo puede el biestático resolver mejor que la mono?}
+
+\paragraph{Horizontal.} Por la desigualdad triangular en (\ref{eq:A_S}),
+\begin{equation}
+  S\le\tfrac12(\sin\psi_T+\sin\psi_R)
+  \quad\Longrightarrow\quad
+  \delta_{xy}^{bi}\ \ge\ \frac{x_{J_0}\,\lambda_0}{\pi\,\langle\sin\psi_T+\sin\psi_R\rangle} .
+\end{equation}
+Por tanto $\delta_{xy}^{bi}<\delta_{xy}^{mono,Tx}$ exige $\sin\psi_R>\sin\psi_T$: el Rx tiene
+que ver el blanco a mayor incidencia (más bajo o más lejos) y con $\Delta\phi$ pequeño. Con
+$\psi_R=\psi_T$ (Exp.~B), $S=\sin\psi\,|\cos(\Delta\phi/2)|\le\sin\psi$, y el bi es
+\emph{siempre} igual (en $\Delta\phi=0$) o peor.
+
+\paragraph{Vertical.} El término de banda de (\ref{eq:A_dz}) mejora si
+$q=Q(\psi_T)+Q(\psi_R)>2Q(\psi_T)$, es decir, si $\psi_R<\psi_T$ (Rx más cerca del nadir).
+Como $Q\le n$, la mejora está acotada por
+\begin{equation}
+  \frac{\delta_z^{mono}}{\delta_z^{bi}}\Big|_{banda}\le\frac{Q(\psi_T)+n}{2Q(\psi_T)}=1.046
+  \qquad(\psi_T=53.2^{\circ},\ n=2):
+\end{equation}
+la refracción hace que $\cos\theta_t\ge0.92$ en el suelo, y la ganancia máxima es del 4.6\,\%. Con
+$\psi_R=\psi_T$ (Exp.~B), $q$ es idéntico y $\delta_z^{bi}=\delta_z^{mono}$.
+
+\paragraph{Compromiso.} Las condiciones son opuestas ($\psi_R>\psi_T$ para $x,y$;
+$\psi_R<\psi_T$ para $z$) y ambas piden $\Delta\phi\approx0$, es decir, renunciar a la
+diversidad angular que justifica el canal bi. Además, la mejor mono posible a la incidencia
+del Rx resolvería todavía mejor. Las cuatro últimas filas de cada blanco en la
+Tabla~\ref{tab:A_verif} lo confirman:
+\begin{itemize}[itemsep=1pt]
+  \item con $\kappa=1.3$ y con el Rx 60\,m más bajo, $\delta_{xy}$ mejora un 4\,\% y un 8\,\%
+  pero $\delta_z$ empeora un 1.4\,\% y un 2.6\,\%;
+  \item con el Rx casi en el nadir ($\kappa=0.2$), $\delta_z$ mejora un 1.7\,\% pero
+  $\delta_{xy}$ empeora un 50\,\%.
+\end{itemize}
+
+\section{Verificación y límites de validez}
+
+\input{relatorio_1610_tablaResol}
+
+En los 34 casos con $\Delta\phi<180^{\circ}$ (dos blancos, Exp.~B completo y cinco geometrías
+del Rx fuera del Exp.~B), las formas cerradas reproducen la imagen:
+\begin{itemize}[itemsep=1pt]
+  \item $|\varepsilon_x|\le0.6$\,\% y $|\varepsilon_y|\le1.6$\,\%; $\delta_y$ es hasta un 2\,\%
+  mayor que $\delta_x$ porque la apertura de dos vueltas, con radio variable, no es
+  perfectamente isótropa;
+  \item $|\varepsilon_z|\le0.5$\,\%.
+\end{itemize}
+Las cifras del cuerpo del relatorio vienen de la rejilla 3D ($\Delta x=2.5$\,cm, con
+interpolación) y difieren menos de un 1.5\,\% de estos cortes finos (p.\,ej. 0.157 frente a
+0.159\,m en la mono).
+
+Límites de validez:
+\begin{enumerate}[itemsep=1pt]
+  \item \textbf{Apertura completa.} (\ref{eq:A_dxy}) supone una apertura de $360^{\circ}$ y una
+  dispersión de $|\vect K_h|$ pequeña frente a su media. Falla en $\Delta\phi\to180^{\circ}$: el
+  anillo colapsa ($\langle S\rangle\to0$) y la anchura la fija la dispersión residual. Para el
+  blanco en el eje, el corte largo da 17\,m (Exp.~A).
+  \item \textbf{Pesos uniformes.} Se ignoran la ganancia de antena, $1/R^2$ y la transmitancia,
+  que varían poco a lo largo de la hélice; con ventana de Hann se usa $c_w=1.443$.
+  \item \textbf{Suelo.} Homogéneo, con $n=\mathrm{Re}\sqrt{\varepsilon_r}$: las pérdidas
+  atenúan, pero no cambian la geometría de $\vect K$.
+\end{enumerate}

@@ -1,0 +1,139 @@
+{
+  "_descripcion": "Exp. B - Barrido de la separacion Tx-Rx (Orientacoes §5.3): z_Rx = z_Tx, mismo radio, dphi constante 0:15:180. Para cada dphi: imagen mono, bi, fusion (2N) y fusion con el mismo presupuesto de muestras (N). Blanco en el eje y blanco descentrado.",
+  "c": 300000000.0,
+  "fc": 425000000.0,
+  "B": 50000000.0,
+  "Nf": 64,
+  "Pt": 100000.0,
+  "Tp": 1.3e-06,
+  "T_sys": 300,
+  "NF_dB": 0.0,
+  "antena": {
+    "G_dBi": 6,
+    "bw_az_deg": 14,
+    "bw_el_deg": 50,
+    "apunte": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tx_helice": {
+    "NumVoltas": 2,
+    "RaioMaior": 165.53,
+    "RaioMenor": 137.4,
+    "AltMaior": 131.45,
+    "AltMenor": 93.58,
+    "Vt": 113.5,
+    "PRF": 400,
+    "NorthOffset": 0
+  },
+  "n_pulsos": 1600,
+  "suelo": {
+    "nombre": "S1 referencia",
+    "eps_r": [
+      3.99,
+      0.4
+    ]
+  },
+  "suelos": {
+    "S0": {
+      "nombre": "S0 sin perdidas (validacion)",
+      "eps_r": [
+        4.0,
+        0.0
+      ]
+    },
+    "S1": {
+      "nombre": "S1 referencia",
+      "eps_r": [
+        3.99,
+        0.4
+      ]
+    },
+    "S2": {
+      "nombre": "S2 franco-arenoso humedo",
+      "eps_r": [
+        6.5,
+        0.9
+      ]
+    },
+    "S3": {
+      "nombre": "S3 franco humedo",
+      "eps_r": [
+        12.0,
+        2.5
+      ]
+    }
+  },
+  "rugosidad": {
+    "sigma_h": 0.02,
+    "corr_len": 0.2,
+    "patch_half": 12.0,
+    "facet": 0.15,
+    "taper": 0.15
+  },
+  "pol": "TM",
+  "roll_deg": 0.0,
+  "blanco": [
+    0.0,
+    0.0,
+    -2.0
+  ],
+  "rejilla_psf": {
+    "hx": 1.0,
+    "dx": 0.025,
+    "z_lo": -3.0,
+    "z_hi": 2.0,
+    "dz": 0.1
+  },
+  "cortes": {
+    "h": 2.5,
+    "dx": 0.005,
+    "z_lo": -4.5,
+    "z_hi": 2.0,
+    "dz": 0.01
+  },
+  "upsample": 32,
+  "semilla": 20261016,
+  "dphi_list": [
+    0,
+    15,
+    30,
+    45,
+    60,
+    75,
+    90,
+    105,
+    120,
+    135,
+    150,
+    165,
+    180
+  ],
+  "blancos": {
+    "centro": [
+      0.0,
+      0.0,
+      -2.0
+    ],
+    "descentrado": [
+      6.0,
+      4.0,
+      -2.0
+    ]
+  },
+  "kspace_dphi": [
+    0,
+    45,
+    90,
+    135,
+    180
+  ],
+  "imagenes_dphi": [
+    45,
+    90,
+    135,
+    180
+  ]
+}

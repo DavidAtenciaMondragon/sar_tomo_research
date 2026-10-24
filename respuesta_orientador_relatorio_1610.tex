@@ -1,0 +1,268 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{fontspec}
+\usepackage[spanish,es-noshorthands]{babel}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{booktabs,array,tabularx}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{needspace}
+
+\definecolor{acento}{RGB}{30,70,120}
+\titleformat{\section}{\large\bfseries\color{acento}}{\thesection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{14pt}{4pt}
+\setlist{itemsep=1pt,topsep=2pt}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+
+% Caja corta al inicio de cada punto: comentario y respuesta en una línea
+\newcommand{\encorto}[2]{\par\noindent\colorbox{acento!7}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+\small\textbf{Comentario:} #1\\[1pt]\textbf{Respuesta corta:} #2}}\par\smallskip}
+\newcommand{\paso}[1]{\par\smallskip\needspace{5\baselineskip}\noindent\textbf{\color{acento}#1}\par}
+
+\title{\vspace{-1.5cm}\textbf{Respuesta a los comentarios sobre el relatorio del 16/10}\\[2pt]
+\large SAR biestático complementario para sensado subsuperficial}
+\author{David Atencia}
+\date{20 de octubre de 2026}
+
+\begin{document}
+\maketitle
+\vspace{-0.6cm}
+
+Desde la versión que le entregué, el relatorio se actualizó (versión del 18/10, 57~pp.).
+Ahora incluye el Exp.~C2 y corrige los pasajes que presentaban TE a 90° como el mejor
+resultado del estudio. Abajo respondo cada comentario y, al final, dejo tres preguntas para
+la próxima reunión.
+
+\section*{Resumen}
+
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.3cm}LL@{}}
+\toprule
+Punto & Respuesta & Próximo paso \\
+\midrule
+1. Validar la trayectoria &
+De acuerdo: se eligió sólo con el blanco puntual. &
+Reevaluar los 10--15 mejores candidatos con objetos reales y clutter. \\
+\addlinespace
+2. Nulo TE a 90° &
+Era un artefacto del blanco puntual. El nulo útil es el VV en TM a 135°--140°. &
+Verificarlo con un modelo de superficie de orden superior. \\
+\addlinespace
+3. Combinar canales &
+De acuerdo: pesos iguales desperdician el canal bi. &
+Comparar cuatro métodos de combinación. \\
+\addlinespace
+4. Calibración &
+Hipótesis de trabajo: el desfase entre canales es constante en la colecta. &
+Evaluación previa de la deriva esperada; simular sólo lo que supere la tolerancia. \\
+\addlinespace
+5. Aperturas parciales y suelos húmedos &
+Faltan aperturas parciales. La pérdida en suelo húmedo no depende de la geometría. &
+Repetir con arcos parciales y calcular la profundidad máxima por suelo. \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\noindent\textbf{Términos.}
+\emph{Mono}: imagen del transceptor solo. \emph{Bi}: imagen del receptor separado.
+\emph{Fusión}: suma de las dos imágenes.
+$\Delta\phi$: separación angular entre Tx y Rx alrededor de la escena.
+SCR: relación entre el eco del blanco y el clutter del suelo (más alto es mejor).
+ISLR: energía de los lóbulos laterales de la imagen (más bajo es mejor).
+SO(3): orientaciones aleatorias del objeto en 3D.
+
+% ════════════════════════════════════════════════════════════════════
+\section{Validación de la trayectoria propuesta}
+
+\encorto{la trayectoria se eligió con un blanco puntual y no se validó con objetos reales.}
+{tiene razón; hay que reevaluarla.}
+
+La trayectoria del Exp.~F se eligió por la calidad de imagen de un punto (ISLR). Las
+pruebas con objetos reales en orientaciones aleatorias (Exp.~E) se hicieron con
+separaciones fijas (45°, 90°, 135° y 180°), no con el barrido de 60° a 150° de esa
+trayectoria.
+
+\paso{Qué propongo}
+Reevaluar los 10 a 15 mejores candidatos, no sólo el elegido, con la misma prueba para
+todos: objetos reales con orientación aleatoria, Rx de doble polarización y suelo rugoso
+con clutter. El criterio sería el contraste típico (mediana) y la probabilidad de que la
+fusión mejore la imagen mono. La elección puede cambiar: con objetos reales, la zona de
+135° a 140° en TM vale más de lo que mostraba el punto (ver punto~2).
+
+La prueba ya está implementada (Exp.~E2); falta aplicarla a las trayectorias del Exp.~F.
+
+% ════════════════════════════════════════════════════════════════════
+\section{El nulo TE a 90°}
+
+\encorto{el nulo de clutter en TE a 90° puede ser un artefacto del modelo.}
+{lo es, aunque por otra razón: el blanco puntual no tiene polarización. El nulo que sí
+sirve es otro, en TM a 135°--140°.}
+
+Después de entregar el relatorio ejecuté el Exp.~C2, que repite la prueba con una esfera y
+un cubo metálicos. A 90° en TE el suelo deja de devolver clutter, pero el objeto real
+tampoco devuelve eco. Sólo el punto escalar, que no tiene polarización, mostraba la mejora.
+
+\begin{center}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+SCR en TE [dB] & Mono & Bi 90° \\
+\midrule
+Punto escalar & 3.9 & \textbf{21.7} \\
+Esfera & 2.3 & $-4.8$ \\
+Cubo, orientación aleatoria & $-8.8$ & $-9.0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Lo que sí funciona con objetos reales es el nulo en TM con $\Delta\phi$ entre 135° y 140°
+(un ``Brewster biestático'' del clutter). Ahí la imagen bi sola mejora el SCR frente a la
+mono en 8 a 11~dB para la esfera y en 18 a 20~dB para el cubo con orientación aleatoria.
+
+\begin{center}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+SCR en TM [dB] & Mono & Bi 135° & Bi 140° & Fusión 140° \\
+\midrule
+Esfera & $-0.9$ & 7.5 & \textbf{9.8} & $-0.9$ \\
+Cubo nominal & $-9.5$ & 14.7 & \textbf{20.1} & 4.7 \\
+Cubo, orientación aleatoria & $-12.0$ & 6.2 & \textbf{8.3} & $-4.2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paso{Qué propongo}
+Este nulo también sale del modelo de superficie más simple (SPM de primer orden), así que
+su duda sigue en pie. Lo verificaría con:
+\begin{itemize}
+  \item un modelo de superficie de orden superior (IEM/AIEM o SPM de segundo orden);
+  \item polarización cruzada de la superficie y del blanco, que hoy no se modela;
+  \item suelos más realistas: otra función de correlación, rugosidad a varias escalas y
+  distintos valores de rugosidad.
+\end{itemize}
+El nulo es estrecho (4 a 8° de $\Delta\phi$), así que también mediría cuánto se rellena y
+con qué precisión hay que mantener $\Delta\phi$ en vuelo.
+
+% ════════════════════════════════════════════════════════════════════
+\section{Forma de combinar los canales}
+
+\encorto{la suma con pesos iguales probablemente no es la mejor combinación.}
+{de acuerdo; el Exp.~C2 lo confirma.}
+
+Cuando la imagen bi tiene mucho menos clutter que la mono, sumarlas con el mismo peso
+devuelve el clutter de la mono a la fusión. A 140°, la imagen bi sola supera a la fusión en
+más de 10~dB de SCR. La suma de potencias (incoherente) ya la probamos: no necesita
+calibrar la fase, pero rinde 2~dB menos de ISLR y 4.4~dB menos de contraste que la suma
+coherente.
+
+\paso{Qué propongo}
+Comparar cuatro métodos en las mismas escenas (punto, objetos reales y clutter):
+\begin{enumerate}
+  \item suma coherente con pesos iguales (referencia);
+  \item suma coherente con pesos por canal, elegidos para el mejor SCR o el menor ISLR;
+  \item reconstrucción conjunta de los dos canales, que además puede estimar la fase entre
+  ellos;
+  \item suma de potencias (incoherente).
+\end{enumerate}
+
+% ════════════════════════════════════════════════════════════════════
+\section{Calibración entre canales}
+
+\encorto{suponer una única fase constante entre canales es el caso ideal; en la práctica
+puede variar con el tiempo y la frecuencia.}
+{nuestra hipótesis es que el desfase se mantiene constante durante la colecta. Podemos
+simular el escenario variable, pero después de una evaluación previa que diga si hace falta.}
+
+La fusión coherente necesita conocer el desfase entre el canal mono y el bi. Nuestra
+intuición es que ese desfase es el mismo a lo largo de toda la colecta biestática: los dos
+canales reciben el mismo pulso y el hardware no cambia durante el vuelo. Si es así, basta
+con estimarlo una vez (por ejemplo, sobre el lóbulo principal de un blanco conocido), como
+ya hace el relatorio.
+
+El escenario que usted plantea es más general:
+\[
+  \varphi(f,t) = \varphi_0 + 2\pi f\,\Delta\tau(t) + H(f).
+\]
+Aquí $\varphi_0$ es el desfase constante (nuestra hipótesis). $\Delta\tau(t)$ es un
+retardo que cambia durante la colecta, por deriva de reloj o error de posición del Rx.
+$H(f)$ es la diferencia de respuesta en frecuencia entre las dos cadenas de recepción.
+
+\paso{Qué propongo: primero una evaluación previa}
+Antes de simular el modelo completo, estimar cuánto puede valer cada término con el
+hardware que usaremos y compararlo con la tolerancia que ya conocemos. Las simulaciones del
+relatorio dicen que la fusión aguanta un error de fase residual de hasta unos 30°, lo que a
+425~MHz equivale a unos 0.2~ns de retardo o unos 6~cm de error en la longitud del trayecto.
+\begin{enumerate}
+  \item \textbf{Deriva de reloj:} con la estabilidad de los osciladores y la duración de la
+  colecta, calcular el retardo acumulado.
+  \item \textbf{Posición del Rx:} con la precisión del RTK, calcular el error de trayecto.
+  \item \textbf{Cadenas de recepción:} medir o estimar la diferencia de respuesta en la
+  banda.
+\end{enumerate}
+
+Si los tres quedan por debajo de la tolerancia, la hipótesis de fase constante es
+suficiente y lo dejamos documentado. Si alguno la supera, simulamos sólo ese término y
+diseñamos su corrección, por ejemplo estimando el retardo pulso a pulso con la señal
+directa Tx$\to$Rx. Con datos reales, la fase de esa señal directa a lo largo del vuelo
+permite comprobar la hipótesis de forma directa.
+
+% ════════════════════════════════════════════════════════════════════
+\section{Aperturas parciales y suelos húmedos}
+
+\encorto{los resultados usan la hélice completa y no tratan bien los suelos húmedos.}
+{las aperturas parciales faltan. La pérdida en suelo húmedo es un límite del sistema, no
+de la trayectoria.}
+
+Todos los resultados usan las dos vueltas completas de la hélice. Con un arco parcial la
+imagen cambia de forma, y la mejor separación $\Delta\phi$ puede ser otra.
+
+En suelo húmedo la pérdida de ida y vuelta hasta un blanco a 2~m (4~m dentro del suelo) es
+muy grande y afecta por igual a la mono y al bi:
+
+\begin{center}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Suelo & Atenuación [dB/m] & Pérdida ida y vuelta a 2~m [dB] \\
+\midrule
+S1 & 7.7 & $\approx31$ \\
+S2 & 13.6 & $\approx54$ \\
+S3 & 27.7 & $\approx111$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paso{Qué propongo}
+\begin{itemize}
+  \item Repetir los Exp.~B y F con arcos de 45°, 90°, 180° y 360°.
+  \item Calcular, para cada suelo, la profundidad máxima a la que el blanco todavía
+  supera al clutter (SCR~$>0$), y cómo crece al bajar la frecuencia.
+\end{itemize}
+Así acotamos dónde vale la propuesta, en lugar de presentarla como general.
+
+% ════════════════════════════════════════════════════════════════════
+\section{Prioridad propuesta}
+
+\begin{enumerate}
+  \item Puntos 1 y 3, porque definen la trayectoria y la forma de combinar los canales.
+  \item Punto 2, que es lo que justificaría la novedad del artículo.
+  \item Puntos 4 y 5, más acotados, en paralelo. El punto 4 empieza por la evaluación
+  previa.
+\end{enumerate}
+
+% ════════════════════════════════════════════════════════════════════
+\section{Preguntas para la próxima reunión}
+
+\begin{enumerate}
+  \item ¿Qué podemos publicar, y en qué congreso o revista?
+  \item ¿Cuáles son los pasos para finalizar la investigación, además de la colecta y el
+  procesamiento de datos reales?
+  \item ¿Podemos definir el objetivo, la contribución y los resultados del cuerpo de la
+  tesis?
+\end{enumerate}
+
+\vspace{0.5cm}
+Saludos,\\
+David
+
+\end{document}

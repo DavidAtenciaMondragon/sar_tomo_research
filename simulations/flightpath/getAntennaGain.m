@@ -12,7 +12,8 @@ function G = getAntennaGain(tg, Tx_pos, az_Tx_ref, el_Tx_ref, radPattern)
     az_Tx_tg(az_Tx_tg < 0) = az_Tx_tg(az_Tx_tg < 0) + 2*pi;
     
     az_delta_pattern = az_Tx_ref - az_Tx_tg;
-    az_delta_pattern(az_delta_pattern > pi) = az_delta_pattern(az_delta_pattern > pi) - 2*pi;
+    az_delta_pattern(az_delta_pattern > pi)  = az_delta_pattern(az_delta_pattern > pi)  - 2*pi;
+    az_delta_pattern(az_delta_pattern < -pi) = az_delta_pattern(az_delta_pattern < -pi) + 2*pi;
     
     idx_az = (az_delta_pattern + pi/2) * 180/pi;
     

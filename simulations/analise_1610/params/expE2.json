@@ -1,0 +1,50 @@
+{
+  "_descripcion": "Exp. E2 - Igual que el Exp. E pero con el Rx de polarizacion ALINEADA (pol = TMAL): el Tx transmite TM y el Rx (doble polarizacion) combina sus canales para recibir la componente del campo del Tx transversal a la direccion de recepcion. Motivo: en el Exp. E, con Rx TM co-polar, el canal bi a 90 deg cae ~20 dB en potencia media por desajuste geometrico de polarizacion (en el suelo los rayos son casi verticales y el vector TM es casi horizontal y radial).",
+  "n_pulsos": 800,
+  "objetos": {
+    "cubo": {
+      "tipo": "cubo",
+      "dim": 1.0,
+      "N": 200
+    },
+    "caja": {
+      "tipo": "caja",
+      "dim": [
+        1.0,
+        0.5,
+        0.3
+      ],
+      "N": 200
+    },
+    "cilindro": {
+      "tipo": "cilindro",
+      "dim": [
+        0.3,
+        1.0
+      ],
+      "N": 200
+    },
+    "tubo": {
+      "tipo": "tubo",
+      "dim": [
+        0.15,
+        2.0
+      ],
+      "N": 200
+    }
+  },
+  "dphi_list": [
+    45,
+    90,
+    135
+  ],
+  "rejilla_mc": {
+    "hx": 1.2,
+    "dx": 0.06,
+    "z_lo": -1.5,
+    "z_hi": 1.5,
+    "dz": 0.1
+  },
+  "n_boot": 2000,
+  "pol": "TMAL"
+}

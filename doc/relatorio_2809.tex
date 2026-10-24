@@ -1,0 +1,2347 @@
+%% relatorio_2809.tex
+%% Relatorio de investigación (28/09/2026):
+%%   Cap. 2  Revisión de literatura sobre SAR biestático y ángulo de Brewster
+%%   Cap. 3-6 Análisis energético monoestático vs. biestático especular de
+%%            objetos tridimensionales enterrados (metodología, resultados,
+%%            discusión y conclusiones)
+%% Compilar: pdflatex relatorio_2809.tex (dos pasadas)
+
+\documentclass[11pt,a4paper]{report}
+
+% ─── paquetes ────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-noshorthands]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\geometry{left=2.7cm, right=2.5cm, top=2.7cm, bottom=2.7cm}
+
+\usepackage{amsmath,amssymb}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\usepackage{titlesec}
+
+\graphicspath{{figures/relatorio_2809/}}
+\captionsetup{font=small, labelfont=bf}
+
+\titleformat{\chapter}[display]{\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{12pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-20pt}{25pt}
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{3em}
+\setlength{\parskip}{0.5\baselineskip}
+
+\newcommand{\dB}{\,\mathrm{dB}}
+\newcommand{\dBm}{\,\mathrm{dBm}}
+\newcommand{\dBsm}{\,\mathrm{dBsm}}
+\newcommand{\vect}[1]{\bm{#1}}
+\newcommand{\uv}[1]{\hat{\bm{#1}}}
+\newcommand{\sig}{$^{\ast}$}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcommand{\si}{\checkmark}
+\newcommand{\pa}{$\circ$}
+\newcommand{\no}{--}
+\newcommand{\grupo}[1]{\addlinespace[3pt]\multicolumn{6}{@{}l}{\textit{#1}}\\*\addlinespace[1pt]}
+
+\title{\bfseries SAR biestático para sensado subsuperficial:\\[4pt]
+revisión de literatura y análisis energético monoestático\\
+frente a biestático especular con el ángulo de Brewster\\[10pt]
+\large Relatorio de investigación}
+\author{David Atencia}
+\date{28 de septiembre de 2026}
+
+\begin{document}
+\maketitle
+
+% ══════════════════════════════════════════════════════════════════════════
+\begin{abstract}
+\noindent
+Este relatorio reúne dos contribuciones de la investigación doctoral sobre
+radar de apertura sintética (SAR) biestático para la detección de blancos
+enterrados. En primer lugar, presenta una revisión de 22 trabajos de la
+literatura sobre SAR biestático ---fundamentos geométricos, formación de
+imagen, tomografía 3D, sistemas aerotransportados y explotación del ángulo
+de Brewster---, que concluye que ningún trabajo combina SAR biestático
+tomográfico, refracción en la interfaz aire--suelo y optimización de la
+geometría de adquisición guiada por el ángulo de Brewster. En segundo lugar,
+cuantifica mediante simulación el balance energético de dos configuraciones
+de adquisición sobre un arco de radio constante de 100\,m: monoestática y
+biestática especular (receptor en posición simétrica al transmisor respecto
+de la vertical del blanco). Se modela la propagación con refracción de Snell
+y transmitancia de Fresnel en polarización TM, y la sección eficaz radar
+(RCS) biestática de cinco sólidos conductores (cubo, caja, cilindro, esfera y
+cono) mediante Óptica Física evaluada en el medio, a 425\,MHz y con índice
+de refracción del suelo $n=2$. Con el blanco en orientación nominal, el modo
+especular recibe entre $+6$ y $+10\dB$ más energía que el monoestático en los
+objetos con una cara plana horizontal, debido a que la bisectriz
+transmisor--receptor permanece vertical y mantiene la reflexión especular de
+esa cara. Sin embargo, un experimento de Monte Carlo con $10^4$ orientaciones
+aleatorias e independientes por posición muestra que, promediando sobre la
+orientación del blanco, la diferencia energética entre ambos modos es
+despreciable para todos los objetos (entre $-0.37$ y $+0.21\dB$). El
+ángulo de Brewster aporta una ganancia de transmitancia de solo $+1.02\dB$
+respecto del nadir; su principal beneficio en la configuración especular es
+la anulación de la reflexión especular de la superficie, que mejora la
+relación señal-reflexión de superficie en más de $40\dB$ en el entorno
+inmediato del ángulo de Brewster.
+\end{abstract}
+
+\tableofcontents
+
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Introducción}
+\label{cap:intro}
+
+El radar de apertura sintética (SAR) aplicado a la detección de blancos
+enterrados debe superar dos barreras físicas que no existen en la
+observación de superficie: la pérdida de potencia en la interfaz aire--suelo
+y la reflexión de la propia superficie, que compite con el eco del blanco.
+En una geometría biestática, en la que transmisor (Tx) y receptor (Rx) se
+encuentran en plataformas distintas ---por ejemplo, dos vehículos aéreos no
+tripulados---, la libertad adicional de posicionar el receptor abre la
+posibilidad de elegir geometrías que favorezcan la transmisión de energía
+hacia el subsuelo y su retorno. El ángulo de Brewster, para el que la
+reflexión de una onda con polarización TM en una interfaz dieléctrica se
+anula y la transmisión es total, es el candidato físico natural para guiar
+esa elección.
+
+Este relatorio aborda dos preguntas complementarias:
+
+\begin{enumerate}[itemsep=2pt]
+  \item \textbf{¿Qué se ha publicado?} ¿Existe en la literatura algún
+  trabajo que combine SAR biestático tomográfico, propagación con
+  refracción en la interfaz aire--suelo y optimización de la geometría de
+  adquisición guiada por el ángulo de Brewster? (Capítulo~\ref{cap:revision}.)
+  \item \textbf{¿Cuánta energía se gana realmente?} Para blancos
+  tridimensionales enterrados, ¿recibe más energía una configuración
+  biestática especular que una monoestática cuando ambas recorren la misma
+  trayectoria angular? ¿Qué parte de la diferencia se debe al ángulo de
+  Brewster y qué parte a la dispersión del propio blanco? ¿Se mantiene la
+  conclusión cuando la orientación del blanco es desconocida?
+  (Capítulos~\ref{cap:metodologia} a~\ref{cap:discusion}.)
+\end{enumerate}
+
+La segunda pregunta es relevante para el diseño de trayectorias: si la
+ventaja energética del modo biestático dependiera críticamente de la
+orientación del blanco, una estrategia de vuelo optimizada para un único
+supuesto geométrico podría no ser robusta en campo.
+
+\textbf{Organización.} El Capítulo~\ref{cap:revision} presenta la revisión
+de literatura. El Capítulo~\ref{cap:metodologia} describe el escenario, los
+modelos de propagación, de ecuación radar y de sección eficaz, y el diseño
+del experimento de Monte Carlo. El Capítulo~\ref{cap:resultados} presenta
+los resultados de validación, de orientación nominal, de los diagramas de
+dispersión 3D y del Monte Carlo. El Capítulo~\ref{cap:discusion} interpreta
+físicamente los resultados, los sitúa respecto de la literatura y discute
+sus limitaciones. El Capítulo~\ref{cap:conclusiones} resume las conclusiones
+y el trabajo futuro. El Apéndice~\ref{ap:figuras} reúne las figuras de todos
+los objetos simulados.
+
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Revisión de literatura: sistemas SAR biestáticos}
+\label{cap:revision}
+
+\section{Introducción y criterio de selección}
+\label{sec:rev_intro}
+
+Este capítulo reúne 22 trabajos de la literatura que abordan, en distintos
+niveles de la cadena de procesado SAR (geometría, resolución, formación de
+imagen, tomografía 3D, sistemas experimentales y explotación del ángulo de
+Brewster), el caso en que el transmisor y el receptor \textbf{no comparten
+la misma plataforma}. Esta condición es \emph{imprescindible} para la
+selección de los bloques A--D, ya que define el marco de la presente
+investigación: SAR biestático helicoidal con propagación en uno o varios
+medios (aire--suelo). El bloque E amplía deliberadamente la búsqueda al caso
+monoestático, por tratarse de una comprobación de novedad específica
+(véase la Sección~\ref{sec:brewster}).
+
+Se priorizaron publicaciones recientes (2018--2025) para capturar el estado
+del arte actual, complementadas con tres referencias fundacionales
+(Arikan~\&~Munson 1989, Ding~\&~Munson 2002, Horne~\&~Yates 2002) que forman
+parte del marco teórico de la tesis y se incluyen para contextualizar la
+evolución del campo. Cada entrada presenta una síntesis del resumen original
+y el beneficio concreto de su lectura o incorporación para la presente
+investigación.
+
+Los trabajos se agrupan en cinco bloques temáticos:
+\begin{enumerate}[itemsep=2pt]
+  \item Fundamentos geométricos y resolución espacial biestática (Sección~\ref{sec:fundamentos}).
+  \item Formación de imagen y algoritmos de reconstrucción biestática (Sección~\ref{sec:algoritmos}).
+  \item Tomografía SAR biestática y multiestática 3D (Sección~\ref{sec:tomografia}).
+  \item Sistemas biestáticos aerotransportados y UAV (Sección~\ref{sec:uav}).
+  \item Ángulo de Brewster y optimización de potencia recibida, biestático y monoestático (Sección~\ref{sec:brewster}).
+\end{enumerate}
+
+% ──────────────────────────────────────────────────────────────────────────
+\section{Fundamentos geométricos y resolución espacial biestática}
+\label{sec:fundamentos}
+
+\begin{enumerate}[label=\textbf{[A\arabic*]}, leftmargin=2.2cm, itemsep=10pt]
+
+\item Horne, A.M.; Yates, G. (2002). \textit{Bistatic synthetic aperture
+radar.} En \emph{Proc. RADAR 2002}, Edimburgo, IEE Publication No.\,490,
+pp.\,6--10. \cite{horne2002}\\
+\textbf{Síntesis del resumen:} el SAR es cada vez más importante en
+vigilancia terrestre militar por su capacidad de operar en cualquier clima,
+de día y de noche, y de detectar, clasificar y geolocalizar objetos a largo
+alcance. El biestático (Tx/Rx en plataformas separadas) se ve como un medio
+de contrarrestar la vulnerabilidad electrónica, manteniendo la plataforma
+receptora encubierta mientras el transmisor ---más vulnerable--- puede
+desplegarse más lejos. El artículo repasa la investigación de QinetiQ sobre
+las técnicas de procesado para SAR biestático, los problemas fundamentales
+que introduce (sincronización, ruido de fase, ejes de imagen no ortogonales)
+y cómo superarlos.\\
+\textbf{Beneficio:} proporciona el marco conceptual completo que sostiene el
+modelo geométrico biestático de esta investigación; ayuda a anticipar
+problemas prácticos (sincronización Tx/Rx, ruido de fase acumulado) antes de
+un eventual despliegue real con dos UAV.
+
+\item Homer, J.; Donskoi, E.; Mojarrabi, B.; Palmer, J.; Kubik, K. (2005).
+\textit{Three-dimensional bistatic synthetic aperture radar imaging system:
+spatial resolution analysis.} \emph{IEE Proceedings -- Radar, Sonar and
+Navigation}, 152(6), 391--394. \cite{homer2005}\\
+\textbf{Síntesis del resumen:} presentan un marco matemático para analizar
+la capacidad de resolución espacial de un sistema SAR biestático 3D
+general, en el que transmisor, receptor y objeto (o región de interés)
+pueden ser no coplanares y en el que el transmisor y/o el receptor pueden
+estar en movimiento. Con aplicaciones de observación de la Tierra en mente,
+el marco se usa para caracterizar cuantitativamente la resolución 2D en el
+plano del terreno del sistema de imagen 3D; los resultados teóricos se
+confirman mediante simulación.\\
+\textbf{Beneficio:} es la referencia teórica más cercana a la derivación de
+las resoluciones horizontal y vertical, $\delta_{xy}$ y $\delta_z$, de esta
+investigación, pero para geometría arbitraria (no solo circular o
+helicoidal); permite generalizar el análisis de resolución a trayectorias no
+ideales (deriva, viento) y validar la fórmula de resolución en el plano del
+terreno con un caso 3D genérico.
+
+\item Garza, G.; Qiao, Z. (2010). \textit{Resolution analysis of bistatic
+SAR.} En \emph{Proc. SPIE 8021, Radar Sensor Technology XV}, 80210F.
+\cite{garza2010}\\
+\textbf{Síntesis del resumen:} analizan la resolución de imágenes SAR
+biestáticas de objetos estacionarios reconstruidas mediante un método de
+inversión por retroproyección filtrada, derivado de un modelo de ecuación de
+onda escalar, que tiene en cuenta los patrones de haz de la antena y
+trayectorias de vuelo arbitrarias. El análisis se realiza examinando la
+variedad (\emph{manifold}) de recolección de datos para distintas geometrías
+experimentales y parámetros del sistema.\\
+\textbf{Beneficio:} su función de dispersión puntual (PSF), ligada
+explícitamente al patrón de haz de la antena, permite refinar el modelo de
+resolución de esta investigación incorporando el diagrama de radiación real
+de las antenas Tx/Rx, que las fórmulas actuales asumen idealizado.
+
+\item Chen, Y.; Chen, R.; Liu, H.; Guo, J.; Wang, Y.; Zhang, J. (2022).
+\textit{Research on configuration constraints of airborne bistatic SARs.}
+\emph{Sensors}, 22(17), 6534.
+\href{https://doi.org/10.3390/s22176534}{doi:10.3390/s22176534}
+\cite{chen2022}\\
+\textbf{Síntesis del resumen:} a partir del análisis de la geometría de
+imagen del SAR biestático aerotransportado, emplean un algoritmo de
+\emph{chirp scaling} no lineal extendido para simular y verificar el efecto
+de imagen. Proponen un modelo de resolución 2D biestático basado en teoría
+de gradientes y analizan las restricciones de los parámetros de trayectoria
+multiplataforma que satisfacen la precisión de imagen requerida. Mediante
+simulación con trayectorias cooperativas en distintos escenarios, revelan la
+envolvente de restricción de configuración espacial entre los vehículos
+para lograr la resolución óptima.\\
+\textbf{Beneficio:} su ``envolvente de configuración válida'' entre Tx y Rx
+es directamente aplicable para acotar el espacio de búsqueda del
+optimizador de trayectoria del receptor, hoy basado en un esquema de
+arranques múltiples sin restricción geométrica derivada analíticamente, lo
+que podría acelerar su convergencia.
+
+\end{enumerate}
+
+% ──────────────────────────────────────────────────────────────────────────
+\section{Formación de imagen y algoritmos de reconstrucción biestática}
+\label{sec:algoritmos}
+
+\begin{enumerate}[label=\textbf{[B\arabic*]}, leftmargin=2.2cm, itemsep=10pt]
+
+\item Arikan, O.; Munson, D.C.\,Jr. (1989). \textit{A tomographic
+formulation of bistatic synthetic aperture radar.} En Porter, W.A.; Kak,
+S.C. (eds.), \emph{Advances in Communications and Signal Processing},
+Lecture Notes in Control and Information Sciences, vol.\,129, pp.\,418--431,
+Springer. (Presentado en \emph{Proc. ComCon '88}, Baton Rouge, LA, oct.\,1988.)
+\cite{arikan1989}\\
+\textbf{Síntesis del resumen:} un radar biestático es aquel con antenas
+transmisora y receptora separadas por una distancia comparable a la
+distancia al objetivo; el concepto no es nuevo pero fue eclipsado durante
+décadas por el monoestático. En los años previos hubo un interés militar
+considerable en el SAR biestático de modo \emph{spotlight} (BSSAR), en el
+que un transmisor de alta potencia opera a distancia segura mientras un
+receptor encubierto vuela cerca del área objetivo. Dan una derivación
+básica del BSSAR desde primeros principios, mostrando ---de forma análoga al
+caso monoestático (MSSAR)--- que puede explicarse mediante el teorema de
+corte-proyección de la tomografía asistida por computador, sin depender del
+efecto Doppler: para cada ángulo de observación, los datos BSSAR
+demodulados son muestras aproximadamente limitadas en banda de una rebanada
+de la transformada de Fourier 2D de la reflectividad del objetivo. Examinan
+la ubicación de las muestras en el dominio de Fourier y la curvatura del
+frente de onda para varios casos especiales de movimiento de Tx y Rx.\\
+\textbf{Beneficio:} es la base tomográfica (dominio del número de onda) que
+sostiene el marco teórico de la tesis; su análisis de la curvatura del
+frente de onda permite verificar que la aproximación de campo lejano del
+modelo de propagación multicapa sigue siendo válida para las distancias
+Tx--blanco del escenario con UAV.
+
+\item Ding, Y.; Munson, D.C.\,Jr. (2002). \textit{A fast back-projection
+algorithm for bistatic SAR imaging.} En \emph{Proc. IEEE Int. Conf. on Image
+Processing (ICIP)}, vol.\,II, pp.\,449--452. \cite{ding2002}\\
+\textbf{Síntesis del resumen:} con un modelo de campo lejano, el SAR
+biestático adquiere datos de Fourier en una grilla no cartesiana poco
+habitual. Los algoritmos previos se basaban principalmente en la
+reconstrucción directa de Fourier (DFR) para aprovechar la FFT, pero la
+cobertura irregular de los datos y la interpolación 2D en el dominio de
+Fourier pueden afectar la precisión de la reconstrucción. La
+retroproyección (BP) evita estos problemas pero tiene un costo
+computacional enorme, $O(N^3)$ frente a $O(N^2\log_2 N)$ de la DFR.
+Presentan un algoritmo BP rápido para SAR biestático, inspirado en un
+algoritmo rápido de BP para tomografía, que logra un costo del mismo orden
+que la DFR y que además puede usarse para imagen de campo cercano; validan
+el rendimiento mediante simulación.\\
+\textbf{Beneficio:} es el antecedente algorítmico directo de la
+retroproyección empleada en la cadena de procesamiento de esta
+investigación; su versión rápida (jerárquica) permitiría escalar la
+reconstrucción a grillas volumétricas más finas sin el costo $O(N^3)$
+actual.
+
+\item Zhang, H.; Tang, J.; Wang, R.; Deng, Y.; Wang, W.; Li, N. (2018).
+\textit{An accelerated backprojection algorithm for monostatic and bistatic
+SAR processing.} \emph{Remote Sensing}, 10(1), 140.
+\href{https://doi.org/10.3390/rs10010140}{doi:10.3390/rs10010140}
+\cite{zhang2018}\\
+\textbf{Síntesis del resumen:} proponen un algoritmo BP acelerado a partir
+de Block\_FFBP en el que un número fijo de ``pivotes'' ---en vez de centros
+de haz que crecen con cada etapa de factorización--- construye la relación
+de retardo de propagación, y los datos de rango se procesan como un bloque
+completo, sin partición en la dimensión de rango, gracias a un esquema
+integrado de procesamiento en rango. El esquema se extiende a SAR
+biestático (BiBulk\_FFBP) y monoestático (MoBulk\_FFBP), transfiriendo el
+cálculo del rango oblicuo del sistema polar al cartesiano. Validan el
+algoritmo con datos reales del experimento SAR biestático
+espacial/estacionario TerraSAR-X en modo \emph{staring spotlight} y con un
+experimento SAR aerotransportado de 2016.\\
+\textbf{Beneficio:} ruta de aceleración computacional validada con datos
+reales de una misión biestática espacial; referencia de eficiencia
+aplicable a la retroproyección volumétrica de esta investigación si se
+adopta un esquema jerárquico (FFBP).
+
+\item Wang, Z.; Liu, M.; Ai, G.; Wang, P.; Lv, K. (2020). \textit{Focusing of
+bistatic SAR with curved trajectory based on extended azimuth nonlinear
+chirp scaling.} \emph{IEEE Transactions on Geoscience and Remote Sensing},
+58(6), 4160--4179. \cite{wang2020}\\
+\textbf{Síntesis del resumen:} proponen un modelo de rango de movimiento de
+alto orden y un algoritmo de \emph{chirp scaling} no lineal acimutal
+extendido (EANLCS) con corrección residual del centroide Doppler, para
+enfocar datos SAR biestáticos con trayectoria curva de las plataformas. El
+trabajo aborda el acoplamiento rango--acimut adicional y la variación
+espacial de la migración de celda de rango y de la tasa Doppler causadas por
+la trayectoria curva, efectos que los algoritmos tradicionales ---derivados
+para trayectorias rectilíneas de velocidad uniforme--- no pueden procesar.\\
+\textbf{Beneficio:} es la referencia más cercana al caso de trayectorias
+helicoidales cónicas de esta investigación, ya que ninguno de los algoritmos
+biestáticos clásicos (Arikan, Ding) asume trayectoria curva; su modelo de
+rango de alto orden es candidato a mejorar la precisión de fase del
+procesador si en el futuro se simplifica el cálculo exacto de la distancia
+por el principio de Fermat.
+
+\item Sun, H.; Sun, Z.; Chen, T.; Miao, Y.; Wu, J.; Yang, J. (2022).
+\textit{An efficient backprojection algorithm based on wavenumber-domain
+spectral splicing for monostatic and bistatic SAR configurations.}
+\emph{Remote Sensing}, 14(8), 1885.
+\href{https://doi.org/10.3390/rs14081885}{doi:10.3390/rs14081885}
+\cite{sun2022}\\
+\textbf{Síntesis del resumen:} en la FBP tradicional, cada subapertura usa
+su propio sistema de coordenadas polares centrado en ella, por lo que las
+imágenes de subapertura deben proyectarse a un sistema uniforme antes de
+sumarse coherentemente, con gran costo computacional. Proponen usar el
+mismo sistema polar para todas las subaperturas y empalmar (\emph{splice})
+sus imágenes en el dominio del número de onda, sumándolas directamente tras
+un sobremuestreo, lo que mejora precisión y eficiencia; el método es
+aplicable a configuraciones mono y biestáticas.\\
+\textbf{Beneficio:} técnica de fusión en el dominio del número de onda
+directamente relacionada con el análisis de la cobertura espectral
+$k_{xy}$--$k_z$ de esta investigación; útil para acelerar la formación de la
+imagen volumétrica sin sacrificar la precisión de fase que determina la
+resolución vertical $\delta_z$.
+
+\item Zhao, T.; Wang, J.; Cheng, Z.; Huang, Z.; Song, J. (2025). \textit{A
+subimage autofocus bistatic ground Cartesian back-projection algorithm for
+passive bistatic SAR based on GEO satellites.} \emph{Remote Sensing}, 17(9),
+1576. \href{https://doi.org/10.3390/rs17091576}{doi:10.3390/rs17091576}
+\cite{zhao2025}\\
+\textbf{Síntesis del resumen:} el SAR biestático pasivo (PBSAR) basado en
+señales de satélites geoestacionarios muestra potencial para imagen de alta
+resolución, pero enfrenta los desafíos de la eficiencia computacional y la
+compensación de errores de fase. Proponen un algoritmo de retroproyección
+cartesiana en tierra con autoenfoque de subimagen (SIAF-BGCBP), basado en la
+corrección del espectro de número de onda de cada subimagen, que reduce en
+un 90\,\% la complejidad de la estimación de fase al optimizar la densidad
+de píxeles de subimagen, manteniendo la precisión.\\
+\textbf{Beneficio:} relevante si en el futuro se explora una arquitectura
+biestática pasiva de bajo costo (iluminador fijo o satelital + receptor en
+UAV) como alternativa al esquema Tx/Rx activo dual; su autoenfoque por
+subimagen es transferible a la corrección de fase por errores de
+posicionamiento GNSS del receptor.
+
+\end{enumerate}
+
+% ──────────────────────────────────────────────────────────────────────────
+\section{Tomografía SAR biestática y multiestática 3D}
+\label{sec:tomografia}
+
+\begin{enumerate}[label=\textbf{[C\arabic*]}, leftmargin=2.2cm, itemsep=10pt]
+
+\item Ge, N.; Zhu, X.X. (2019). \textit{Bistatic-like differential SAR
+tomography.} \emph{IEEE Transactions on Geoscience and Remote Sensing},
+57(8), 5883--5893. \cite{ge2019}\\
+\textbf{Síntesis del resumen:} abordan la tomografía SAR diferencial
+(D-TomoSAR) en áreas urbanas con adquisiciones espaciales biestáticas o
+``pursuit monostatic''. Estos interferogramas no sufren decorrelación
+temporal significativa ni pantalla de fase atmosférica, por lo que son
+idóneos para reconstruir la elevación. Proponen un marco de dos etapas:
+primero reconstruyen la elevación de los dispersores con interferogramas de
+tipo biestático y luego la incorporan como información a priori
+determinística para estimar la deformación a partir de interferogramas
+convencionales de paso repetido.\\
+\textbf{Beneficio:} su estrategia de dos etapas es transferible para
+separar la localización 3D del blanco enterrado (elevación o profundidad) de
+la estimación de su reflectividad, lo que podría reducir el espacio de
+búsqueda de la retroproyección volumétrica.
+
+\item Chen, Z.; Li, Y.; Hu, C. et al. (2024). \textit{Repeat-pass
+space-surface bistatic SAR tomography: accurate imaging and first
+experiment.} \emph{Science China Information Sciences}, 67, 192304.
+\href{https://doi.org/10.1007/s11432-024-4089-2}{doi:10.1007/s11432-024-4089-2}
+\cite{chenz2024}\\
+\textbf{Síntesis del resumen:} la tomografía SAR biestática
+espacio--superficie (SS-BiSAR) ofrece un ángulo de observación adicional al
+SAR monoestático espacial y es prometedora para recuperar deformaciones con
+alta precisión en regiones locales. Presentan el primer experimento de
+tomografía SS-BiSAR de paso repetido, con el satélite gemelo chino LuTan-1
+en banda L, adquiriendo 11 imágenes y recuperando nubes de puntos 3D de un
+área edificada con $\sim$4\,m de precisión. Proponen un método de
+corrección de efemérides basado en la transformada chirp-Z para corregir la
+distorsión geométrica y los errores de fase interferométrica causados por
+imprecisiones orbitales.\\
+\textbf{Beneficio:} primera demostración experimental de tomografía
+biestática 3D real en banda L, la misma banda que una de las
+configuraciones del sistema estudiado en esta investigación; su corrección
+de la posición de la plataforma es análoga al problema de los errores de
+posicionamiento del receptor UAV que afectarían la fase de la
+retroproyección en campo.
+
+\item Wu, J.; Yang, J.; Li, Z.; Pu, W.; Sun, Z.; An, H.; Yang, Q. (2025).
+\textit{Review of bistatic synthetic aperture radar imaging methods.}
+\emph{Journal of Radars}, 14(5), 1115--1141.
+\href{https://doi.org/10.12000/JR25067}{doi:10.12000/JR25067}
+\cite{wu2025}\\
+\textbf{Síntesis del resumen:} el SAR biestático emplea plataformas de
+transmisión y recepción espacialmente separadas para obtener imágenes de
+alta resolución de escenas terrestres y marítimas en entornos complejos,
+con ventajas de configuración flexible, capacidad de ocultamiento,
+resistencia a interferencias y adquisición más completa de información del
+blanco. Como el modelo de eco del BiSAR difiere sustancialmente del
+monoestático, el procesado de imagen es crítico. La revisión examina los
+desafíos y soluciones para las configuraciones BiSAR aerotransportada, de
+plataformas de alta velocidad y maniobrabilidad, espacial heterogénea y
+espacial homogénea, junto con la compensación de movimiento y la imagen de
+blancos móviles, y ofrece una perspectiva de tendencias futuras.\\
+\textbf{Beneficio:} es el mapa más actualizado (2025) del campo completo;
+su lectura íntegra es la forma más eficiente de verificar que el estado del
+arte de la tesis no omite ninguna línea activa de investigación.
+
+\item He, J.; Xie, H.; Liu, H.; Wu, Z.; Xu, B.; Zhu, N.; Lu, Z.; Qin, P.
+(2025). \textit{Multi-baseline bistatic SAR three-dimensional imaging
+method based on phase error calibration combining PGA and EB-ISOA.}
+\emph{Remote Sensing}, 17(3), 363.
+\href{https://doi.org/10.3390/rs17030363}{doi:10.3390/rs17030363}
+\cite{he2025}\\
+\textbf{Síntesis del resumen:} la TomoSAR monoestática multi-línea de base
+sufre decorrelación temporal en escenas como bosques; además, el
+\emph{jitter} de la plataforma y los errores de medición de posición
+introducen errores de fase que degradan la reconstrucción. Proponen un
+método de imagen 3D biestático multi-línea de base que combina la
+calibración de fase PGA (\emph{Phase Gradient Autofocus}) con un nuevo
+método EB-ISOA para corregir estos errores.\\
+\textbf{Beneficio:} aborda exactamente el problema de \emph{jitter} de
+plataforma y error de posición degradando la fase que enfrentaría cualquier
+implementación real con dos UAV en trayectorias helicoidales
+independientes; su combinación PGA+EB-ISOA es un candidato concreto de
+autoenfoque antes de una validación experimental.
+
+\item Andre, D.; Krishnan, V.P.; Nolan, C. (2025). \textit{Artefact analysis
+of multistatic three-dimensional SAR imaging with two linear
+trajectories.} arXiv:2503.11323. \cite{andre2025}\\
+\textbf{Síntesis del resumen:} con la mejora de la tecnología de radar, el
+SAR multiestático es hoy una posibilidad realista, por ejemplo en
+constelaciones de satélites o en sistemas de aeronaves no tripuladas, lo que
+exige investigar geometrías multiestáticas útiles. Realizan un análisis
+microlocal de una geometría en la que transmisor y receptor se mueven
+independientemente a lo largo de dos rectas que cubren una región de
+interés (ROI), muestran cómo la geometría de adquisición determina la
+presencia de artefactos en la imagen y proponen una condición de
+\emph{time-gating} sobre los datos que garantiza la ausencia de artefactos
+en la ROI, verificada con simulaciones numéricas.\\
+\textbf{Beneficio:} herramienta analítica rigurosa para predecir y evitar
+artefactos antes de simular; aplicar su condición de \emph{time-gating} a la
+cadena de generación de señal y procesamiento permitiría filtrar a priori
+qué pares de posiciones Tx/Rx de la trayectoria helicoidal aportan energía
+útil al blanco, reduciendo artefactos en la retroproyección volumétrica.
+
+\end{enumerate}
+
+% ──────────────────────────────────────────────────────────────────────────
+\section{Sistemas biestáticos aerotransportados y UAV}
+\label{sec:uav}
+
+\begin{enumerate}[label=\textbf{[D\arabic*]}, leftmargin=2.2cm, itemsep=10pt]
+
+\item Liu, M. et al. (2024). \textit{Unmanned airborne bistatic
+interferometric synthetic aperture radar data processing method using
+bi-directional synchronization chain signals.} \emph{Remote Sensing},
+16(5), 769. \href{https://doi.org/10.3390/rs16050769}{doi:10.3390/rs16050769}
+\cite{liu2024}\\
+\textbf{Síntesis del resumen:} los UAV equipados con InSAR biestático tienen
+bajo costo y alta flexibilidad, útiles para cartografía y exploración de
+recursos. Debido a los desafíos de sincronización espaciotemporal y errores
+de movimiento, proponen un método integral de procesamiento para InSAR
+biestático en UAV de pequeño porte, que integra señales de cadena de
+sincronización bidireccional, compensación de errores de sincronización
+temporal y de fase, refinamiento de trayectoria, imagen InSAR biestática de
+alta precisión y procesamiento interferométrico. El método mejora la
+precisión interferométrica en puntos de calibración de 0.66\,m a 0.42\,m.\\
+\textbf{Beneficio:} es un sistema UAV biestático real y completo (hardware y
+procesado) con el mismo desafío de sincronización de dos plataformas aéreas
+independientes que enfrentaría una implementación física de esta
+investigación; su sincronización bidireccional es un candidato directo de
+diseño de hardware para una validación experimental.
+
+\item Grathwohl, A.; Meinecke, B.; Widmann, M.; Kanz, J.; Waldschmidt, C.
+(2023). \textit{UAV-based bistatic SAR-imaging using a stationary
+repeater.} \emph{IEEE Journal of Microwaves}, 3(2), 625--634.
+\href{https://doi.org/10.1109/JMW.2023.3253667}{doi:10.1109/JMW.2023.3253667}
+\cite{grathwohl2023}\\
+\textbf{Síntesis del resumen:} el SAR se apoya en el movimiento propio del
+radar y en un largo tiempo de integración coherente, iluminando el blanco
+desde distintos ángulos; una configuración biestática permite adquirir
+simultáneamente múltiples ángulos de observación. Proponen un SAR
+biestático con un repetidor activo estacionario (BR-SAR) que actúa como
+segundo observador y proporciona una vía biestática con bajo costo y
+esfuerzo de hardware; describen las consideraciones de procesado y hardware
+y validan el enfoque con imágenes monoestáticas, biestáticas y
+multiestáticas combinadas de alta resolución.\\
+\textbf{Beneficio:} demuestra que un sistema biestático con UAV puede
+construirse con hardware simple (repetidor estacionario) en vez de dos
+plataformas activas sincronizadas; alternativa de bajo costo para una
+futura validación experimental de la trayectoria de receptor optimizada.
+
+\item Kanz, J.; Gesell, C.; Bonfert, C.; Werbunat, D.; Grathwohl, A.;
+Aguilar, J.; Vossiek, M.; Waldschmidt, C. (2025). \textit{UAV-borne digital
+radar system for coherent multistatic SAR imaging.} arXiv:2507.20792.
+\cite{kanz2025}\\
+\textbf{Síntesis del resumen:} los avances en conversores analógico-digitales
+permiten arquitecturas de radar digital que muestrean directamente la señal
+de radiofrecuencia, con mayor flexibilidad de forma de onda, en particular
+mediante modulación OFDM. Presentan un radar digital en UAV con formas de
+onda OFDM para imagen SAR multiestática coherente en banda L: un nodo
+primario transmite y adquiere datos monoestáticos, mientras nodos
+secundarios solo reciben, capturando la señal reflejada por la escena y una
+señal de enlace lateral directo. El sistema mantiene la coherencia en tiempo
+rápido y lento, y al ser pasivos los nodos secundarios permite escalar a un
+enjambre de UAV. Detallan el procesamiento completo, incluida la corrección
+de errores de sincronización, y lo validan con mediciones estáticas y un
+experimento SAR biestático con UAV.\\
+\textbf{Beneficio:} la arquitectura OFDM con un nodo Tx activo y nodos Rx
+pasivos escalables es la ruta más directa para llevar el escenario
+``Tx fijo + Rx optimizado'' de esta investigación a una validación de campo;
+su sincronización mediante enlace lateral directo resuelve el problema de
+coherencia de fase Tx/Rx, crítico para trasladar la optimización de
+trayectoria multicapa de la simulación al vuelo real.
+
+\end{enumerate}
+
+% ──────────────────────────────────────────────────────────────────────────
+\section{Ángulo de Brewster y optimización de potencia recibida (biestático y monoestático)}
+\label{sec:brewster}
+
+Esta sección responde a una búsqueda dirigida y específica: \emph{¿existe en
+la literatura algún trabajo de SAR tomográfico que optimice la trayectoria o
+la geometría de adquisición en función del ángulo de Brewster para
+maximizar la potencia recibida, en configuración biestática o
+monoestática?} Se relaja deliberadamente el criterio ``imprescindiblemente
+biestático'' de las secciones A--D para cubrir también el caso monoestático.
+
+\textbf{Resultado de la búsqueda:} no se encontró ningún trabajo que
+combine (i) formación de imagen SAR \emph{tomográfica} (reconstrucción 3D)
+con (ii) optimización activa de la trayectoria o de la geometría Tx/Rx en
+función del ángulo de Brewster para maximizar la potencia recibida ---ni en
+biestático ni en monoestático---. Los trabajos más cercanos se dividen en dos
+categorías, ninguna de las cuales cierra esa brecha:
+
+\begin{enumerate}[label=\textbf{[E\arabic*]}, leftmargin=2.2cm, itemsep=10pt]
+
+\item Ouchi, K.; Yang, C.-S. (2017). \textit{Direct evidence and
+implications of Brewster's angle damping observed by synthetic aperture
+radar images.} En \emph{Proc. IGARSS 2017.} \cite{ouchi2017}\\
+\textbf{Síntesis del resumen:} reportan evidencia directa del
+amortiguamiento por ángulo de Brewster y sus implicaciones en el análisis
+polarimétrico, observado en imágenes SAR de estructuras de concreto como
+espigones y rompeolas.\\
+\textbf{Categoría:} monoestático; \emph{observación pasiva} del efecto
+Brewster en imágenes ya adquiridas (sin optimización de trayectoria ni
+tomografía 3D).\\
+\textbf{Beneficio:} confirma que el efecto Brewster es medible y
+significativo en SAR monoestático de superficie con datos reales
+(TerraSAR-X); constituye evidencia empírica independiente de que el
+contraste de potencia en función del ángulo de incidencia explotado en esta
+investigación es un fenómeno físicamente observable.
+
+\item Ouchi, K.; Yang, C.-S. (2018). \textit{Brewster angle damping
+observed in the TerraSAR-X synthetic aperture radar images of man-made
+targets.} \emph{IEEE Geoscience and Remote Sensing Letters}, 15(4),
+532--536. \cite{ouchi2018}\\
+\textbf{Síntesis del resumen:} versión ampliada del trabajo anterior:
+analizan el amortiguamiento por ángulo de Brewster en imágenes SAR
+co-polarizadas de TerraSAR-X sobre blancos artificiales (estructuras de
+concreto), cuantificando el fenómeno y discutiendo sus implicaciones para la
+interpretación polarimétrica de imágenes de superficie.\\
+\textbf{Categoría:} monoestático; análisis polarimétrico \emph{a posteriori}
+(sin optimización de trayectoria ni reconstrucción 3D).\\
+\textbf{Beneficio:} aporta un modelo cuantitativo del amortiguamiento por
+Brewster en datos SAR reales, útil como referencia de contraste para validar
+experimentalmente la ganancia de potencia predicha por el modelo de
+Fresnel/Brewster de la función de costo del optimizador de trayectoria.
+
+\item Thirion-Lefevre, L.; Guinvarc'h, R. (2018). \textit{The double
+Brewster angle effect.} \emph{Comptes Rendus Physique}, 19(1--2), 43--53.
+\href{https://doi.org/10.1016/j.crhy.2018.02.003}{doi:10.1016/j.crhy.2018.02.003}
+\cite{thirion2018}\\
+\textbf{Síntesis del resumen:} el efecto de doble ángulo de Brewster (DBE)
+extiende el concepto de ángulo de Brewster a la doble reflexión sobre dos
+superficies dieléctricas ortogonales, como combinación de dos
+pseudo-ángulos de Brewster que ocurren en dominios de incidencia
+complementarios. Demuestran teórica y experimentalmente que el DBE puede
+observarse potencialmente en cualquier imagen de radar monoestático de la
+superficie terrestre.\\
+\textbf{Categoría:} monoestático; fenómeno físico de doble reflexión (sin
+optimización de trayectoria ni SAR tomográfico).\\
+\textbf{Beneficio:} generaliza el ángulo de Brewster simple de la interfaz
+plana aire--suelo al caso de superficies dieléctricas ortogonales; relevante
+como línea futura si el modelo se extiende a geometrías de subsuelo no
+planas (zanjas, esquinas de estructuras enterradas).
+
+\item Orfeo, D.; Zhang, Y.; Burns, D.; Miller, J.S.; Huston, D.R.; Xia, T.
+(2019). \textit{Bistatic antenna configurations for air-launched ground
+penetrating radar.} \emph{Journal of Applied Remote Sensing}, 13(2),
+027501. \href{https://doi.org/10.1117/1.JRS.13.027501}{doi:10.1117/1.JRS.13.027501}
+\cite{orfeo2019}\\
+\textbf{Síntesis del resumen:} el GPR es valioso para detectar objetos
+subsuperficiales con poco o ningún contenido metálico (plásticos,
+cerámicas, tuberías de concreto), pero los efectos de parámetros de la
+configuración de antena como la altura y el ángulo no están bien estudiados.
+Mediante simulaciones y experimentos de laboratorio evalúan el efecto del
+ángulo y de la altura de antena en la sensibilidad de un GPR biestático de
+lanzamiento aéreo en la búsqueda de objetos no metálicos enterrados; los
+resultados orientan el desarrollo de GPR aerotransportados instalados en
+UAV.\\
+\textbf{Categoría:} \textbf{biestático}; optimización de ángulo y altura de
+antena orientada a UAV ---el más cercano en espíritu a esta
+investigación---, pero sin formación de imagen SAR ni tomográfica: es un
+único par Tx/Rx fijo por medición (\emph{point sensing}), no una síntesis de
+apertura con trayectoria continua, y no menciona expresamente el ángulo de
+Brewster como criterio de diseño, aunque el fenómeno explorado ---mínimo de
+reflexión en la interfaz según ángulo y polarización--- es el mismo.\\
+\textbf{Beneficio:} es el antecedente más próximo al problema concreto de
+esta investigación (GPR biestático en UAV con geometría Tx/Rx variable para
+maximizar la señal transmitida al subsuelo); su validación de laboratorio es
+una referencia para diseñar un experimento de campo que confirme la
+ganancia de potencia predicha, y su ausencia de imagen 3D subraya la brecha
+que esta investigación aborda.
+
+\end{enumerate}
+
+\textbf{Conclusión de la búsqueda dirigida:} el ángulo de Brewster como
+criterio físico para maximizar la transmisión de potencia hacia el subsuelo
+está establecido en la literatura de GPR de punto único (antena fija a un
+ángulo y altura óptimos) y se ha \emph{observado} de forma pasiva en imágenes
+SAR monoestáticas de superficie. Sin embargo, a septiembre de 2026 no se
+encontró ningún trabajo ---biestático ni monoestático--- que integre ese
+criterio en un \emph{optimizador de trayectoria} acoplado a una
+\emph{formación de imagen SAR tomográfica 3D} de blancos subsuperficiales,
+que es la contribución de la optimización de trayectoria propuesta en esta
+tesis, con función de costo
+\begin{equation}
+  J = -(1-\alpha)\log_{10}P_r + \alpha\log_{10}\left(\delta_{xy}\,\delta_z\right),
+\end{equation}
+donde $P_r$ es la potencia recibida, $\delta_{xy}$ y $\delta_z$ las
+resoluciones horizontal y vertical y $\alpha\in[0,1]$ el peso relativo.
+Esto refuerza la síntesis de la Sección~\ref{sec:sintesis}: la combinación
+de SAR biestático tomográfico, refracción multicapa y optimización de
+trayectoria por ángulo de Brewster no tiene, hasta donde permite establecer
+esta búsqueda, antecedente directo en la literatura. Los
+Capítulos~\ref{cap:resultados} y~\ref{cap:discusion} precisan
+cuantitativamente cuánto aporta el ángulo de Brewster a la energía recibida.
+
+% ──────────────────────────────────────────────────────────────────────────
+\section{Síntesis: posicionamiento de esta investigación respecto a la literatura}
+\label{sec:sintesis}
+
+{\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{@{}L{3.6cm}C{1.0cm}C{1.0cm}C{0.8cm}C{1.6cm}L{6.0cm}@{}}
+\caption{Posicionamiento de esta investigación frente a los trabajos
+revisados. Criterios: \textbf{Biest.}, geometría con Tx y Rx en plataformas
+distintas; \textbf{Suelo}, propagación con refracción en la interfaz
+aire--suelo; \textbf{3D}, formación de imagen tridimensional o tomográfica;
+\textbf{Brewster}, uso del ángulo de Brewster como criterio de diseño.
+\si: sí; \pa: parcial, implícito u observado a posteriori; \no: no.}
+\label{tab:sintesis}\\
+\toprule
+\textbf{Trabajo} & \textbf{Biest.} & \textbf{Suelo} & \textbf{3D} & \textbf{Brewster} & \textbf{Aporte principal} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Trabajo} & \textbf{Biest.} & \textbf{Suelo} & \textbf{3D} & \textbf{Brewster} & \textbf{Aporte principal} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\grupo{A. Fundamentos geométricos y resolución}
+Horne \& Yates 2002 \cite{horne2002} & \si & \no & \no & \no & Marco conceptual; sincronización y ruido de fase \\
+Homer et al.\ 2005 \cite{homer2005} & \si & \no & \si & \no & Resolución de un sistema biestático 3D general \\
+Garza \& Qiao 2010 \cite{garza2010} & \si & \no & \no & \no & Resolución con patrón de antena y trayectoria arbitraria \\
+Chen et al.\ 2022 \cite{chen2022} & \si & \no & \no & \no & Restricciones de configuración entre plataformas aéreas \\
+\grupo{B. Formación de imagen y reconstrucción}
+Arikan \& Munson 1989 \cite{arikan1989} & \si & \no & \no & \no & Formulación tomográfica (corte-proyección) del SAR biestático \\
+Ding \& Munson 2002 \cite{ding2002} & \si & \no & \no & \no & Retroproyección rápida biestática \\
+Zhang et al.\ 2018 \cite{zhang2018} & \si & \no & \no & \no & FFBP acelerada, validada con TerraSAR-X biestático \\
+Wang et al.\ 2020 \cite{wang2020} & \si & \no & \no & \no & Enfoque con trayectoria curva (EANLCS) \\
+Sun et al.\ 2022 \cite{sun2022} & \si & \no & \no & \no & Empalme espectral en el dominio del número de onda \\
+Zhao et al.\ 2025 \cite{zhao2025} & \si & \no & \no & \no & Autoenfoque para biestático pasivo con iluminador GEO \\
+\grupo{C. Tomografía biestática y multiestática 3D}
+Ge \& Zhu 2019 \cite{ge2019} & \pa & \no & \si & \no & TomoSAR diferencial urbana con interferogramas de tipo biestático \\
+Chen Z.\ et al.\ 2024 \cite{chenz2024} & \si & \no & \si & \no & Primer experimento de tomografía espacio--superficie (banda L) \\
+Wu et al.\ 2025 \cite{wu2025} & \si & \no & \pa & \no & Revisión de métodos de imagen biestática \\
+He et al.\ 2025 \cite{he2025} & \si & \no & \si & \no & Calibración de fase para imagen 3D multi-línea de base \\
+Andre et al.\ 2025 \cite{andre2025} & \si & \no & \si & \no & Análisis microlocal de artefactos en imagen 3D multiestática \\
+\grupo{D. Sistemas aerotransportados y UAV}
+Liu et al.\ 2024 \cite{liu2024} & \si & \no & \no & \no & InSAR biestático en UAV con sincronización bidireccional \\
+Grathwohl et al.\ 2023 \cite{grathwohl2023} & \si & \no & \no & \no & SAR biestático con UAV y repetidor estacionario \\
+Kanz et al.\ 2025 \cite{kanz2025} & \si & \no & \no & \no & Radar digital OFDM multiestático en UAV \\
+\grupo{E. Ángulo de Brewster y potencia recibida}
+Ouchi \& Yang 2017 \cite{ouchi2017} & \no & \no & \no & \pa & Observación del amortiguamiento de Brewster en SAR \\
+Ouchi \& Yang 2018 \cite{ouchi2018} & \no & \no & \no & \pa & Cuantificación en TerraSAR-X sobre blancos artificiales \\
+Thirion-Lefevre \& Guinvarc'h 2018 \cite{thirion2018} & \no & \no & \no & \pa & Efecto de doble ángulo de Brewster \\
+Orfeo et al.\ 2019 \cite{orfeo2019} & \si & \si & \no & \pa & GPR biestático aerotransportado; ángulo y altura de antena para un par fijo \\
+\midrule
+\textbf{Esta investigación} & \si & \si & \si & \si & \textbf{SAR biestático 3D con refracción multicapa y trayectoria del receptor guiada por Brewster} \\
+\end{longtable}
+}
+
+Ningún trabajo revisado combina simultáneamente: (i) geometría biestática
+con trayectorias helicoidales cónicas independientes para Tx y Rx, (ii)
+propagación con refracción en la interfaz aire--suelo (o multicapa) y (iii)
+optimización conjunta de potencia recibida (ángulo de Brewster) y
+resolución 3D mediante síntesis de apertura SAR tomográfica. La búsqueda
+dirigida de la Sección~\ref{sec:brewster} confirma que, incluso relajando la
+condición biestática, no existe antecedente que cierre esta brecha. Esta
+combinación constituye la contribución diferencial de la presente
+investigación dentro del panorama actual del SAR biestático.
+
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Metodología}
+\label{cap:metodologia}
+
+\section{Objetivo del experimento numérico}
+
+El experimento cuantifica la potencia recibida por dos configuraciones de
+adquisición que recorren la misma trayectoria angular sobre un blanco
+conductor enterrado:
+
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Monoestática (M):} el receptor coincide con el transmisor.
+  \item \textbf{Biestática especular (B):} el receptor ocupa la posición
+  simétrica del transmisor respecto del eje vertical que pasa por el blanco.
+\end{itemize}
+
+Se busca separar tres contribuciones a la diferencia de potencia entre ambas:
+(i) la transmitancia de la interfaz aire--suelo, que depende del ángulo de
+incidencia y es máxima en el ángulo de Brewster; (ii) la sección eficaz
+radar (RCS) del blanco, que depende de la geometría de dispersión y de la
+forma y orientación del objeto; y (iii) la reflexión especular de la propia
+superficie, que en la configuración biestática llega al receptor y compite
+con el eco del blanco.
+
+\section{Escenario y geometría}
+\label{sec:escenario}
+
+Se considera una interfaz plana horizontal ($z=0$) entre el aire ($n_1=1$) y
+un suelo homogéneo con índice de refracción $n_2=2$ (permitividad relativa
+$\varepsilon_r=4$). El blanco se sitúa con su centro en
+$\vect{p}_t=(0,0,-2)\,\mathrm{m}$.
+
+El transmisor recorre un arco de radio constante $r=100\,\mathrm{m}$
+centrado en el punto de la superficie situado sobre el blanco, contenido en
+el plano $xz$:
+\begin{equation}
+  \vect{p}_{Tx}(\epsilon) = r\,(\cos\epsilon,\,0,\,\sin\epsilon),
+  \qquad
+  \vect{p}_{Rx}^{B}(\epsilon) = r\,(-\cos\epsilon,\,0,\,\sin\epsilon),
+  \label{eq:geometria}
+\end{equation}
+donde $\epsilon$ es la elevación sobre el horizonte ($\epsilon=90^\circ$
+corresponde al nadir). La elevación se discretiza en
+$\epsilon=20^\circ,25^\circ,\dots,90^\circ$ (15 posiciones). En el nadir
+ambas configuraciones coinciden, por lo que las comparaciones agregadas se
+restringen a las 14 posiciones restantes.
+
+Para cada par emisor--blanco se determina el punto de refracción en la
+interfaz mediante el principio de Fermat, que para una interfaz plana se
+reduce a resolver la ley de Snell,
+\begin{equation}
+  n_1\sin\theta_i = n_2\sin\theta_t ,
+\end{equation}
+donde $\theta_i$ es el ángulo de incidencia en el aire, medido desde la
+normal, y $\theta_t$ el de transmisión en el suelo. Como el punto de
+refracción se desplaza menos de 1\,m del origen, $\theta_i$ difiere de
+$90^\circ-\epsilon$ en menos de $0.31^\circ$ en todo el barrido. La
+elevación $\epsilon$ recorre, por tanto, incidencias entre
+$\theta_i\approx 70^\circ$ y $0^\circ$, e incluye el ángulo de Brewster
+\begin{equation}
+  \theta_B = \arctan\frac{n_2}{n_1} = 63.43^\circ ,
+\end{equation}
+que en el arco corresponde a $\epsilon_B = 26.31^\circ$ y en el suelo a
+$\theta_{t,B}=26.57^\circ$. Por la ley de Snell, desde el aire solo son
+accesibles direcciones de observación dentro del cono
+$\theta_t\le\theta_c=\arcsin(n_1/n_2)=30^\circ$ en torno a la vertical del
+blanco.
+
+La Tabla~\ref{tab:parametros} resume los parámetros del sistema, que
+corresponden a la configuración de referencia de las simulaciones previas de
+la tesis, con una frecuencia portadora de 425\,MHz.
+
+\begin{table}[H]
+\centering
+\caption{Parámetros del sistema y del escenario.}
+\label{tab:parametros}
+\begin{tabular}{@{}llr@{}}
+\toprule
+\textbf{Magnitud} & \textbf{Símbolo} & \textbf{Valor} \\
+\midrule
+Frecuencia portadora & $f_c$ & 425\,MHz \\
+Longitud de onda en el aire / en el suelo & $\lambda_0$ / $\lambda_s$ & 0.706\,m / 0.353\,m \\
+Potencia transmitida & $P_t$ & 100\,kW \\
+Ganancia de las antenas Tx y Rx & $G_t$, $G_r$ & 6\,dBi \\
+Ancho de banda & $B$ & 50\,MHz \\
+Temperatura de ruido & $T$ & 300\,K \\
+Potencia de ruido térmico & $kTB$ & $-96.84\dBm$ \\
+Índice de refracción del suelo & $n_2$ & 2 \\
+Tangente de pérdidas del suelo (no incluida) & $\tan\delta$ & 0.05 \\
+Radio del arco de vuelo & $r$ & 100\,m \\
+Profundidad del centro del blanco & $d$ & 2\,m \\
+Elevaciones simuladas & $\epsilon$ & $20^\circ$:$5^\circ$:$90^\circ$ \\
+Polarización (Tx y Rx) & --- & TM (vertical) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Modelo de propagación en la interfaz}
+\label{sec:fresnel}
+
+La transmisión a través de la interfaz se modela con los coeficientes de
+Fresnel para polarización TM (campo eléctrico en el plano de incidencia),
+la única que presenta ángulo de Brewster:
+\begin{equation}
+  r_{TM} = \frac{n_2\cos\theta_i - n_1\cos\theta_t}{n_2\cos\theta_i + n_1\cos\theta_t},
+  \qquad
+  t_{TM} = \frac{2n_1\cos\theta_i}{n_2\cos\theta_i + n_1\cos\theta_t}.
+\end{equation}
+La transmitancia y la reflectancia de potencia son
+\begin{equation}
+  T = \frac{n_2\cos\theta_t}{n_1\cos\theta_i}\,|t_{TM}|^2,
+  \qquad
+  \Gamma = |r_{TM}|^2,
+  \qquad
+  T+\Gamma = 1 .
+\end{equation}
+El trayecto de ida (aire$\to$suelo) tiene transmitancia $T_\downarrow$ y el
+de vuelta (suelo$\to$aire) $T_\uparrow$; por reciprocidad, para el mismo par
+de ángulos $T_\uparrow=T_\downarrow$. En la configuración especular, la
+simetría de la geometría hace que ambos trayectos compartan también el mismo
+ángulo, de modo que el producto $T_\downarrow T_\uparrow$ es idéntico para
+M y B en cada posición (verificado numéricamente con un error máximo de
+$4\times10^{-16}$).
+
+\section{Ecuación radar}
+\label{sec:radar}
+
+La potencia recibida del blanco se calcula con la ecuación radar biestática,
+incluyendo la transmitancia de ambos trayectos:
+\begin{equation}
+  P_r = \frac{P_t\,G_t\,G_r\,\lambda_0^2\,\sigma(\uv{\imath},\uv{s})\,
+              T_\downarrow T_\uparrow}
+             {(4\pi)^3\,R_T^2\,R_R^2},
+  \label{eq:radar}
+\end{equation}
+donde $R_T$ y $R_R$ son las longitudes de los trayectos Tx--blanco y
+blanco--Rx (tramo en aire más tramo en suelo), y $\sigma$ es la RCS del
+blanco evaluada en el medio (Sección~\ref{sec:rcs}), función de la
+dirección hacia el transmisor $\uv{\imath}$ y hacia el receptor $\uv{s}$,
+ambas definidas dentro del suelo a partir de los rayos refractados. En el
+caso monoestático $\uv{s}=\uv{\imath}$ y $R_R=R_T$. Las antenas se suponen
+apuntadas al punto de refracción, de modo que operan con su ganancia
+máxima. El ruido térmico de referencia es $P_n=kTB$, sin figura de ruido ni
+integración coherente.
+
+En la configuración biestática especular, el receptor recibe además la
+reflexión especular de la superficie. Por teoría de imágenes, para una
+interfaz plana e infinita,
+\begin{equation}
+  P_{sup} = \frac{P_t\,G_t\,G_r\,\lambda_0^2\,\Gamma(\theta_i)}
+                 {(4\pi)^2\,\left(|\vect{p}_{Tx}|+|\vect{p}_{Rx}|\right)^2}.
+  \label{eq:superficie}
+\end{equation}
+Como $\Gamma(\theta_B)=0$, esta contribución se anula en el ángulo de
+Brewster. Se define la relación blanco--superficie
+$\mathrm{SCR}=P_r^B/P_{sup}$ para cuantificar esta competencia.
+
+\section{Modelo de sección eficaz radar biestática}
+\label{sec:rcs}
+
+\subsection{Óptica Física biestática}
+
+La RCS de los blancos, conductores eléctricos perfectos (PEC), se calcula
+con la aproximación de Óptica Física (PO). La corriente superficial inducida
+en las caras iluminadas por el transmisor es
+$\vect{J}_s=2\,\uv{n}\times\vect{H}_i$, y el campo dispersado en campo lejano
+en la dirección $\uv{s}$, proyectado sobre la polarización de recepción
+$\uv{e}_r$, conduce a
+\begin{equation}
+  \sigma(\uv{\imath},\uv{s}) = \frac{4\pi}{\lambda_s^2}
+  \left|\,\sum_{m:\,\uv{n}_m\cdot\uv{\imath}>0}
+  \uv{e}_r\cdot\big[\uv{n}_m\times(\uv{k}_i\times\uv{e}_i)\big]
+  \int_{S_m} e^{\,j k_s(\uv{\imath}+\uv{s})\cdot\vect{r}'}\,dS'\right|^2 ,
+  \label{eq:po}
+\end{equation}
+donde $\uv{k}_i=-\uv{\imath}$ es la dirección de propagación incidente,
+$\uv{e}_i$ y $\uv{e}_r$ son los vectores de polarización TM de transmisión
+y recepción (contenidos en el plano de incidencia $xz$), $\uv{n}_m$ es la
+normal saliente de la cara $m$ y $k_s=2\pi/\lambda_s$. La superficie de cada
+objeto se representa con una malla de triángulos planos, sobre los que la
+integral de fase se evalúa en forma cerrada y exacta
+\cite{gordon1975}; así, las caras planas no necesitan subdividirse. En el
+caso monoestático ($\uv{s}=\uv{\imath}$), el factor de polarización se
+reduce a $\uv{n}_m\cdot\uv{\imath}$ y la expresión coincide con la
+formulación PO monoestática clásica \cite{knott1993}.
+
+Como el blanco está inmerso en el suelo, la RCS se evalúa con la longitud de
+onda del medio, $\lambda_s=\lambda_0/n_2=0.353\,\mathrm{m}$ (equivalente a
+una frecuencia en el vacío de 850\,MHz), y en las direcciones de los rayos
+refractados ($\theta_t$), no en las del aire.
+
+\subsection{Objetos simulados}
+
+Se simulan los cinco sólidos cerrados de la biblioteca de RCS del grupo,
+con geometría centrada en el origen del blanco y ejes de revolución
+verticales (Tabla~\ref{tab:objetos}). Las superficies curvas se facetan con
+un número de segmentos por vuelta $N$ tal que la flecha de cada faceta es
+menor que $\lambda_s/100$, $a\,[1-\cos(\pi/N)]\le\lambda_s/100$, criterio
+que acota el error de fase de la faceta. Todos los objetos tienen una
+dimensión máxima de 1\,m ($2.83\,\lambda_s$). La geometría simulada de cada
+uno se muestra en el Apéndice~\ref{ap:figuras}
+(Figuras~\ref{fig:cubo_geometria} y \ref{fig:caja_geometria}--\ref{fig:cono_geometria}).
+
+\begin{table}[H]
+\centering
+\caption{Objetos PEC simulados. $\sigma_{nadir}$: RCS monoestática en
+incidencia vertical calculada con PO; referencia: valor de óptica
+geométrica/física canónico.}
+\label{tab:objetos}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+\textbf{Objeto} & \textbf{Dimensiones} & \textbf{Triángulos} & $\bm{\sigma_{nadir}}$ \textbf{(PO)} & \textbf{Referencia} \\
+\midrule
+Cubo & arista 1\,m & 12 & $20.04\dBsm$ & $4\pi A^2/\lambda_s^2 = 20.04\dBsm$ \\
+Caja & $1\times0.5\times0.3$\,m & 12 & $14.02\dBsm$ & $4\pi A^2/\lambda_s^2 = 14.02\dBsm$ \\
+Cilindro & $a=0.3$\,m, $L=1$\,m, eje $z$ & 84 & $8.94\dBsm$ & tapa: $9.06\dBsm$ \\
+Esfera & $a=0.5$\,m & 702 & $-1.54\dBsm$ & $\pi a^2 = -1.05\dBsm$ \\
+Cono & base $a=0.3$\,m, $L=1$\,m, vértice arriba & 42 & $-15.86\dBsm$ & --- (vértice) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Validación del modelo de RCS}
+\label{sec:validacion_met}
+
+El modelo se validó por tres vías independientes:
+\begin{enumerate}[itemsep=2pt]
+  \item Comparación del caso monoestático con resultados previos de la
+  biblioteca de RCS del grupo, calculados con PO y con el Método de los
+  Momentos (MoM, ecuación integral de campo eléctrico) a 400\,MHz, en el
+  corte de elevación del plano de incidencia.
+  \item Comparación del caso biestático especular de la cara superior del
+  cubo con la expresión analítica de la placa,
+  $\sigma=4\pi A^2\cos^2\theta/\lambda^2$.
+  \item Verificación de que evaluar un objeto rotado con geometría fija
+  equivale a evaluar el objeto sin rotar con todas las direcciones y
+  polarizaciones rotadas por $\mathbf{R}^{\mathsf T}$ (invariancia de
+  \eqref{eq:po} bajo rotaciones rígidas), propiedad que se usa en el
+  Monte Carlo.
+\end{enumerate}
+
+\section{Diagramas de dispersión tridimensionales}
+
+Para cada objeto se calcula la RCS sobre la esfera completa de direcciones
+de observación (paso de $0.5^\circ$ en acimut y elevación) en dos casos:
+monoestático ($\uv{s}=\uv{\imath}$ recorriendo la esfera) y biestático con
+el transmisor fijo en la dirección refractada de Brewster
+($\theta_{t,B}=26.57^\circ$, lado $+x$) y el receptor recorriendo la esfera.
+Ambos diagramas se representan con un rango dinámico de 30\,dB. Además, en
+cortes de $0.05^\circ$ se mide el semiancho a $-3\dB$ del lóbulo especular
+biestático, que determina la tolerancia de posicionamiento del receptor.
+
+\section{Experimento de Monte Carlo sobre la orientación del blanco}
+\label{sec:mc}
+
+\subsection{Diseño}
+
+La orientación de un blanco enterrado es, en general, desconocida. Para
+evaluar la robustez de la comparación M/B frente a esta incertidumbre se
+realiza un experimento de Monte Carlo: para \emph{cada} una de las 15
+posiciones del barrido se generan $N=10^4$ orientaciones aleatorias e
+independientes del objeto, rotándolo en torno a su centro con
+\begin{equation}
+  \mathbf{R} = \mathbf{R}_y(\beta_y)\,\mathbf{R}_x(\beta_x),
+  \qquad \beta_x,\beta_y \sim \mathcal{U}(-180^\circ,180^\circ),
+\end{equation}
+es decir, giros aleatorios independientes alrededor de los dos ejes
+horizontales, con un rango que permite a cualquier objeto adoptar cualquier
+inclinación. En cada repetición se calcula la potencia recibida en M y en B
+\emph{con el mismo objeto}, lo que convierte la comparación en un diseño
+pareado. La geometría, las transmitancias y los factores de propagación de
+\eqref{eq:radar} son los de la orientación nominal; solo cambia $\sigma$.
+Por la invariancia bajo rotaciones, cada evaluación se realiza con el
+objeto sin rotar y los vectores
+$\mathbf{R}^{\mathsf T}\uv{\imath}$, $\mathbf{R}^{\mathsf T}\uv{s}$,
+$\mathbf{R}^{\mathsf T}\uv{e}_i$ y $\mathbf{R}^{\mathsf T}\uv{e}_r$, con un
+error numérico inferior a $4\times10^{-14}\dB$ respecto de rotar la malla.
+
+\subsection{Estimadores}
+
+Sea $P_{r,k}^{M}(n)$ la potencia recibida en la posición $k$ y la
+repetición $n$. Se emplean los siguientes estimadores:
+\begin{itemize}[itemsep=3pt]
+  \item \textbf{Potencia media (energía):}
+  $\bar P_k^{M}=\frac1N\sum_n P_{r,k}^{M}(n)$, en unidades lineales; es la
+  magnitud que determina la energía útil acumulada en la integración SAR.
+  \item \textbf{Diferencia de medias:}
+  $\Delta_k = 10\log_{10}\left(\bar P_k^{B}/\bar P_k^{M}\right)$; y su
+  versión agregada sobre las 14 posiciones fuera del nadir,
+  $\Delta = 10\log_{10}\left(\sum_{k}\sum_n P_{r,k}^{B}(n) \big/
+  \sum_{k}\sum_n P_{r,k}^{M}(n)\right)$.
+  \item \textbf{Intervalos de confianza:} intervalo del 95\,\% por
+  \emph{bootstrap} de percentiles pareado \cite{efron1993}, con 2000
+  remuestreos de las repeticiones (las mismas repeticiones para M y B).
+  Una posición se declara ``significativamente mejor/peor'' si el intervalo
+  de $\Delta_k$ excluye el cero.
+  \item \textbf{Mediana y probabilidad de superioridad:} la mediana de
+  $P_{r,k}$ describe el caso típico, y $\Pr\{P_{r,k}^{B}>P_{r,k}^{M}\}$ la
+  fracción de repeticiones en que B recibe más que M.
+  \item \textbf{Aciertos especulares:} número de repeticiones en que
+  $\sigma$ supera el máximo monoestático del objeto menos 10\,dB; indica
+  cuántas veces una cara queda orientada en reflexión especular, eventos
+  que dominan la media y de los que depende su precisión estadística.
+\end{itemize}
+
+\section{Hipótesis y limitaciones del modelo}
+\label{sec:limitaciones}
+
+\begin{enumerate}[itemsep=2pt]
+  \item Blancos PEC; suelo homogéneo, isótropo y sin pérdidas (con
+  $\tan\delta=0.05$, las pérdidas dieléctricas añadirían unos
+  $3.9\dB/\mathrm{m}$ de trayecto en el suelo, del orden de $15\dB$ en el
+  nadir, idénticos para M y B).
+  \item Interfaz plana y lisa; no se modela la rugosidad ni el
+  \emph{clutter} volumétrico.
+  \item PO no incluye difracción en aristas y vértices, ondas de
+  superficie ni reflexiones múltiples. Con objetos de $2.83\,\lambda_s$ y
+  detalles menores que $\lambda_s$ (tapa del cilindro, vértice del cono),
+  los valores absolutos fuera de las direcciones especulares tienen una
+  incertidumbre de varios dB.
+  \item Polarización TM co-polar; no se calculan TE ni la polarización
+  cruzada.
+  \item Aproximación de campo lejano para el blanco y ecuación radar con
+  distancia geométrica (tramo en aire más tramo en suelo), sin el factor de
+  divergencia por refracción; esta simplificación afecta por igual a M y B.
+  \item Análisis de onda continua a una sola frecuencia, sin promediado en
+  la banda de la señal.
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Resultados}
+\label{cap:resultados}
+
+\section{Validación del modelo de RCS}
+\label{sec:validacion}
+
+La Tabla~\ref{tab:validacion} resume la validación. La formulación PO
+reproduce los resultados PO de referencia con una diferencia media de
+$0.01\dB$, lo que confirma la implementación de la integral exacta por
+triángulo y la normalización. Frente a MoM, que incluye todos los
+mecanismos de onda completa, las diferencias medias son de $2.3\dB$ para el
+cubo y $4.4\dB$ para el cilindro, en los lóbulos situados hasta 20\,dB por
+debajo del máximo. Estas diferencias son las esperables para objetos de
+1.3 longitudes de onda, en el límite inferior de validez de PO; en el
+caso del cilindro, la tapa ($a=0.4\,\lambda$) está en la región resonante y
+PO subestima su retorno vertical en 3\,dB. La expresión biestática
+reproduce la placa analítica con diferencias de $0.01$--$0.09\dB$ hasta
+$45^\circ$; las pequeñas desviaciones se deben a la contribución de las
+caras laterales del cubo, ausente en el modelo de placa aislada.
+
+\begin{table}[H]
+\centering
+\caption{Validación del modelo PO. Frecuencias de 400\,MHz (en el vacío)
+para las referencias de la biblioteca de RCS y de 850\,MHz equivalentes
+($\lambda_s$) para la placa biestática.}
+\label{tab:validacion}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lllrrr@{}}
+\toprule
+\textbf{Caso} & \textbf{Referencia} & \textbf{Tamaño} & \textbf{PO} & \textbf{Ref.} & \textbf{Error medio} \\
+\midrule
+Cubo 3\,m, monoestático & PO & $4.0\,\lambda$ & $32.58\dBsm$ & $32.58\dBsm$ & $0.01\dB$ \\
+Cubo 1\,m, monoestático & MoM & $1.3\,\lambda$ & $13.49\dBsm$ & $12.67\dBsm$ & $2.27\dB$ \\
+Cilindro $0.3\times1$\,m, monoestático & MoM & $1.3\,\lambda$ & $2.26\dBsm$ & $5.31\dBsm$ & $4.38\dB$ \\
+\midrule
+Placa 1\,m, biestático $\theta=0^\circ$ & Analítica & $2.8\,\lambda_s$ & $20.038\dBsm$ & $20.038\dBsm$ & $0.000\dB$ \\
+Placa 1\,m, biestático $\theta=15^\circ$ & Analítica & & $19.727\dBsm$ & $19.737\dBsm$ & $0.010\dB$ \\
+Placa 1\,m, biestático $\theta=30^\circ$ & Analítica & & $18.878\dBsm$ & $18.789\dBsm$ & $0.089\dB$ \\
+Placa 1\,m, biestático $\theta=45^\circ$ & Analítica & & $17.013\dBsm$ & $17.028\dBsm$ & $0.015\dB$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Efecto de la interfaz: transmitancia y reflexión de superficie}
+\label{sec:res_fresnel}
+
+La transmitancia de ida y vuelta $T_\downarrow T_\uparrow$ alcanza la unidad
+en $\epsilon=26.30^\circ$ ($\theta_i=63.44^\circ$), frente a $0.790$ en el
+nadir ($-1.02\dB$). La \textbf{ganancia de transmitancia atribuible al
+ángulo de Brewster es, por tanto, de $+1.02\dB$} respecto de la incidencia
+vertical. Para un blanco puntual de RCS constante ($\sigma=1\,\mathrm{m}^2$),
+la potencia recibida en $\epsilon_B$ supera a la del nadir en $+1.14\dB$
+($+1.02\dB$ de transmitancia y $+0.11\dB$ por la ligera reducción del
+trayecto), idéntica para M y B. La posición del barrido más cercana a
+Brewster ($\epsilon=25^\circ$, $\theta_i=64.75^\circ$) conserva
+$T_\downarrow T_\uparrow=0.999$.
+
+La reflectancia de superficie $\Gamma$ varía entre $0.111$ en el nadir y
+cero en Brewster. En consecuencia, la reflexión especular de la superficie
+que llega al receptor biestático varía entre $+11.4\dBm$ en el nadir y
+$-12.1\dBm$ en $\epsilon=25^\circ$, anulándose en $\epsilon_B$
+(Figura~\ref{fig:cubo_principal}, panel inferior izquierdo). Esta es la
+contribución que más depende del ángulo en todo el balance: en el barrido
+continuo varía unos $67\dB$, de los cuales $44\dB$ se concentran en los
+$1.3^\circ$ que separan $\epsilon=25^\circ$ de $\epsilon_B$.
+
+\section{Orientación nominal}
+\label{sec:res_nominal}
+
+\subsection{Cubo: análisis detallado}
+
+La Figura~\ref{fig:cubo_geometria} muestra la geometría simulada: un cubo
+PEC de 1\,m de arista, descrito exactamente por 12 triángulos, con su centro
+a 2\,m de profundidad y las caras alineadas con los ejes.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{fig_cubo_geometria.png}
+\caption{Geometría simulada del cubo de 1\,m. (a) Malla de facetas en
+coordenadas del objeto. (b) Sección en el plano de incidencia $xz$ con el
+objeto enterrado; la línea discontinua indica la profundidad del centro.}
+\label{fig:cubo_geometria}
+\end{figure}
+
+La Tabla~\ref{tab:cubo_nominal} y la Figura~\ref{fig:cubo_principal}
+presentan el balance del cubo en orientación nominal (caras alineadas con
+los ejes). La RCS biestática especular permanece casi constante en todo el
+barrido ($18.95$--$20.04\dBsm$), mientras que la monoestática varía entre
+$-16.1$ y $+20.0\dBsm$ y solo alcanza el máximo en el nadir. La potencia
+biestática es, por tanto, prácticamente independiente de la elevación
+($-5.2$ a $-5.4\dBm$), y la ganancia biestática respecto de la
+monoestática oscila entre $+0.9$ y $+35.5\dB$ (media aritmética de
+$+16.6\dB$ fuera del nadir). En términos energéticos, sumando las 14
+posiciones fuera del nadir, la configuración especular recibe
+\textbf{$+9.56\dB$ más energía} que la monoestática.
+
+\begin{table}[H]
+\centering
+\caption{Cubo de 1\,m en orientación nominal: balance por posición.
+$\beta$: ángulo biestático en el suelo. SCR: relación entre la potencia
+biestática del blanco y la reflexión especular de la superficie.}
+\label{tab:cubo_nominal}
+\small
+\begin{tabular}{@{}rrrrrrrrrrr@{}}
+\toprule
+$\epsilon$ & $\theta_i$ & $\theta_t$ & $\beta$ & $T_\downarrow T_\uparrow$ & $\sigma^M$ & $\sigma^B$ & $P_r^M$ & $P_r^B$ & $\Delta$ & SCR \\
+{[°]} & {[°]} & {[°]} & {[°]} & [dB] & [dBsm] & [dBsm] & [dBm] & [dBm] & [dB] & [dB] \\
+\midrule
+20 & 69.79 & 27.98 & 55.97 & $-0.13$ & $-0.63$ & 18.95 & $-24.98$ & $-5.40$ & 19.58 & $-8.10$ \\
+25 & 64.75 & 26.89 & 53.77 & $-0.00$ & 0.76 & 19.00 & $-23.48$ & $-5.24$ & 18.24 & 6.85 \\
+30 & 59.72 & 25.58 & 51.16 & $-0.03$ & 1.66 & 19.06 & $-22.61$ & $-5.21$ & 17.40 & $-1.10$ \\
+35 & 54.70 & 24.08 & 48.17 & $-0.12$ & 1.36 & 19.14 & $-23.02$ & $-5.23$ & 17.78 & $-7.59$ \\
+40 & 49.69 & 22.41 & 44.83 & $-0.24$ & $-1.76$ & 19.25 & $-26.27$ & $-5.26$ & 21.01 & $-10.66$ \\
+45 & 44.69 & 20.59 & 41.18 & $-0.38$ & $-16.09$ & 19.37 & $-40.75$ & $-5.28$ & 35.47 & $-12.53$ \\
+50 & 39.70 & 18.63 & 37.25 & $-0.51$ & $-0.10$ & 19.51 & $-24.90$ & $-5.29$ & 19.61 & $-13.78$ \\
+55 & 34.72 & 16.55 & 33.09 & $-0.62$ & 5.66 & 19.64 & $-19.27$ & $-5.29$ & 13.98 & $-14.67$ \\
+60 & 29.75 & 14.36 & 28.73 & $-0.73$ & 7.03 & 19.76 & $-18.01$ & $-5.28$ & 12.73 & $-15.31$ \\
+65 & 24.78 & 12.10 & 24.19 & $-0.82$ & 3.63 & 19.86 & $-21.51$ & $-5.28$ & 16.23 & $-15.80$ \\
+70 & 19.81 & 9.76 & 19.52 & $-0.89$ & $-6.92$ & 19.93 & $-32.15$ & $-5.29$ & 26.86 & $-16.16$ \\
+75 & 14.86 & 7.37 & 14.73 & $-0.95$ & 10.55 & 19.99 & $-14.74$ & $-5.30$ & 9.44 & $-16.42$ \\
+80 & 9.90 & 4.93 & 9.87 & $-0.99$ & 16.35 & 20.02 & $-8.98$ & $-5.31$ & 3.67 & $-16.61$ \\
+85 & 4.95 & 2.47 & 4.95 & $-1.02$ & 19.16 & 20.04 & $-6.20$ & $-5.32$ & 0.88 & $-16.72$ \\
+90 & 0.00 & 0.00 & 0.00 & $-1.02$ & 20.04 & 20.04 & $-5.33$ & $-5.33$ & 0.00 & $-16.76$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_cubo_principal.png}
+\caption{Cubo de 1\,m en orientación nominal. Fila superior: geometría del
+arco en el plano $xz$ (el trazo discontinuo marca la posición más cercana a
+Brewster), coeficientes de Fresnel TM y RCS monoestática y biestática en
+función de la elevación. Fila inferior: potencia recibida (incluida la
+reflexión especular de la superficie), ganancia biestática por posición y
+relación blanco--superficie en el receptor biestático. Las curvas continuas
+corresponden a un barrido de $0.05^\circ$ y los marcadores a las posiciones
+simuladas.}
+\label{fig:cubo_principal}
+\end{figure}
+
+La relación blanco--superficie (SCR) del receptor biestático es negativa en
+casi todo el barrido (entre $-8$ y $-17\dB$): con la superficie lisa, la
+reflexión de la interfaz supera al eco del cubo. Solo en el entorno de
+Brewster se invierte, alcanzando $+6.9\dB$ en $\epsilon=25^\circ$ y un
+máximo de $50.6\dB$ en $\epsilon_B$ en el barrido continuo. Este resultado
+muestra que, en la configuración especular, el papel decisivo del ángulo de
+Brewster no es aumentar la energía que llega al blanco ($+1\dB$), sino
+suprimir la reflexión de superficie que la enmascara. El intervalo útil es
+estrecho: a $1.3^\circ$ de $\epsilon_B$ la SCR ya ha caído unos $44\dB$.
+
+\subsection{Todos los objetos}
+
+La Tabla~\ref{tab:nominal} resume la orientación nominal para los cinco
+objetos. Los tres objetos con una cara plana horizontal en la parte
+superior ---cubo, caja y cilindro, cuya tapa superior es un disco--- muestran
+el mismo mecanismo: la RCS biestática especular se mantiene próxima al
+retorno vertical de esa cara en todo el barrido, mientras que la
+monoestática cae decenas de dB fuera del nadir. La ganancia energética del
+modo especular es de $+9.6\dB$ (cubo y caja) y $+6.2\dB$ (cilindro). La
+esfera, sin caras planas, tiene una RCS casi isótropa en ambos modos y la
+diferencia es pequeña ($-0.5\dB$). El cono, con el vértice hacia arriba, no
+presenta cara especular accesible: su RCS observable en ambos modos es
+débil ($-31$ a $-16\dBsm$), asociada a las contribuciones del vértice y del
+borde de la base, que PO solo representa de forma aproximada; la diferencia
+neta es de $+2.0\dB$, con valores por posición de signo variable.
+
+\begin{table}[H]
+\centering
+\caption{Orientación nominal: rangos de RCS en el barrido y diferencia de
+potencia biestática especular menos monoestática. ``Energía'': diferencia
+de la potencia sumada en las 14 posiciones fuera del nadir. ``$\epsilon=25^\circ$'':
+posición más cercana a Brewster.}
+\label{tab:nominal}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+& \multicolumn{2}{c}{\textbf{RCS [dBsm]}} & \multicolumn{3}{c}{$\bm{\Delta = P_r^B - P_r^M}$ \textbf{por posición [dB]}} & \textbf{Energía} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-6}
+\textbf{Objeto} & \textbf{Mono} & \textbf{Biest.} & \textbf{mín.} & \textbf{máx.} & $\bm{\epsilon=25^\circ}$ & \textbf{[dB]} \\
+\midrule
+Cubo     & $-16.1$ a $20.0$ & $19.0$ a $20.0$ & $+0.9$ & $+35.5$ & $+18.2$ & $+9.56$ \\
+Caja     & $-19.3$ a $14.0$ & $12.9$ a $14.0$ & $+0.9$ & $+32.8$ & $+16.3$ & $+9.56$ \\
+Cilindro & $-23.4$ a $8.9$  & $7.8$ a $9.0$   & $+0.3$ & $+31.5$ & $+17.7$ & $+6.17$ \\
+Esfera   & $-1.5$ a $-0.7$  & $-3.0$ a $-0.1$ & $-2.0$ & $+0.9$  & $+0.2$  & $-0.54$ \\
+Cono     & $-23.7$ a $-15.9$ & $-31.4$ a $-15.9$ & $-10.0$ & $+7.7$ & $-9.0$ & $+2.00$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Desglose por posición}
+\label{sec:res_nominal_angulo}
+
+La cifra energética de la Tabla~\ref{tab:nominal} agrega las 14 posiciones
+y oculta en qué parte del barrido es mejor cada configuración. La
+Tabla~\ref{tab:nominal_posicion} y la Figura~\ref{fig:resumen_angulo}(a)
+desglosan la diferencia $\Delta_k$ por objeto y por posición; los balances
+completos de cada objeto (RCS, potencias y SCR) están en el
+Apéndice~\ref{ap:figuras}. Se distinguen tres comportamientos:
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Cubo, caja y cilindro:} el especular es superior en
+  \emph{todas} las posiciones. La ventaja es de $+16$ a $+20\dB$ en las
+  incidencias rasantes y en el entorno de Brewster ($20^\circ$--$35^\circ$) y
+  decrece hacia el nadir, donde ambos modos coinciden. Los picos de
+  $\epsilon=45^\circ$ ($+31.5$ a $+35.5\dB$) y $70^\circ$ ($+27\dB$ en cubo y
+  caja) no son ganancias del modo especular, sino nulos de la RCS
+  monoestática entre lóbulos. En el cilindro la ventaja cae antes
+  ($<9\dB$ a partir de $60^\circ$) porque el lóbulo de la tapa, más ancho,
+  entra antes en el campo de visión monoestático.
+  \item \textbf{Esfera:} diferencias pequeñas de signo variable; el especular
+  es ligeramente mejor entre $25^\circ$ y $40^\circ$ (hasta $+0.9\dB$) y el
+  monoestático entre $45^\circ$ y $85^\circ$ (hasta $-2.0\dB$).
+  \item \textbf{Cono:} el signo se invierte a lo largo del barrido. El
+  monoestático es mejor en las incidencias rasantes, incluida la posición de
+  Brewster ($-10.0$ a $-1.0\dB$ entre $20^\circ$ y $45^\circ$), y el
+  especular a partir de $50^\circ$ (hasta $+7.7\dB$ en $65^\circ$). El
+  balance energético positivo ($+2.0\dB$) se debe a estas últimas
+  posiciones.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Orientación nominal: diferencia de potencia $\Delta_k=P_r^B-P_r^M$
+[dB] por posición y objeto. Valores positivos: el especular recibe más. En
+el nadir ($\epsilon=90^\circ$) la diferencia es nula por construcción.}
+\label{tab:nominal_posicion}
+\begin{tabular}{@{}rrrrrrr@{}}
+\toprule
+$\epsilon$ [°] & $\theta_i$ [°] & \textbf{Cubo} & \textbf{Caja} & \textbf{Cilindro} & \textbf{Esfera} & \textbf{Cono} \\
+\midrule
+20 & 69.79 & $+19.58$ & $+17.35$ & $+17.66$ & $-0.15$ & $-10.01$ \\
+25 & 64.75 & $+18.24$ & $+16.30$ & $+17.67$ & $+0.17$ & $-9.05$ \\
+30 & 59.72 & $+17.40$ & $+16.11$ & $+18.05$ & $+0.89$ & $-8.12$ \\
+35 & 54.70 & $+17.78$ & $+17.40$ & $+19.52$ & $+0.26$ & $-2.41$ \\
+40 & 49.69 & $+21.01$ & $+21.83$ & $+23.79$ & $+0.49$ & $-1.89$ \\
+45 & 44.69 & $+35.47$ & $+32.82$ & $+31.52$ & $-0.37$ & $-1.00$ \\
+50 & 39.70 & $+19.61$ & $+18.87$ & $+18.82$ & $-2.03$ & $+2.80$ \\
+55 & 34.72 & $+13.98$ & $+14.00$ & $+12.51$ & $-1.97$ & $+5.81$ \\
+60 & 29.75 & $+12.73$ & $+12.95$ & $+8.53$ & $-1.75$ & $+7.43$ \\
+65 & 24.78 & $+16.23$ & $+16.52$ & $+5.70$ & $-1.65$ & $+7.65$ \\
+70 & 19.81 & $+26.86$ & $+26.64$ & $+3.60$ & $-1.69$ & $+6.24$ \\
+75 & 14.86 & $+9.44$ & $+9.45$ & $+2.04$ & $-1.27$ & $+3.84$ \\
+80 & 9.90 & $+3.67$ & $+3.68$ & $+0.93$ & $-0.58$ & $+1.75$ \\
+85 & 4.95 & $+0.88$ & $+0.88$ & $+0.25$ & $-0.18$ & $+0.44$ \\
+\midrule
+\multicolumn{2}{@{}l}{Energía (14 pos.)} & $+9.56$ & $+9.56$ & $+6.17$ & $-0.54$ & $+2.00$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Diagramas de dispersión tridimensionales}
+\label{sec:res_3d}
+
+Las Figuras~\ref{fig:rcs3d_cubo}--\ref{fig:rcs3d_cono} muestran los
+diagramas 3D de RCS de cada objeto en el suelo, y la
+Tabla~\ref{tab:rcs3d} sus valores característicos. El diagrama
+monoestático del cubo presenta seis lóbulos especulares, uno por cara, de
+los cuales solo el vertical superior cae dentro del cono de direcciones
+accesibles desde el aire ($\theta_t\le30^\circ$). Con el transmisor fijo en
+la dirección de Brewster, el diagrama biestático concentra la energía en
+dos lóbulos: el especular de la cara superior, orientado hacia el receptor
+simétrico ($19.0\dBsm$), y el de dispersión hacia delante, en la sombra del
+objeto, que es el máximo absoluto ($22.6\dBsm$) pero apunta hacia abajo y
+no es observable desde el aire. En la misma dirección de Brewster, el
+retorno monoestático del cubo es de solo $1.1\dBsm$: la diferencia de
+$18\dB$ explica la ganancia del modo especular en orientación nominal.
+
+\begin{table}[H]
+\centering
+\caption{Valores característicos de los diagramas de RCS con el transmisor
+en la dirección refractada de Brewster ($\theta_{t,B}=26.57^\circ$).
+Semiancho: semiancho a $-3\dB$ del lóbulo especular biestático en el suelo.
+Máx. biest.: máximo del diagrama biestático, en la dirección de
+dispersión hacia delante. Tolerancia: desplazamiento admisible del receptor
+sobre el arco de 100\,m, hacia el nadir, con pérdida inferior a 3\,dB.}
+\label{tab:rcs3d}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+\textbf{Objeto} & $\bm{\sigma^M(\theta_{t,B})}$ & $\bm{\sigma^B}$ \textbf{especular} & \textbf{Máx. biest.} & \textbf{Semiancho} & \textbf{Tolerancia} \\
+& [dBsm] & [dBsm] & [dBsm] & [°] & [m] \\
+\midrule
+Cubo     & 1.07   & 19.04  & 22.60 & 9.9  & 49 \\
+Caja     & $-3.07$ & 13.09 & 14.27 & 9.9  & 50 \\
+Cilindro & $-9.87$ & 7.90  & 14.42 & 19.9 & 87 \\
+Esfera   & $-1.06$ & $-0.29$ & 17.84 & --- & --- \\
+Cono     & $-21.35$ & $-28.57$ & 9.17 & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A 425\,MHz, el lóbulo especular es ancho (semiancho de $\approx10^\circ$ en
+el suelo para las caras de 1\,m y de $\approx20^\circ$ para la tapa del
+cilindro), de modo que el lóbulo se extiende hasta el ángulo crítico: hacia
+incidencias rasantes cubre todas las direcciones accesibles, y hacia el
+nadir el receptor puede desplazarse unos 50\,m (cubo, caja) u 87\,m
+(cilindro) sobre el arco sin perder más de 3\,dB. La geometría especular es,
+por tanto, robusta a errores de posicionamiento del receptor en esta banda.
+En la esfera y el cono no existe un lóbulo especular definido en la
+dirección simétrica, por lo que estas magnitudes no son aplicables. El
+diagrama monoestático del cono muestra un lóbulo toroidal horizontal
+(generatriz) y un lóbulo inferior (base), ambos fuera del cono accesible,
+lo que explica su baja RCS observable.
+
+\section{Monte Carlo: orientación aleatoria del blanco}
+\label{sec:res_mc}
+
+\subsection{Cubo}
+
+La Figura~\ref{fig:cubo_mc} presenta el resultado del Monte Carlo para el
+cubo. Con orientación aleatoria, la potencia media recibida por ambas
+configuraciones es prácticamente la misma en todas las posiciones
+($-16.3$ a $-17.7\dBm$), unos $11$--$12\dB$ por debajo del valor biestático
+nominal. La diferencia de medias por posición $\Delta_k$ está comprendida
+entre $-0.74$ y $+0.33\dB$; en 9 de las 14 posiciones su intervalo de
+confianza contiene el cero, en 4 (las de menor elevación, $20^\circ$--$35^\circ$)
+el modo monoestático es significativamente superior por menos de $0.8\dB$,
+y en una ($75^\circ$) lo es el especular, por $0.3\dB$. La diferencia
+agregada es $\Delta=-0.26\dB$ (IC\,95\,\%: $[-0.37,-0.16]\dB$) y la
+probabilidad de que el especular reciba más en una repetición es $0.52$.
+Entre 933 y 1104 repeticiones por posición (9--11\,\%) contienen un acierto
+especular, suficiente para que la media esté bien determinada.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_cubo_montecarlo.png}
+\caption{Monte Carlo del cubo con $10^4$ orientaciones aleatorias por
+posición. (a) Potencia media recibida con intervalo de confianza del 95\,\%
+en ambas configuraciones; la línea punteada es la referencia de un blanco
+puntual de $1\,\mathrm{m}^2$. (b) Diferencia de potencia media (especular
+menos monoestática) con su intervalo de confianza pareado.}
+\label{fig:cubo_mc}
+\end{figure}
+
+\subsection{Todos los objetos}
+
+La Tabla~\ref{tab:mc_resumen} y la Figura~\ref{fig:resumen} resumen el Monte
+Carlo para los cinco objetos, y la Tabla~\ref{tab:mc_posicion} detalla la
+diferencia de medias por posición, que se analiza en la
+Sección~\ref{sec:res_mc_angulo}. En todos los casos la diferencia
+agregada es inferior a $0.4\dB$ en valor absoluto, frente a los $+6$ a
+$+10\dB$ de la orientación nominal. Aunque, por el elevado número de
+repeticiones, algunos intervalos de confianza excluyen el cero, las
+magnitudes son despreciables frente a cualquier otra incertidumbre del
+balance (en particular, frente al error de PO).
+
+\begin{table}[H]
+\centering
+\caption{Monte Carlo ($10^4$ orientaciones aleatorias por posición, giros
+en $x$ e $y$ uniformes en $\pm180^\circ$): diferencia energética agregada
+especular menos monoestática en las 14 posiciones fuera del nadir,
+probabilidad media de superioridad del especular, número de posiciones con
+diferencia significativa y aciertos especulares mínimos por posición.}
+\label{tab:mc_resumen}
+\begin{tabular}{@{}lrrcc@{}}
+\toprule
+\textbf{Objeto} & $\bm{\Delta}$ \textbf{(IC 95\,\%) [dB]} & $\bm{\Pr\{B>M\}}$ & \textbf{Mejor / peor / igual} & \textbf{Aciertos} \\
+\midrule
+Cubo     & $-0.26$ \ $[-0.37,\,-0.16]$ & 0.52 & 1 / 4 / 9  & 933 \\
+Caja     & $-0.18$ \ $[-0.26,\,-0.10]$ & 0.50 & 1 / 3 / 10 & 214 \\
+Cilindro & $-0.26$ \ $[-0.30,\,-0.22]$ & 0.50 & 4 / 7 / 3  & 2330 \\
+Esfera   & $-0.37$ \ $[-0.37,\,-0.36]$ & 0.38 & 4 / 10 / 0 & --- \\
+Cono     & $+0.21$ \ $[+0.15,\,+0.27]$ & 0.57 & 3 / 0 / 11 & 1183 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Diferencia de potencia media $\Delta_k$ [dB] (especular menos
+monoestática) por posición en el Monte Carlo. $^{\ast}$: el intervalo de
+confianza del 95\,\% excluye el cero.}
+\label{tab:mc_posicion}
+\begin{tabular}{@{}rrrrrr@{}}
+\toprule
+$\epsilon$ [°] & \textbf{Cubo} & \textbf{Caja} & \textbf{Cilindro} & \textbf{Esfera} & \textbf{Cono} \\
+\midrule
+20 & $-0.54$\sig & $-0.28$ & $-0.83$\sig & $-0.21$\sig & $+0.66$\sig \\
+25 & $-0.74$\sig & $-0.25$ & $-0.89$\sig & $-0.17$\sig & $+0.85$\sig \\
+30 & $-0.50$\sig & $-0.62$\sig & $-0.75$\sig & $-0.23$\sig & $+0.22$ \\
+35 & $-0.47$\sig & $-0.34$ & $-0.62$\sig & $-0.45$\sig & $+0.26$\sig \\
+40 & $-0.37$ & $-0.34$ & $-0.59$\sig & $-0.79$\sig & $-0.03$ \\
+45 & $-0.35$ & $-0.30$ & $-0.42$\sig & $-1.17$\sig & $+0.19$ \\
+50 & $-0.37$ & $-0.35$\sig & $-0.21$\sig & $-1.35$\sig & $+0.17$ \\
+55 & $-0.04$ & $-0.10$ & $+0.03$ & $-1.21$\sig & $+0.03$ \\
+60 & $-0.14$ & $-0.36$\sig & $+0.10$ & $-0.72$\sig & $+0.17$ \\
+65 & $-0.21$ & $+0.14$ & $+0.17$\sig & $-0.15$\sig & $+0.08$ \\
+70 & $-0.15$ & $+0.13$ & $+0.24$\sig & $+0.28$\sig & $-0.13$ \\
+75 & $+0.33$\sig & $+0.03$ & $+0.21$\sig & $+0.42$\sig & $+0.06$ \\
+80 & $+0.07$ & $+0.22$\sig & $+0.10$\sig & $+0.30$\sig & $+0.09$ \\
+85 & $+0.03$ & $+0.08$ & $+0.03$ & $+0.10$\sig & $+0.02$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_resumen_objetos.png}
+\caption{Diferencia energética entre la configuración biestática especular
+y la monoestática para los cinco objetos. (a) Objeto en orientación
+nominal. (b) Monte Carlo con orientación aleatoria (media sobre las 14
+posiciones fuera del nadir e intervalo de confianza del 95\,\%). Obsérvese
+la diferencia de escala vertical entre ambos paneles. El desglose por
+posición de ambos paneles se presenta en la Figura~\ref{fig:resumen_angulo}.}
+\label{fig:resumen}
+\end{figure}
+
+La esfera merece un comentario: al ser invariante frente a rotaciones, sus
+repeticiones solo difieren por la orientación de las facetas, de modo que
+los intervalos son muy estrechos y todas las diferencias resultan
+``significativas''. La variación sistemática de $\Delta_k$ con la posición
+(de $-1.35$ a $+0.42\dB$) refleja la dependencia de la RCS biestática PO de
+una esfera de $ka\approx9$ con el ángulo biestático, que en el límite de la
+óptica geométrica sería nula ($\sigma=\pi a^2$ para cualquier ángulo
+biestático alejado de la dispersión hacia delante \cite{knott1993}). En la
+esfera, el criterio de acierto especular no es aplicable, porque toda
+orientación presenta el mismo retorno.
+
+\subsection{Desglose por posición y por banda de elevación}
+\label{sec:res_mc_angulo}
+
+La Figura~\ref{fig:resumen_angulo} reúne, para los cinco objetos y en la
+misma escala de elevación, la diferencia por posición en orientación
+nominal, la diferencia de medias del Monte Carlo con su intervalo de
+confianza y la probabilidad de superioridad $\Pr\{P_r^B>P_r^M\}$. Para
+resumir la tendencia angular sin perder la resolución estadística, la
+Tabla~\ref{tab:mc_bandas} agrega la energía en tres bandas: incidencias
+rasantes y entorno de Brewster ($\epsilon=20^\circ$--$35^\circ$,
+$\theta_i=55^\circ$--$70^\circ$), incidencias intermedias
+($40^\circ$--$60^\circ$) y próximas al nadir ($65^\circ$--$85^\circ$), con
+intervalos de confianza por \emph{bootstrap} pareado calculados igual que
+el del agregado global.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{fig_resumen_por_angulo.png}
+\caption{Desglose por posición de la comparación especular--monoestática
+para los cinco objetos. (a) Diferencia de potencia en orientación nominal
+(Tabla~\ref{tab:nominal_posicion}). (b) Diferencia de potencia media en el
+Monte Carlo con su intervalo de confianza del 95\,\% (los marcadores se
+desplazan ligeramente en abscisa para que no se solapen). (c) Fracción de
+repeticiones en que el especular recibe más que el monoestático. La línea
+discontinua marca $\epsilon_B$ y las punteadas, los límites de las bandas de
+la Tabla~\ref{tab:mc_bandas}. Obsérvese la diferencia de escala vertical
+entre (a) y (b).}
+\label{fig:resumen_angulo}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Diferencia energética especular menos monoestática por banda de
+elevación. Nominal: objeto sin rotar. Monte Carlo: $10^4$ orientaciones por
+posición, con IC\,95\,\% bootstrap pareado; $^{\ast}$: el intervalo excluye
+el cero. $\Pr\{B>M\}$: fracción de repeticiones de la banda en que el
+especular recibe más.}
+\label{tab:mc_bandas}
+\small
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+\textbf{Objeto} & \textbf{Banda} $\bm{\epsilon}$ & \textbf{Nominal [dB]} & \textbf{Monte Carlo [dB]} & \textbf{IC 95\,\% [dB]} & $\bm{\Pr\{B>M\}}$ \\
+\midrule
+\multirow{3}{*}{Cubo}     & $20^\circ$--$35^\circ$ & $+18.17$ & $-0.56$\sig & $[-0.76,\,-0.37]$ & 0.52 \\
+                          & $40^\circ$--$60^\circ$ & $+16.48$ & $-0.26$\sig & $[-0.44,\,-0.08]$ & 0.52 \\
+                          & $65^\circ$--$85^\circ$ & $+5.58$  & $+0.01$     & $[-0.13,\,+0.15]$ & 0.51 \\
+\midrule
+\multirow{3}{*}{Caja}     & $20^\circ$--$35^\circ$ & $+16.74$ & $-0.37$\sig & $[-0.54,\,-0.22]$ & 0.51 \\
+                          & $40^\circ$--$60^\circ$ & $+16.59$ & $-0.29$\sig & $[-0.44,\,-0.15]$ & 0.50 \\
+                          & $65^\circ$--$85^\circ$ & $+5.61$  & $+0.12$\sig & $[+0.01,\,+0.23]$ & 0.50 \\
+\midrule
+\multirow{3}{*}{Cilindro} & $20^\circ$--$35^\circ$ & $+18.16$ & $-0.77$\sig & $[-0.86,\,-0.69]$ & 0.49 \\
+                          & $40^\circ$--$60^\circ$ & $+13.63$ & $-0.22$\sig & $[-0.30,\,-0.16]$ & 0.49 \\
+                          & $65^\circ$--$85^\circ$ & $+2.11$  & $+0.15$\sig & $[+0.11,\,+0.19]$ & 0.53 \\
+\midrule
+\multirow{3}{*}{Esfera}   & $20^\circ$--$35^\circ$ & $+0.31$  & $-0.26$\sig & $[-0.27,\,-0.26]$ & 0.29 \\
+                          & $40^\circ$--$60^\circ$ & $-0.94$  & $-1.04$\sig & $[-1.05,\,-1.04]$ & 0.02 \\
+                          & $65^\circ$--$85^\circ$ & $-1.07$  & $+0.19$\sig & $[+0.19,\,+0.20]$ & 0.81 \\
+\midrule
+\multirow{3}{*}{Cono}     & $20^\circ$--$35^\circ$ & $-6.19$  & $+0.50$\sig & $[+0.38,\,+0.62]$ & 0.59 \\
+                          & $40^\circ$--$60^\circ$ & $+3.27$  & $+0.10$     & $[0.00,\,+0.21]$ & 0.58 \\
+                          & $65^\circ$--$85^\circ$ & $+3.21$  & $+0.02$     & $[-0.04,\,+0.09]$ & 0.55 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El desglose muestra que, aunque el agregado de cada objeto es casi nulo, la
+diferencia no es uniforme a lo largo del barrido:
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Cubo, caja y cilindro} presentan la misma tendencia: el
+  monoestático recibe algo más de energía en las incidencias rasantes y en
+  el entorno de Brewster ($-0.37$ a $-0.77\dB$ en $20^\circ$--$35^\circ$) y
+  la diferencia se anula o cambia de signo cerca del nadir ($+0.01$ a
+  $+0.15\dB$ en $65^\circ$--$85^\circ$). La tendencia crece con el ángulo
+  biestático $\beta$, lo que es consistente con que la compensación entre la reducción
+  del pico especular y el ensanchamiento de su lóbulo
+  (Sección~\ref{sec:disc_promedio}) no es completa para caras de pocas
+  longitudes de onda. En todas las posiciones, sin embargo,
+  $\Pr\{B>M\}$ se mantiene entre 0.48 y 0.54: las diferencias de media se
+  deben a la cola de eventos especulares, no al caso típico, cuya mediana es
+  igual o mayor en el especular (hasta $1.4\dB$ en las posiciones rasantes;
+  Apéndice~\ref{ap:figuras}).
+  \item \textbf{Esfera:} es el único objeto en que el modo preferente queda
+  determinado por la posición, porque su RCS casi no depende de la
+  orientación. El monoestático es mejor entre $20^\circ$ y $65^\circ$, con
+  un máximo de $-1.35\dB$ en $50^\circ$, donde $\Pr\{B>M\}$ cae por debajo
+  de 0.01, y el especular es mejor entre $70^\circ$ y $85^\circ$ (hasta
+  $+0.42\dB$, $\Pr\{B>M\}\approx0.98$).
+  \item \textbf{Cono:} al contrario que los objetos con caras planas, el
+  especular es mejor en las incidencias rasantes ($+0.50\dB$ en
+  $20^\circ$--$35^\circ$, con un máximo de $+0.85\dB$ en $\epsilon=25^\circ$),
+  y la diferencia no es significativa en el resto. Es también el único
+  objeto con $\Pr\{B>M\}$ sistemáticamente superior a 0.5 (0.51--0.60).
+\end{itemize}
+En ninguna posición ni banda la diferencia del Monte Carlo alcanza
+$1.4\dB$ en valor absoluto, frente a los $+16$ a $+18\dB$ que el
+especular obtiene en la banda rasante en orientación nominal para los
+objetos con cara horizontal. El desglose,
+por tanto, no altera la conclusión del agregado: con orientación
+desconocida ninguna configuración ofrece una ventaja energética relevante
+en ninguna parte del barrido. Sí indica que, si se quisiera elegir, la
+geometría especular es preferible cerca del nadir y la monoestática en las
+incidencias rasantes, justo donde se sitúa el ángulo de Brewster.
+
+\section{Sensibilidad al rango de orientaciones del Monte Carlo}
+\label{sec:sensibilidad}
+
+Se repitió el experimento con giros
+restringidos a $\pm45^\circ$, que cubren todas las orientaciones distintas
+del cubo por su simetría de $90^\circ$, pero no las de los demás objetos.
+Los resultados del cubo, la caja, el cilindro y la esfera fueron
+equivalentes ($-0.23$, $-0.11$, $-0.20$ y $-0.35\dB$, respectivamente),
+mientras que el cono dio $-6.6\dB$ sin ningún acierto especular en el modo
+biestático. Este último valor es un artefacto del muestreo: con
+$\pm45^\circ$ ninguna superficie del cono puede quedar horizontal (su base
+mira siempre hacia abajo y su generatriz está inclinada $73^\circ$ respecto
+de la horizontal), por lo que la reflexión especular hacia el receptor
+simétrico es geométricamente imposible. Con el rango completo
+($\pm180^\circ$) el resultado del cono se alinea con el de los demás
+objetos. La conclusión es que la distribución de orientaciones debe
+cubrir todo el espacio de orientaciones del objeto; restringirla introduce
+un sesgo que puede favorecer artificialmente a cualquiera de los dos modos.
+
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Discusión}
+\label{cap:discusion}
+
+\section{Por qué la ventaja nominal desaparece al promediar la orientación}
+\label{sec:disc_promedio}
+
+La ventaja biestática observada en orientación nominal tiene un origen
+puramente geométrico. En la configuración especular, la bisectriz entre las
+direcciones hacia el transmisor y el receptor es siempre vertical, y por el
+teorema de equivalencia monoestático--biestático \cite{kell1965,willis1991}
+la RCS biestática se aproxima a la monoestática observada a lo largo de esa
+bisectriz, reducida por un factor que depende del ángulo biestático. Una
+cara horizontal se ve así en reflexión especular en toda la trayectoria, con
+una pérdida de solo $20\log_{10}\cos\theta_t\approx-1.1\dB$ en el extremo
+del barrido, mientras que el monoestático solo la ve en el nadir. La
+ventaja es, en consecuencia, una propiedad de la \emph{alineación} entre la
+geometría de adquisición y una cara del blanco, no de la configuración
+biestática en sí.
+
+Cuando la orientación del blanco es aleatoria, la condición de reflexión
+especular exige en el caso monoestático que una normal de cara apunte hacia
+el radar, y en el biestático que apunte a lo largo de la bisectriz. Ambos
+eventos son igualmente probables bajo una distribución de orientaciones que
+cubra todo el espacio. Además, el pico especular biestático de una cara es
+menor que el monoestático por un factor $\cos^2(\beta/2)$, pero su lóbulo en
+el espacio de orientaciones de la normal es más ancho, en proporción
+inversa, porque el vector de fase de \eqref{eq:po} tiene módulo
+$2k_s\cos(\beta/2)$ en lugar de $2k_s$. Las dos dependencias se compensan en
+el promedio sobre orientaciones, de modo que la energía media esperada es
+esencialmente la misma para ambos modos. Los resultados numéricos
+(diferencias menores de $0.4\dB$ para los cinco objetos) confirman este
+argumento para objetos de formas muy distintas, y coinciden con el límite de
+óptica geométrica, en el que la RCS de una esfera es independiente del
+ángulo biestático.
+
+\section{El papel real del ángulo de Brewster}
+
+La ganancia de transmitancia en el ángulo de Brewster respecto del nadir es
+de solo $+1.02\dB$ con $n_2=2$, idéntica para ambos modos. Este valor es
+pequeño frente a las variaciones de la RCS del blanco con la geometría
+(decenas de dB) y frente a la incertidumbre sobre su orientación. En
+cambio, el ángulo de Brewster es decisivo en la configuración especular por
+otra vía: anula la reflexión especular de la superficie, que de otro modo
+supera al eco del blanco en 8--17\,dB en casi todo el barrido. La
+optimización de trayectoria guiada por Brewster debe interpretarse, por
+tanto, como una estrategia de \emph{supresión del retorno de superficie} y
+no principalmente como una estrategia de maximización de la energía
+transmitida. Esta supresión, además, solo es efectiva en un intervalo
+angular estrecho en torno a $\theta_B$, lo que impone requisitos de
+precisión de trayectoria más estrictos que los de la propia reflexión
+especular del blanco (del orden del grado frente a decenas de grados a
+425\,MHz).
+
+Este resultado matiza la motivación habitual de la literatura revisada. Los
+trabajos de GPR biestático \cite{orfeo2019} y las observaciones de
+amortiguamiento de Brewster en SAR de superficie \cite{ouchi2017,ouchi2018,thirion2018}
+destacan el ángulo de incidencia como criterio para minimizar la reflexión
+en la interfaz; los resultados de este relatorio muestran que, para blancos
+enterrados observados con geometría especular, el beneficio principal es
+efectivamente la reducción del retorno de superficie, mientras que la
+ganancia en la energía que alcanza el blanco es marginal.
+
+\section{Implicaciones para el diseño de trayectorias}
+
+\begin{enumerate}[itemsep=3pt]
+  \item Una función de costo que premie la potencia recibida con la RCS
+  nominal de un blanco con caras planas horizontales sobrestima
+  sistemáticamente la ventaja biestática. Para blancos de orientación
+  desconocida, el término de potencia debería usar la RCS promediada sobre
+  orientaciones, para la que ambos modos son equivalentes.
+  \item El beneficio robusto de la geometría biestática especular es la
+  supresión del retorno de superficie en Brewster. Si el objetivo es la
+  detección en presencia de una superficie reflectante, conviene incluir
+  explícitamente la SCR (o un término equivalente de \emph{clutter} de
+  superficie) en la función de costo.
+  \item La tolerancia de posicionamiento es asimétrica: el lóbulo especular
+  del blanco admite desplazamientos del receptor de 50 a 87\,m sobre el arco,
+  mientras que la anulación de la reflexión de superficie exige mantener el
+  ángulo de incidencia a menos de un grado de $\theta_B$.
+  \item Para blancos con geometría conocida y orientación controlada
+  ---por ejemplo, tuberías o estructuras con techo horizontal---, la
+  configuración especular sí aporta ganancias de 6 a 10\,dB, y su uso está
+  justificado.
+\end{enumerate}
+
+\section{Limitaciones}
+
+Las conclusiones están sujetas a las hipótesis de la
+Sección~\ref{sec:limitaciones}. Las más relevantes para su alcance son: (i)
+PO subestima o sobrestima en varios dB los retornos no especulares de
+objetos de pocas longitudes de onda, como muestra la validación con MoM,
+aunque la comparación entre modos se basa principalmente en las
+contribuciones especulares, que PO describe bien; (ii) la interfaz lisa
+representa el caso más favorable para la anulación de la reflexión de
+superficie en Brewster, y la rugosidad dejará un residuo difuso; (iii) el
+análisis es de onda continua, polarización TM y un único blanco; y (iv) la
+distribución de orientaciones supuesta (giros independientes y uniformes en
+dos ejes) no es uniforme en el grupo de rotaciones; la coincidencia de
+resultados con distintos rangos para los objetos simétricos sugiere que la
+conclusión no depende de este detalle, pero una distribución uniforme en
+$SO(3)$ sería la elección canónica para trabajos futuros.
+
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Conclusiones y trabajo futuro}
+\label{cap:conclusiones}
+
+\section{Conclusiones}
+
+\begin{enumerate}[itemsep=4pt]
+  \item \textbf{Literatura.} De los 22 trabajos revisados, ninguno combina
+  SAR biestático tomográfico, refracción en la interfaz aire--suelo y
+  optimización de la geometría de adquisición guiada por el ángulo de
+  Brewster; los antecedentes más cercanos son el GPR biestático de par fijo
+  y las observaciones pasivas del amortiguamiento de Brewster en SAR
+  monoestático de superficie.
+
+  \item \textbf{Transmitancia.} Con $n_2=2$, el ángulo de Brewster
+  ($\theta_B=63.43^\circ$) aporta una ganancia de transmitancia de ida y
+  vuelta de $+1.02\dB$ respecto del nadir, idéntica en las configuraciones
+  monoestática y biestática especular.
+
+  \item \textbf{Orientación nominal.} Para blancos con una cara plana
+  horizontal (cubo, caja, cilindro de eje vertical), la configuración
+  especular recibe entre $+6.2$ y $+9.6\dB$ más energía que la monoestática,
+  porque la bisectriz vertical
+  mantiene la reflexión especular de esa cara en toda la trayectoria. Para
+  la esfera y el cono la diferencia es pequeña o de signo variable.
+
+  \item \textbf{Orientación aleatoria.} Promediando sobre $10^4$
+  orientaciones aleatorias por posición, la diferencia energética entre
+  ambas configuraciones es despreciable para los cinco objetos (entre
+  $-0.37$ y $+0.21\dB$), y cada modo supera al otro en aproximadamente la
+  mitad de las repeticiones. La ventaja biestática nominal es, por tanto,
+  consecuencia de la alineación entre la geometría y el blanco, y no una
+  propiedad intrínseca de la configuración especular.
+
+  \item \textbf{Superficie.} El beneficio robusto de la geometría especular
+  en el ángulo de Brewster es la anulación de la reflexión especular de la
+  superficie, que en el resto del barrido supera al eco del blanco en
+  8--17\,dB; la relación blanco--superficie mejora en más de $40\dB$ en el
+  entorno inmediato de $\theta_B$.
+
+  \item \textbf{Metodología.} La media de la potencia recibida con
+  orientación aleatoria está dominada por eventos de reflexión especular
+  poco frecuentes; su estimación exige un número de repeticiones
+  inversamente proporcional a la probabilidad de esos eventos, y una
+  distribución de orientaciones que cubra todo el espacio de orientaciones
+  del objeto.
+\end{enumerate}
+
+\section{Trabajo futuro}
+
+\begin{enumerate}[itemsep=3pt]
+  \item Incorporar la relación blanco--superficie a la función de costo del
+  optimizador de trayectoria y evaluar la precisión angular requerida para
+  mantener la supresión en presencia de errores de navegación.
+  \item Modelar la rugosidad de la superficie para cuantificar el residuo de
+  reflexión en Brewster y la relación blanco--\emph{clutter} realista.
+  \item Validar las RCS con métodos de onda completa (MoM) para los objetos
+  y frecuencias de interés, y extender el análisis a polarización TE y
+  cruzada.
+  \item Repetir el Monte Carlo con una distribución de orientaciones
+  uniforme en $SO(3)$ y con distribuciones informadas por el tipo de blanco
+  (por ejemplo, tuberías de eje horizontal).
+  \item Incluir pérdidas dieléctricas, el factor de divergencia por
+  refracción y el análisis de banda ancha, y extender el estudio a la
+  trayectoria helicoidal completa con formación de imagen tomográfica.
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════════════
+\begin{thebibliography}{99}
+
+\bibitem{andre2025} D.~Andre, V.~P.~Krishnan, C.~Nolan, ``Artefact Analysis of Multistatic Three-Dimensional SAR Imaging with Two Linear Trajectories,'' arXiv:2503.11323, 2025.
+
+\bibitem{arikan1989} O.~Arikan, D.~C.~Munson~Jr., ``A tomographic formulation of bistatic synthetic aperture radar,'' in \emph{Advances in Communications and Signal Processing}, W.~A.~Porter, S.~C.~Kak, Eds., Lecture Notes in Control and Information Sciences, vol.~129, pp.~418--431, Springer, 1989.
+
+\bibitem{chen2022} Y.~Chen, R.~Chen, H.~Liu, J.~Guo, Y.~Wang, J.~Zhang, ``Research on Configuration Constraints of Airborne Bistatic SARs,'' \emph{Sensors}, vol.~22, no.~17, art.~6534, 2022. doi:10.3390/s22176534
+
+\bibitem{chenz2024} Z.~Chen, Y.~Li, C.~Hu, et~al., ``Repeat-pass space-surface bistatic SAR tomography: accurate imaging and first experiment,'' \emph{Science China Information Sciences}, vol.~67, art.~192304, 2024. doi:10.1007/s11432-024-4089-2
+
+\bibitem{ding2002} Y.~Ding, D.~C.~Munson~Jr., ``A fast back-projection algorithm for bistatic SAR imaging,'' in \emph{Proc. IEEE Int. Conf. on Image Processing (ICIP)}, vol.~II, pp.~449--452, 2002.
+
+\bibitem{efron1993} B.~Efron, R.~J.~Tibshirani, \emph{An Introduction to the Bootstrap}. New York: Chapman \& Hall, 1993.
+
+\bibitem{garza2010} G.~Garza, Z.~Qiao, ``Resolution analysis of bistatic SAR,'' in \emph{Proc. SPIE 8021, Radar Sensor Technology XV}, 80210F, 2010.
+
+\bibitem{ge2019} N.~Ge, X.~X.~Zhu, ``Bistatic-like Differential SAR Tomography,'' \emph{IEEE Transactions on Geoscience and Remote Sensing}, vol.~57, no.~8, pp.~5883--5893, 2019.
+
+\bibitem{gordon1975} W.~B.~Gordon, ``Far-field approximations to the Kirchhoff--Helmholtz representations of scattered fields,'' \emph{IEEE Transactions on Antennas and Propagation}, vol.~23, no.~4, pp.~590--592, 1975.
+
+\bibitem{grathwohl2023} A.~Grathwohl, B.~Meinecke, M.~Widmann, J.~Kanz, C.~Waldschmidt, ``UAV-Based Bistatic SAR-Imaging Using a Stationary Repeater,'' \emph{IEEE Journal of Microwaves}, vol.~3, no.~2, pp.~625--634, 2023. doi:10.1109/JMW.2023.3253667
+
+\bibitem{he2025} J.~He, H.~Xie, H.~Liu, Z.~Wu, B.~Xu, N.~Zhu, Z.~Lu, P.~Qin, ``Multi-Baseline Bistatic SAR Three-Dimensional Imaging Method Based on Phase Error Calibration Combining PGA and EB-ISOA,'' \emph{Remote Sensing}, vol.~17, no.~3, art.~363, 2025. doi:10.3390/rs17030363
+
+\bibitem{homer2005} J.~Homer, E.~Donskoi, B.~Mojarrabi, J.~Palmer, K.~Kubik, ``Three-dimensional bistatic synthetic aperture radar imaging system: spatial resolution analysis,'' \emph{IEE Proceedings -- Radar, Sonar and Navigation}, vol.~152, no.~6, pp.~391--394, 2005.
+
+\bibitem{horne2002} A.~M.~Horne, G.~Yates, ``Bistatic synthetic aperture radar,'' in \emph{Proc. RADAR 2002}, Edinburgh, IEE Publication No.~490, pp.~6--10, 2002.
+
+\bibitem{kanz2025} J.~Kanz, C.~Gesell, C.~Bonfert, D.~Werbunat, A.~Grathwohl, J.~Aguilar, M.~Vossiek, C.~Waldschmidt, ``UAV-Borne Digital Radar System for Coherent Multistatic SAR Imaging,'' arXiv:2507.20792, 2025.
+
+\bibitem{kell1965} R.~E.~Kell, ``On the derivation of bistatic RCS from monostatic measurements,'' \emph{Proceedings of the IEEE}, vol.~53, no.~8, pp.~983--988, 1965.
+
+\bibitem{knott1993} E.~F.~Knott, J.~F.~Shaeffer, M.~T.~Tuley, \emph{Radar Cross Section}, 2nd ed. Norwood, MA: Artech House, 1993.
+
+\bibitem{liu2024} M.~Liu et~al., ``Unmanned Airborne Bistatic Interferometric Synthetic Aperture Radar Data Processing Method Using Bi-Directional Synchronization Chain Signals,'' \emph{Remote Sensing}, vol.~16, no.~5, art.~769, 2024. doi:10.3390/rs16050769
+
+\bibitem{orfeo2019} D.~Orfeo, Y.~Zhang, D.~Burns, J.~S.~Miller, D.~R.~Huston, T.~Xia, ``Bistatic Antenna Configurations for Air-Launched Ground Penetrating Radar,'' \emph{Journal of Applied Remote Sensing}, vol.~13, no.~2, art.~027501, 2019. doi:10.1117/1.JRS.13.027501
+
+\bibitem{ouchi2017} K.~Ouchi, C.-S.~Yang, ``Direct Evidence and Implications of Brewster's Angle Damping Observed by Synthetic Aperture Radar Images,'' in \emph{Proc. IGARSS 2017}, 2017.
+
+\bibitem{ouchi2018} K.~Ouchi, C.-S.~Yang, ``Brewster Angle Damping Observed in the TerraSAR-X Synthetic Aperture Radar Images of Man-Made Targets,'' \emph{IEEE Geoscience and Remote Sensing Letters}, vol.~15, no.~4, pp.~532--536, 2018.
+
+\bibitem{sun2022} H.~Sun, Z.~Sun, T.~Chen, Y.~Miao, J.~Wu, J.~Yang, ``An Efficient Backprojection Algorithm Based on Wavenumber-Domain Spectral Splicing for Monostatic and Bistatic SAR Configurations,'' \emph{Remote Sensing}, vol.~14, no.~8, art.~1885, 2022. doi:10.3390/rs14081885
+
+\bibitem{thirion2018} L.~Thirion-Lefevre, R.~Guinvarc'h, ``The Double Brewster Angle Effect,'' \emph{Comptes Rendus Physique}, vol.~19, no.~1--2, pp.~43--53, 2018. doi:10.1016/j.crhy.2018.02.003
+
+\bibitem{wang2020} Z.~Wang, M.~Liu, G.~Ai, P.~Wang, K.~Lv, ``Focusing of Bistatic SAR With Curved Trajectory Based on Extended Azimuth Nonlinear Chirp Scaling,'' \emph{IEEE Transactions on Geoscience and Remote Sensing}, vol.~58, no.~6, pp.~4160--4179, 2020.
+
+\bibitem{willis1991} N.~J.~Willis, \emph{Bistatic Radar}. Norwood, MA: Artech House, 1991.
+
+\bibitem{wu2025} J.~Wu, J.~Yang, Z.~Li, W.~Pu, Z.~Sun, H.~An, Q.~Yang, ``Review of Bistatic Synthetic Aperture Radar Imaging Methods,'' \emph{Journal of Radars}, vol.~14, no.~5, pp.~1115--1141, 2025. doi:10.12000/JR25067
+
+\bibitem{zhang2018} H.~Zhang, J.~Tang, R.~Wang, Y.~Deng, W.~Wang, N.~Li, ``An Accelerated Backprojection Algorithm for Monostatic and Bistatic SAR Processing,'' \emph{Remote Sensing}, vol.~10, no.~1, art.~140, 2018. doi:10.3390/rs10010140
+
+\bibitem{zhao2025} T.~Zhao, J.~Wang, Z.~Cheng, Z.~Huang, J.~Song, ``A Subimage Autofocus Bistatic Ground Cartesian Back-Projection Algorithm for Passive Bistatic SAR Based on GEO Satellites,'' \emph{Remote Sensing}, vol.~17, no.~9, art.~1576, 2025. doi:10.3390/rs17091576
+
+\end{thebibliography}
+
+% ══════════════════════════════════════════════════════════════════════════
+\appendix
+\chapter{Resultados complementarios por objeto}
+\label{ap:figuras}
+
+Este apéndice reúne, para cada objeto simulado, su geometría, los
+diagramas 3D de RCS en el suelo, el balance en orientación nominal y el
+resultado del Monte Carlo, estos dos últimos con su tabla de valores por
+posición, que permite identificar en qué elevaciones es mejor cada
+configuración. En los diagramas 3D, el radio representa
+$\sigma$ en dB por encima de un piso situado 30\,dB por debajo del máximo
+común a ambos diagramas del objeto; la flecha morada indica la dirección del
+transmisor en Brewster, la naranja la dirección especular del receptor y el
+cono punteado las direcciones accesibles desde el aire. Los paneles del
+balance nominal y del Monte Carlo se describen en las
+Figuras~\ref{fig:cubo_principal} y~\ref{fig:cubo_mc}.
+
+\section{Cubo}
+\label{ap:cubo}
+
+\subsection{Geometría simulada}
+
+Cubo PEC de 1\,m de arista con las caras alineadas con los ejes; las seis caras planas se describen exactamente con dos triángulos cada una. Su cara superior horizontal es la responsable de la reflexión especular analizada en el Capítulo~\ref{cap:resultados}.
+
+La geometría del cubo se muestra en la Figura~\ref{fig:cubo_geometria} (Sección~\ref{sec:res_nominal}).
+
+\subsection{Diagramas 3D de RCS}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.49\textwidth}\includegraphics[width=\textwidth]{fig_cubo_rcs3d_mono.png}\caption{Monoestático}\end{subfigure}\hfill
+\begin{subfigure}{0.49\textwidth}\includegraphics[width=\textwidth]{fig_cubo_rcs3d_bi.png}\caption{Biestático, Tx en Brewster}\end{subfigure}
+\caption{Diagramas 3D de RCS en el suelo (425\,MHz): cubo de 1\,m de arista.}
+\label{fig:rcs3d_cubo}
+\end{figure}
+
+\subsection{Balance en orientación nominal}
+
+El balance del cubo en orientación nominal se presenta en la Tabla~\ref{tab:cubo_nominal} y en la Figura~\ref{fig:cubo_principal} (Sección~\ref{sec:res_nominal}).
+
+\subsection{Monte Carlo}
+
+El resultado del Monte Carlo del cubo se presenta en la Figura~\ref{fig:cubo_mc} (Sección~\ref{sec:res_mc}).
+El desglose por posición se da en la Tabla~\ref{tab:cubo_mc}.
+
+\begin{table}[H]
+\centering
+\caption{Monte Carlo por posición ($10^4$ orientaciones): cubo de 1\,m. $\bar P_r$: potencia media; $\tilde P_r$: mediana; $\Delta_k$: diferencia de medias especular menos monoestática ($^{\ast}$: el IC\,95\,\% excluye el cero); aciertos: repeticiones con reflexión especular (M / B).}
+\label{tab:cubo_mc}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}rrrrcrrcc@{}}
+\toprule
+$\epsilon$ & $\bar P_r^M$ & $\bar P_r^B$ & $\Delta_k$ & IC 95\,\% & $\tilde P_r^M$ & $\tilde P_r^B$ & $\Pr\{B>M\}$ & Aciertos \\
+{[°]} & [dBm] & [dBm] & [dB] & [dB] & [dBm] & [dBm] & & M / B \\
+\midrule
+20 & $-16.28$ & $-16.83$ & $-0.54$\sig & $[-0.93,\,-0.18]$ & $-38.37$ & $-37.00$ & 0.53 & 1031 / 1104 \\
+25 & $-16.36$ & $-17.10$ & $-0.74$\sig & $[-1.12,\,-0.36]$ & $-38.38$ & $-37.11$ & 0.51 & 1015 / 1015 \\
+30 & $-16.57$ & $-17.07$ & $-0.50$\sig & $[-0.89,\,-0.09]$ & $-38.52$ & $-37.13$ & 0.50 & 964 / 1029 \\
+35 & $-16.57$ & $-17.04$ & $-0.47$\sig & $[-0.88,\,-0.07]$ & $-38.71$ & $-37.18$ & 0.52 & 983 / 1025 \\
+40 & $-16.63$ & $-17.00$ & $-0.37$ & $[-0.75,\,+0.03]$ & $-38.68$ & $-37.22$ & 0.53 & 1008 / 1041 \\
+45 & $-16.80$ & $-17.15$ & $-0.35$ & $[-0.75,\,+0.05]$ & $-38.82$ & $-37.46$ & 0.54 & 1004 / 1039 \\
+50 & $-16.87$ & $-17.24$ & $-0.37$ & $[-0.76,\,+0.03]$ & $-38.96$ & $-37.62$ & 0.52 & 1017 / 1020 \\
+55 & $-17.37$ & $-17.41$ & $-0.04$ & $[-0.47,\,+0.36]$ & $-39.55$ & $-38.55$ & 0.52 & 933 / 981 \\
+60 & $-17.21$ & $-17.35$ & $-0.14$ & $[-0.54,\,+0.25]$ & $-39.03$ & $-38.41$ & 0.50 & 980 / 1020 \\
+65 & $-17.29$ & $-17.51$ & $-0.21$ & $[-0.61,\,+0.18]$ & $-39.21$ & $-38.41$ & 0.52 & 964 / 987 \\
+70 & $-17.40$ & $-17.55$ & $-0.15$ & $[-0.51,\,+0.22]$ & $-39.68$ & $-39.11$ & 0.53 & 980 / 1000 \\
+75 & $-17.69$ & $-17.36$ & $+0.33$\sig & $[+0.00,\,+0.66]$ & $-39.47$ & $-39.04$ & 0.51 & 960 / 992 \\
+80 & $-17.36$ & $-17.29$ & $+0.07$ & $[-0.17,\,+0.31]$ & $-39.55$ & $-39.79$ & 0.50 & 1008 / 1035 \\
+85 & $-17.63$ & $-17.60$ & $+0.03$ & $[-0.10,\,+0.16]$ & $-39.57$ & $-39.42$ & 0.51 & 968 / 966 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+\section{Caja}
+\label{ap:caja}
+
+\subsection{Geometría simulada}
+
+Paralelepípedo PEC de $1\times0.5$\,m en planta y 0.3\,m de altura. Su cara superior tiene la mitad del área de la del cubo, por lo que su retorno especular vertical es $6\dB$ menor ($14.0\dBsm$).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{fig_caja_geometria.png}
+\caption{Geometría simulada: caja de $1\times0.5\times0.3$\,m (12 triángulos). (a) Malla de facetas. (b) Sección en el plano $xz$ con el objeto enterrado.}
+\label{fig:caja_geometria}
+\end{figure}
+
+\subsection{Diagramas 3D de RCS}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.49\textwidth}\includegraphics[width=\textwidth]{fig_caja_rcs3d_mono.png}\caption{Monoestático}\end{subfigure}\hfill
+\begin{subfigure}{0.49\textwidth}\includegraphics[width=\textwidth]{fig_caja_rcs3d_bi.png}\caption{Biestático, Tx en Brewster}\end{subfigure}
+\caption{Diagramas 3D de RCS en el suelo (425\,MHz): caja de $1\times0.5\times0.3$\,m.}
+\label{fig:rcs3d_caja}
+\end{figure}
+
+\subsection{Balance en orientación nominal}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_caja_principal.png}
+\caption{Balance en orientación nominal: caja de $1\times0.5\times0.3$\,m.}
+\label{fig:caja_principal}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Balance por posición en orientación nominal: caja de $1\times0.5\times0.3$\,m. SCR: relación entre la potencia biestática del blanco y la reflexión especular de la superficie.}
+\label{tab:caja_nominal}
+\small
+\begin{tabular}{@{}rrrrrrr@{}}
+\toprule
+$\epsilon$ & $\sigma^M$ & $\sigma^B$ & $P_r^M$ & $P_r^B$ & $\Delta_k$ & SCR \\
+{[°]} & [dBsm] & [dBsm] & [dBm] & [dBm] & [dB] & [dB] \\
+\midrule
+20 & $-4.40$ & $+12.94$ & $-28.76$ & $-11.41$ & $+17.35$ & $-14.11$ \\
+25 & $-3.26$ & $+13.04$ & $-27.49$ & $-11.19$ & $+16.30$ & $+0.89$ \\
+30 & $-2.96$ & $+13.15$ & $-27.23$ & $-11.12$ & $+16.11$ & $-7.00$ \\
+35 & $-4.13$ & $+13.27$ & $-28.51$ & $-11.11$ & $+17.40$ & $-13.46$ \\
+40 & $-8.45$ & $+13.38$ & $-32.96$ & $-11.13$ & $+21.83$ & $-16.52$ \\
+45 & $-19.32$ & $+13.50$ & $-43.98$ & $-11.16$ & $+32.82$ & $-18.40$ \\
+50 & $-5.26$ & $+13.61$ & $-30.06$ & $-11.19$ & $+18.87$ & $-19.68$ \\
+55 & $-0.30$ & $+13.71$ & $-25.22$ & $-11.22$ & $+14.00$ & $-20.60$ \\
+60 & $+0.84$ & $+13.79$ & $-24.20$ & $-11.25$ & $+12.95$ & $-21.28$ \\
+65 & $-2.65$ & $+13.87$ & $-27.79$ & $-11.27$ & $+16.52$ & $-21.79$ \\
+70 & $-12.71$ & $+13.93$ & $-37.93$ & $-11.29$ & $+26.64$ & $-22.16$ \\
+75 & $+4.52$ & $+13.97$ & $-20.77$ & $-11.31$ & $+9.45$ & $-22.44$ \\
+80 & $+10.32$ & $+14.01$ & $-15.01$ & $-11.33$ & $+3.68$ & $-22.62$ \\
+85 & $+13.14$ & $+14.02$ & $-12.22$ & $-11.34$ & $+0.88$ & $-22.74$ \\
+90 & $+14.02$ & $+14.02$ & $-11.35$ & $-11.35$ & $+0.00$ & $-22.78$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Monte Carlo}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_caja_montecarlo.png}
+\caption{Monte Carlo con $10^4$ orientaciones aleatorias por posición: caja de $1\times0.5\times0.3$\,m.}
+\label{fig:caja_mc}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Monte Carlo por posición ($10^4$ orientaciones): caja de $1\times0.5\times0.3$\,m. $\bar P_r$: potencia media; $\tilde P_r$: mediana; $\Delta_k$: diferencia de medias especular menos monoestática ($^{\ast}$: el IC\,95\,\% excluye el cero); aciertos: repeticiones con reflexión especular (M / B).}
+\label{tab:caja_mc}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}rrrrcrrcc@{}}
+\toprule
+$\epsilon$ & $\bar P_r^M$ & $\bar P_r^B$ & $\Delta_k$ & IC 95\,\% & $\tilde P_r^M$ & $\tilde P_r^B$ & $\Pr\{B>M\}$ & Aciertos \\
+{[°]} & [dBm] & [dBm] & [dB] & [dB] & [dBm] & [dBm] & & M / B \\
+\midrule
+20 & $-26.83$ & $-27.11$ & $-0.28$ & $[-0.60,\,+0.07]$ & $-36.86$ & $-36.17$ & 0.52 & 237 / 272 \\
+25 & $-26.80$ & $-27.05$ & $-0.25$ & $[-0.59,\,+0.09]$ & $-36.83$ & $-36.31$ & 0.51 & 223 / 287 \\
+30 & $-26.73$ & $-27.35$ & $-0.62$\sig & $[-0.94,\,-0.29]$ & $-36.93$ & $-36.55$ & 0.51 & 254 / 236 \\
+35 & $-26.90$ & $-27.25$ & $-0.34$ & $[-0.69,\,+0.00]$ & $-37.07$ & $-36.56$ & 0.51 & 228 / 247 \\
+40 & $-26.94$ & $-27.28$ & $-0.34$ & $[-0.68,\,+0.02]$ & $-37.25$ & $-36.81$ & 0.51 & 239 / 256 \\
+45 & $-27.24$ & $-27.53$ & $-0.30$ & $[-0.60,\,+0.02]$ & $-37.13$ & $-36.89$ & 0.51 & 236 / 255 \\
+50 & $-27.28$ & $-27.63$ & $-0.35$\sig & $[-0.68,\,-0.01]$ & $-37.51$ & $-37.47$ & 0.50 & 227 / 239 \\
+55 & $-27.65$ & $-27.75$ & $-0.10$ & $[-0.42,\,+0.22]$ & $-37.99$ & $-38.01$ & 0.49 & 214 / 242 \\
+60 & $-27.40$ & $-27.76$ & $-0.36$\sig & $[-0.66,\,-0.02]$ & $-37.58$ & $-37.51$ & 0.48 & 247 / 232 \\
+65 & $-27.80$ & $-27.66$ & $+0.14$ & $[-0.16,\,+0.43]$ & $-37.61$ & $-37.63$ & 0.49 & 239 / 270 \\
+70 & $-27.81$ & $-27.68$ & $+0.13$ & $[-0.16,\,+0.41]$ & $-37.74$ & $-37.63$ & 0.51 & 224 / 248 \\
+75 & $-27.68$ & $-27.65$ & $+0.03$ & $[-0.24,\,+0.29]$ & $-37.87$ & $-37.78$ & 0.50 & 242 / 255 \\
+80 & $-27.94$ & $-27.72$ & $+0.22$\sig & $[+0.03,\,+0.41]$ & $-37.99$ & $-38.09$ & 0.50 & 221 / 235 \\
+85 & $-27.83$ & $-27.75$ & $+0.08$ & $[-0.04,\,+0.20]$ & $-38.03$ & $-37.87$ & 0.51 & 246 / 249 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+\section{Cilindro}
+\label{ap:cilindro}
+
+\subsection{Geometría simulada}
+
+Cilindro PEC de eje vertical con tapas planas, radio 0.3\,m y longitud 1\,m. La superficie lateral se faceta con 21 segmentos por vuelta (flecha $<\lambda_s/100$). La tapa superior, un disco de $0.28\,\mathrm{m}^2$, actúa como cara especular horizontal.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{fig_cilindro_geometria.png}
+\caption{Geometría simulada: cilindro de eje vertical, $a=0.3$\,m, $L=1$\,m (84 triángulos). (a) Malla de facetas. (b) Sección en el plano $xz$ con el objeto enterrado.}
+\label{fig:cilindro_geometria}
+\end{figure}
+
+\subsection{Diagramas 3D de RCS}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.49\textwidth}\includegraphics[width=\textwidth]{fig_cilindro_rcs3d_mono.png}\caption{Monoestático}\end{subfigure}\hfill
+\begin{subfigure}{0.49\textwidth}\includegraphics[width=\textwidth]{fig_cilindro_rcs3d_bi.png}\caption{Biestático, Tx en Brewster}\end{subfigure}
+\caption{Diagramas 3D de RCS en el suelo (425\,MHz): cilindro de eje vertical, $a=0.3$\,m, $L=1$\,m.}
+\label{fig:rcs3d_cilindro}
+\end{figure}
+
+\subsection{Balance en orientación nominal}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_cilindro_principal.png}
+\caption{Balance en orientación nominal: cilindro de eje vertical, $a=0.3$\,m, $L=1$\,m.}
+\label{fig:cilindro_principal}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Balance por posición en orientación nominal: cilindro de eje vertical, $a=0.3$\,m, $L=1$\,m. SCR: relación entre la potencia biestática del blanco y la reflexión especular de la superficie.}
+\label{tab:cilindro_nominal}
+\small
+\begin{tabular}{@{}rrrrrrr@{}}
+\toprule
+$\epsilon$ & $\sigma^M$ & $\sigma^B$ & $P_r^M$ & $P_r^B$ & $\Delta_k$ & SCR \\
+{[°]} & [dBsm] & [dBsm] & [dBm] & [dBm] & [dB] & [dB] \\
+\midrule
+20 & $-9.81$ & $+7.85$ & $-34.17$ & $-16.50$ & $+17.66$ & $-19.21$ \\
+25 & $-9.82$ & $+7.84$ & $-34.06$ & $-16.39$ & $+17.67$ & $-4.31$ \\
+30 & $-10.20$ & $+7.86$ & $-34.46$ & $-16.41$ & $+18.05$ & $-12.29$ \\
+35 & $-11.60$ & $+7.92$ & $-35.98$ & $-16.46$ & $+19.52$ & $-18.81$ \\
+40 & $-15.76$ & $+8.02$ & $-40.28$ & $-16.49$ & $+23.79$ & $-21.89$ \\
+45 & $-23.35$ & $+8.17$ & $-48.00$ & $-16.49$ & $+31.52$ & $-23.73$ \\
+50 & $-10.48$ & $+8.34$ & $-35.28$ & $-16.46$ & $+18.82$ & $-24.95$ \\
+55 & $-4.01$ & $+8.51$ & $-28.93$ & $-16.42$ & $+12.51$ & $-25.80$ \\
+60 & $+0.13$ & $+8.66$ & $-24.91$ & $-16.39$ & $+8.53$ & $-26.42$ \\
+65 & $+3.07$ & $+8.77$ & $-22.07$ & $-16.37$ & $+5.70$ & $-26.88$ \\
+70 & $+5.26$ & $+8.86$ & $-19.97$ & $-16.37$ & $+3.60$ & $-27.23$ \\
+75 & $+6.87$ & $+8.91$ & $-18.41$ & $-16.38$ & $+2.04$ & $-27.50$ \\
+80 & $+8.01$ & $+8.94$ & $-17.32$ & $-16.39$ & $+0.93$ & $-27.69$ \\
+85 & $+8.69$ & $+8.95$ & $-16.67$ & $-16.41$ & $+0.25$ & $-27.81$ \\
+90 & $+8.94$ & $+8.94$ & $-16.43$ & $-16.43$ & $+0.00$ & $-27.86$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Monte Carlo}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_cilindro_montecarlo.png}
+\caption{Monte Carlo con $10^4$ orientaciones aleatorias por posición: cilindro de eje vertical, $a=0.3$\,m, $L=1$\,m.}
+\label{fig:cilindro_mc}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Monte Carlo por posición ($10^4$ orientaciones): cilindro de eje vertical, $a=0.3$\,m, $L=1$\,m. $\bar P_r$: potencia media; $\tilde P_r$: mediana; $\Delta_k$: diferencia de medias especular menos monoestática ($^{\ast}$: el IC\,95\,\% excluye el cero); aciertos: repeticiones con reflexión especular (M / B).}
+\label{tab:cilindro_mc}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}rrrrcrrcc@{}}
+\toprule
+$\epsilon$ & $\bar P_r^M$ & $\bar P_r^B$ & $\Delta_k$ & IC 95\,\% & $\tilde P_r^M$ & $\tilde P_r^B$ & $\Pr\{B>M\}$ & Aciertos \\
+{[°]} & [dBm] & [dBm] & [dB] & [dB] & [dBm] & [dBm] & & M / B \\
+\midrule
+20 & $-24.29$ & $-25.12$ & $-0.83$\sig & $[-1.01,\,-0.66]$ & $-34.68$ & $-34.00$ & 0.49 & 2568 / 2628 \\
+25 & $-24.32$ & $-25.21$ & $-0.89$\sig & $[-1.07,\,-0.72]$ & $-34.74$ & $-33.86$ & 0.50 & 2490 / 2531 \\
+30 & $-24.51$ & $-25.27$ & $-0.75$\sig & $[-0.93,\,-0.59]$ & $-34.66$ & $-34.03$ & 0.48 & 2408 / 2491 \\
+35 & $-24.57$ & $-25.19$ & $-0.62$\sig & $[-0.80,\,-0.44]$ & $-34.82$ & $-34.04$ & 0.49 & 2414 / 2502 \\
+40 & $-24.59$ & $-25.19$ & $-0.59$\sig & $[-0.75,\,-0.42]$ & $-34.79$ & $-34.27$ & 0.48 & 2464 / 2529 \\
+45 & $-24.69$ & $-25.11$ & $-0.42$\sig & $[-0.57,\,-0.26]$ & $-35.06$ & $-34.37$ & 0.48 & 2484 / 2530 \\
+50 & $-24.89$ & $-25.10$ & $-0.21$\sig & $[-0.36,\,-0.06]$ & $-35.18$ & $-34.55$ & 0.48 & 2478 / 2523 \\
+55 & $-25.24$ & $-25.21$ & $+0.03$ & $[-0.14,\,+0.18]$ & $-35.44$ & $-34.98$ & 0.49 & 2330 / 2417 \\
+60 & $-25.04$ & $-24.94$ & $+0.10$ & $[-0.04,\,+0.24]$ & $-35.34$ & $-35.00$ & 0.50 & 2530 / 2561 \\
+65 & $-25.20$ & $-25.02$ & $+0.17$\sig & $[+0.05,\,+0.31]$ & $-35.46$ & $-35.16$ & 0.53 & 2481 / 2536 \\
+70 & $-25.36$ & $-25.12$ & $+0.24$\sig & $[+0.12,\,+0.35]$ & $-35.54$ & $-35.42$ & 0.54 & 2448 / 2527 \\
+75 & $-25.47$ & $-25.26$ & $+0.21$\sig & $[+0.11,\,+0.31]$ & $-35.69$ & $-35.56$ & 0.54 & 2419 / 2444 \\
+80 & $-25.45$ & $-25.36$ & $+0.10$\sig & $[+0.02,\,+0.17]$ & $-35.71$ & $-35.69$ & 0.52 & 2452 / 2437 \\
+85 & $-25.44$ & $-25.40$ & $+0.03$ & $[0.00,\,+0.07]$ & $-35.69$ & $-35.64$ & 0.51 & 2454 / 2480 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+\section{Esfera}
+\label{ap:esfera}
+
+\subsection{Geometría simulada}
+
+Esfera PEC de 0.5\,m de radio, facetada en 27 meridianos y 14 paralelos (flecha $<\lambda_s/100$). Al ser invariante frente a rotaciones, sirve de referencia sin orientación preferente.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{fig_esfera_geometria.png}
+\caption{Geometría simulada: esfera de radio $a=0.5$\,m (702 triángulos). (a) Malla de facetas. (b) Sección en el plano $xz$ con el objeto enterrado.}
+\label{fig:esfera_geometria}
+\end{figure}
+
+\subsection{Diagramas 3D de RCS}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.49\textwidth}\includegraphics[width=\textwidth]{fig_esfera_rcs3d_mono.png}\caption{Monoestático}\end{subfigure}\hfill
+\begin{subfigure}{0.49\textwidth}\includegraphics[width=\textwidth]{fig_esfera_rcs3d_bi.png}\caption{Biestático, Tx en Brewster}\end{subfigure}
+\caption{Diagramas 3D de RCS en el suelo (425\,MHz): esfera de radio $a=0.5$\,m.}
+\label{fig:rcs3d_esfera}
+\end{figure}
+
+\subsection{Balance en orientación nominal}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_esfera_principal.png}
+\caption{Balance en orientación nominal: esfera de radio $a=0.5$\,m.}
+\label{fig:esfera_principal}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Balance por posición en orientación nominal: esfera de radio $a=0.5$\,m. SCR: relación entre la potencia biestática del blanco y la reflexión especular de la superficie.}
+\label{tab:esfera_nominal}
+\small
+\begin{tabular}{@{}rrrrrrr@{}}
+\toprule
+$\epsilon$ & $\sigma^M$ & $\sigma^B$ & $P_r^M$ & $P_r^B$ & $\Delta_k$ & SCR \\
+{[°]} & [dBsm] & [dBsm] & [dBm] & [dBm] & [dB] & [dB] \\
+\midrule
+20 & $-1.06$ & $-1.21$ & $-25.41$ & $-25.56$ & $-0.15$ & $-28.26$ \\
+25 & $-1.06$ & $-0.89$ & $-25.29$ & $-25.13$ & $+0.17$ & $-13.04$ \\
+30 & $-1.03$ & $-0.14$ & $-25.29$ & $-24.41$ & $+0.89$ & $-20.29$ \\
+35 & $-0.94$ & $-0.68$ & $-25.31$ & $-25.05$ & $+0.26$ & $-27.41$ \\
+40 & $-0.84$ & $-0.35$ & $-25.35$ & $-24.86$ & $+0.49$ & $-30.26$ \\
+45 & $-0.79$ & $-1.16$ & $-25.44$ & $-25.81$ & $-0.37$ & $-33.06$ \\
+50 & $-0.88$ & $-2.91$ & $-25.68$ & $-27.70$ & $-2.03$ & $-36.20$ \\
+55 & $-1.05$ & $-3.02$ & $-25.98$ & $-27.94$ & $-1.97$ & $-37.32$ \\
+60 & $-1.12$ & $-2.88$ & $-26.17$ & $-27.92$ & $-1.75$ & $-37.95$ \\
+65 & $-1.02$ & $-2.67$ & $-26.16$ & $-27.81$ & $-1.65$ & $-38.33$ \\
+70 & $-0.81$ & $-2.50$ & $-26.03$ & $-27.72$ & $-1.69$ & $-38.59$ \\
+75 & $-0.69$ & $-1.97$ & $-25.98$ & $-27.25$ & $-1.27$ & $-38.38$ \\
+80 & $-0.97$ & $-1.55$ & $-26.30$ & $-26.88$ & $-0.58$ & $-38.18$ \\
+85 & $-1.37$ & $-1.55$ & $-26.73$ & $-26.91$ & $-0.18$ & $-38.30$ \\
+90 & $-1.54$ & $-1.54$ & $-26.91$ & $-26.91$ & $+0.00$ & $-38.34$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Monte Carlo}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_esfera_montecarlo.png}
+\caption{Monte Carlo con $10^4$ orientaciones aleatorias por posición: esfera de radio $a=0.5$\,m.}
+\label{fig:esfera_mc}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Monte Carlo por posición ($10^4$ orientaciones): esfera de radio $a=0.5$\,m. $\bar P_r$: potencia media; $\tilde P_r$: mediana; $\Delta_k$: diferencia de medias especular menos monoestática ($^{\ast}$: el IC\,95\,\% excluye el cero); aciertos: repeticiones con reflexión especular (M / B).}
+\label{tab:esfera_mc}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}rrrrcrrcc@{}}
+\toprule
+$\epsilon$ & $\bar P_r^M$ & $\bar P_r^B$ & $\Delta_k$ & IC 95\,\% & $\tilde P_r^M$ & $\tilde P_r^B$ & $\Pr\{B>M\}$ & Aciertos \\
+{[°]} & [dBm] & [dBm] & [dB] & [dB] & [dBm] & [dBm] & & M / B \\
+\midrule
+20 & $-25.20$ & $-25.41$ & $-0.21$\sig & $[-0.22,\,-0.19]$ & $-25.19$ & $-25.43$ & 0.33 & 10000 / 10000 \\
+25 & $-25.09$ & $-25.26$ & $-0.17$\sig & $[-0.18,\,-0.16]$ & $-25.08$ & $-25.28$ & 0.35 & 10000 / 10000 \\
+30 & $-25.12$ & $-25.35$ & $-0.23$\sig & $[-0.24,\,-0.22]$ & $-25.11$ & $-25.36$ & 0.30 & 10000 / 10000 \\
+35 & $-25.23$ & $-25.68$ & $-0.45$\sig & $[-0.46,\,-0.44]$ & $-25.22$ & $-25.69$ & 0.16 & 10000 / 10000 \\
+40 & $-25.36$ & $-26.15$ & $-0.79$\sig & $[-0.80,\,-0.77]$ & $-25.35$ & $-26.15$ & 0.06 & 10000 / 10000 \\
+45 & $-25.51$ & $-26.67$ & $-1.17$\sig & $[-1.18,\,-1.16]$ & $-25.50$ & $-26.68$ & 0.02 & 10000 / 10000 \\
+50 & $-25.65$ & $-27.00$ & $-1.35$\sig & $[-1.36,\,-1.34]$ & $-25.64$ & $-27.02$ & 0.00 & 10000 / 10000 \\
+55 & $-25.78$ & $-26.99$ & $-1.21$\sig & $[-1.22,\,-1.20]$ & $-25.77$ & $-27.00$ & 0.00 & 10000 / 10000 \\
+60 & $-25.89$ & $-26.62$ & $-0.72$\sig & $[-0.73,\,-0.72]$ & $-25.88$ & $-26.61$ & 0.01 & 10000 / 10000 \\
+65 & $-25.99$ & $-26.14$ & $-0.15$\sig & $[-0.16,\,-0.14]$ & $-25.98$ & $-26.13$ & 0.28 & 10000 / 10000 \\
+70 & $-26.07$ & $-25.80$ & $+0.28$\sig & $[+0.27,\,+0.28]$ & $-26.06$ & $-25.77$ & 0.90 & 10000 / 10000 \\
+75 & $-26.14$ & $-25.72$ & $+0.42$\sig & $[+0.42,\,+0.43]$ & $-26.13$ & $-25.70$ & 0.98 & 10000 / 10000 \\
+80 & $-26.18$ & $-25.88$ & $+0.30$\sig & $[+0.30,\,+0.31]$ & $-26.17$ & $-25.87$ & 0.98 & 10000 / 10000 \\
+85 & $-26.21$ & $-26.11$ & $+0.10$\sig & $[+0.10,\,+0.10]$ & $-26.20$ & $-26.10$ & 0.91 & 10000 / 10000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+\section{Cono}
+\label{ap:cono}
+
+\subsection{Geometría simulada}
+
+Cono PEC de base circular de 0.3\,m de radio y 1\,m de altura, con el vértice hacia arriba. No tiene ninguna cara horizontal orientada hacia la superficie: su generatriz forma $73^\circ$ con la horizontal y su base mira hacia abajo.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{fig_cono_geometria.png}
+\caption{Geometría simulada: cono de base $a=0.3$\,m y altura $L=1$\,m, vértice hacia arriba (42 triángulos). (a) Malla de facetas. (b) Sección en el plano $xz$ con el objeto enterrado.}
+\label{fig:cono_geometria}
+\end{figure}
+
+\subsection{Diagramas 3D de RCS}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.49\textwidth}\includegraphics[width=\textwidth]{fig_cono_rcs3d_mono.png}\caption{Monoestático}\end{subfigure}\hfill
+\begin{subfigure}{0.49\textwidth}\includegraphics[width=\textwidth]{fig_cono_rcs3d_bi.png}\caption{Biestático, Tx en Brewster}\end{subfigure}
+\caption{Diagramas 3D de RCS en el suelo (425\,MHz): cono de base $a=0.3$\,m y altura $L=1$\,m, vértice hacia arriba.}
+\label{fig:rcs3d_cono}
+\end{figure}
+
+\subsection{Balance en orientación nominal}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_cono_principal.png}
+\caption{Balance en orientación nominal: cono de base $a=0.3$\,m y altura $L=1$\,m, vértice hacia arriba.}
+\label{fig:cono_principal}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Balance por posición en orientación nominal: cono de base $a=0.3$\,m y altura $L=1$\,m, vértice hacia arriba. SCR: relación entre la potencia biestática del blanco y la reflexión especular de la superficie.}
+\label{tab:cono_nominal}
+\small
+\begin{tabular}{@{}rrrrrrr@{}}
+\toprule
+$\epsilon$ & $\sigma^M$ & $\sigma^B$ & $P_r^M$ & $P_r^B$ & $\Delta_k$ & SCR \\
+{[°]} & [dBsm] & [dBsm] & [dBm] & [dBm] & [dB] & [dB] \\
+\midrule
+20 & $-21.41$ & $-31.42$ & $-45.76$ & $-55.77$ & $-10.01$ & $-58.47$ \\
+25 & $-21.37$ & $-30.42$ & $-45.61$ & $-54.66$ & $-9.05$ & $-42.57$ \\
+30 & $-21.27$ & $-29.40$ & $-45.54$ & $-53.66$ & $-8.12$ & $-49.55$ \\
+35 & $-21.14$ & $-23.55$ & $-45.51$ & $-47.93$ & $-2.41$ & $-50.28$ \\
+40 & $-21.20$ & $-23.09$ & $-45.71$ & $-47.60$ & $-1.89$ & $-52.99$ \\
+45 & $-21.57$ & $-22.57$ & $-46.22$ & $-47.22$ & $-1.00$ & $-54.47$ \\
+50 & $-22.16$ & $-19.35$ & $-46.95$ & $-44.15$ & $+2.80$ & $-52.64$ \\
+55 & $-22.85$ & $-17.04$ & $-47.77$ & $-41.96$ & $+5.81$ & $-51.34$ \\
+60 & $-23.51$ & $-16.08$ & $-48.55$ & $-41.12$ & $+7.43$ & $-51.15$ \\
+65 & $-23.65$ & $-16.00$ & $-48.79$ & $-41.14$ & $+7.65$ & $-51.65$ \\
+70 & $-22.17$ & $-15.94$ & $-47.40$ & $-41.16$ & $+6.24$ & $-52.03$ \\
+75 & $-19.73$ & $-15.90$ & $-45.02$ & $-41.18$ & $+3.84$ & $-52.31$ \\
+80 & $-17.62$ & $-15.87$ & $-42.95$ & $-41.21$ & $+1.75$ & $-52.50$ \\
+85 & $-16.30$ & $-15.86$ & $-41.66$ & $-41.22$ & $+0.44$ & $-52.62$ \\
+90 & $-15.86$ & $-15.86$ & $-41.23$ & $-41.23$ & $+0.00$ & $-52.65$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Monte Carlo}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_cono_montecarlo.png}
+\caption{Monte Carlo con $10^4$ orientaciones aleatorias por posición: cono de base $a=0.3$\,m y altura $L=1$\,m, vértice hacia arriba.}
+\label{fig:cono_mc}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Monte Carlo por posición ($10^4$ orientaciones): cono de base $a=0.3$\,m y altura $L=1$\,m, vértice hacia arriba. $\bar P_r$: potencia media; $\tilde P_r$: mediana; $\Delta_k$: diferencia de medias especular menos monoestática ($^{\ast}$: el IC\,95\,\% excluye el cero); aciertos: repeticiones con reflexión especular (M / B).}
+\label{tab:cono_mc}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}rrrrcrrcc@{}}
+\toprule
+$\epsilon$ & $\bar P_r^M$ & $\bar P_r^B$ & $\Delta_k$ & IC 95\,\% & $\tilde P_r^M$ & $\tilde P_r^B$ & $\Pr\{B>M\}$ & Aciertos \\
+{[°]} & [dBm] & [dBm] & [dB] & [dB] & [dBm] & [dBm] & & M / B \\
+\midrule
+20 & $-29.55$ & $-28.89$ & $+0.66$\sig & $[+0.41,\,+0.91]$ & $-39.86$ & $-37.50$ & 0.59 & 1224 / 1487 \\
+25 & $-29.57$ & $-28.72$ & $+0.85$\sig & $[+0.60,\,+1.10]$ & $-39.93$ & $-37.45$ & 0.60 & 1183 / 1467 \\
+30 & $-29.38$ & $-29.16$ & $+0.22$ & $[-0.02,\,+0.47]$ & $-39.94$ & $-38.15$ & 0.58 & 1236 / 1351 \\
+35 & $-29.26$ & $-29.00$ & $+0.26$\sig & $[+0.01,\,+0.50]$ & $-39.82$ & $-38.00$ & 0.58 & 1327 / 1461 \\
+40 & $-29.42$ & $-29.45$ & $-0.03$ & $[-0.28,\,+0.20]$ & $-40.00$ & $-38.37$ & 0.59 & 1287 / 1342 \\
+45 & $-29.61$ & $-29.42$ & $+0.19$ & $[-0.05,\,+0.43]$ & $-40.00$ & $-38.43$ & 0.59 & 1302 / 1415 \\
+50 & $-29.83$ & $-29.66$ & $+0.17$ & $[-0.07,\,+0.41]$ & $-40.29$ & $-38.86$ & 0.58 & 1244 / 1349 \\
+55 & $-29.88$ & $-29.85$ & $+0.03$ & $[-0.21,\,+0.25]$ & $-40.42$ & $-39.50$ & 0.56 & 1328 / 1322 \\
+60 & $-30.15$ & $-29.97$ & $+0.17$ & $[-0.04,\,+0.39]$ & $-40.55$ & $-39.76$ & 0.57 & 1232 / 1301 \\
+65 & $-30.08$ & $-29.99$ & $+0.08$ & $[-0.12,\,+0.27]$ & $-40.64$ & $-39.99$ & 0.56 & 1311 / 1325 \\
+70 & $-30.17$ & $-30.30$ & $-0.13$ & $[-0.30,\,+0.06]$ & $-40.76$ & $-40.37$ & 0.56 & 1302 / 1260 \\
+75 & $-30.37$ & $-30.30$ & $+0.06$ & $[-0.09,\,+0.21]$ & $-40.94$ & $-40.58$ & 0.56 & 1242 / 1245 \\
+80 & $-30.27$ & $-30.18$ & $+0.09$ & $[-0.01,\,+0.19]$ & $-40.72$ & $-40.55$ & 0.54 & 1296 / 1320 \\
+85 & $-30.41$ & $-30.39$ & $+0.02$ & $[-0.04,\,+0.08]$ & $-40.92$ & $-40.80$ & 0.51 & 1270 / 1272 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}

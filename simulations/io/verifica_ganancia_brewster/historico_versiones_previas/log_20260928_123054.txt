@@ -1,0 +1,18 @@
+================ VERIFICA_GANANCIA_BREWSTER (20260928_123054) ================
+Parámetros: _espiral_mono0
+  fc = 10.000 GHz | lambda0 = 0.0300 m | lambda_suelo = 0.0150 m
+  Pt = 100.0 kW | G = 6.0 dBi | B = 50.0 MHz | T = 300 K | Pn = kTB = -96.84 dBm
+  n1 = 1 | n2 = 2 | tan_delta = 0.05 (pérdidas no incluidas)
+  Radar en arco de radio r = 100 m centrado en (0,0,0) | cubo PEC arista 1.00 m, centro en z = -2.00 m, yaw = 0°
+  Brewster (aire): theta_B = 63.43°
+  Barrido: eps = 20:5:90° (15 posiciones)
+
+-- Validación del PO de MATLAB contra tools/rcs_core/resultados --
+  cubo_1m_400MHz_TMTM_mom.mat        (MOM, 1.33 lambda): nadir 13.49 vs 12.67 dBsm | error medio |dB| (lóbulos) = 2.27 dB
+  cubo_3m_400MHz_TMTM_po.mat         (PO, 4.00 lambda): nadir 32.58 vs 32.58 dBsm | error medio |dB| (lóbulos) = 0.01 dB
+  (con PO el error debe ser ~0 dB; frente a MoM la diferencia refleja las limitaciones de PO)
+
+-- RCS del cubo en el suelo (PO, lambda_s = 0.0150 m, f equivalente en vacío = 20.00 GHz) --
+  sigma(nadir) = 47.47 dBsm (teórico placa 4*pi*A^2/lambda_s^2 = 47.47 dBsm)
+  Campo lejano en el suelo: 2D^2/lambda_s = 267 m (D = diagonal de cara 1.41 m)
+

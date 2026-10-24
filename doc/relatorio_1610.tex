@@ -1,0 +1,134 @@
+%% relatorio_1610.tex
+%% Relatorio técnico de respuesta a las Orientações de 03/10/2026 (Prof. Hugo E. Hernández-Figueroa)
+%% Experimentos A-F: canal monoestático permanente + canal biestático complementario,
+%% fusión coherente normalizada, pseudo-Brewster como supresión de superficie.
+%% Código: simulations/analise_1610 (README.md). Datos: simulations/io/analise_1610/expX/*.csv
+%% Compilar: pdflatex relatorio_1610.tex (dos pasadas)
+
+\documentclass[11pt,a4paper]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-noshorthands]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\geometry{left=2.5cm, right=2.3cm, top=2.6cm, bottom=2.6cm}
+\usepackage{amsmath,amssymb}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\definecolor{mejor}{HTML}{CDEFD9}
+\definecolor{regular}{HTML}{FFF1C2}
+\definecolor{peor}{HTML}{F8D3D0}
+% conclusión de una frase al final de cada experimento
+\newcommand{\conclexp}[2]{\par\medskip\noindent\colorbox{mejor!55}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
+\textbf{Conclusión del Exp.~#1.} #2}}\par\medskip}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\usepackage{titlesec}
+
+\graphicspath{{figures/relatorio_1610/}}
+\captionsetup{font=small, labelfont=bf}
+\titleformat{\chapter}[display]{\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{12pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-20pt}{25pt}
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{3em}
+\setlength{\parskip}{0.5\baselineskip}
+
+\newcommand{\dB}{\,\mathrm{dB}}
+\newcommand{\vect}[1]{\bm{#1}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+\title{\vspace{-1cm}\textbf{SAR biestático subsuperficial:\\
+canal biestático complementario al monoestático,\\
+fusión coherente y supresión de superficie por pseudo-Brewster}\\[10pt]
+\large Relatorio de respuesta a las Orientações del 03/10/2026}
+\author{David Atencia}
+\date{16 de octubre de 2026}
+
+\begin{document}
+\sloppy
+\maketitle
+
+\input{relatorio_1610_resumen}
+
+\tableofcontents
+
+\input{relatorio_1610_glosario}
+
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Introducción}
+\label{cap:intro}
+
+Este relatorio responde a las orientaciones del 03/10/2026. Tras el
+relatorio del 28/09 quedó establecido que la potencia media recibida por el Rx
+no varía sistemáticamente con su posición, ni frente al caso monoestático; la
+optimización de potencia queda descartada. La pregunta pasa a ser
+\emph{cuándo, dónde y por qué} un canal biestático adicional mejora la imagen
+monoestática que el transceiver ya produce, y si operar cerca del
+pseudo-Brewster suprime el retorno de la superficie lo suficiente para mejorar
+la relación blanco--clutter. Las referencias de la forma §$n$ remiten a las
+secciones de las Orientações del 03/10.
+
+\section{Arquitectura}
+
+El Tx es un \emph{transceiver}: transmite y recibe el canal monoestático
+complejo en todos los pulsos. Un segundo UAV con el Rx remoto registra el
+canal biestático \emph{del mismo pulso}. El producto relevante es la
+comparación entre tres imágenes: monoestática, biestática y combinada
+mono+bi.
+
+\begin{table}[H]
+\centering\small
+\caption{Configuraciones de referencia (Orientações §1.1) tal como se simulan.}
+\label{tab:config}
+\begin{tabular}{@{}L{3.0cm}L{6.0cm}L{5.3cm}@{}}
+\toprule
+\textbf{Configuración} & \textbf{Definición en la simulación} & \textbf{Finalidad} \\
+\midrule
+Ref1 & Rx a la misma altura y radio, $\Delta\phi=180^{\circ}$ & baseline geométrico extremo (especular) \\
+Ref2 & canal mono del transceiver ($\mathrm{Rx}=\mathrm{Tx}$) & referencia permanente \\
+Bi intermedia & $\Delta\phi\in\{15^{\circ},\dots,165^{\circ}\}$ constante, $\kappa=1$ & diversidad angular \\
+Multiestática & fusión coherente mono+bi (fus 2N y fusN con el mismo presupuesto) & información complementaria \\
+Rx optimizado & $\Delta\phi(t)=\Delta\phi_0+A(2t/T-1)$, radio $\kappa\rho_{Tx}$, $z_{Rx}=z_{Tx}$ & Exp.~F \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Preguntas de investigación (§4)}
+\begin{enumerate}[itemsep=1pt]
+  \item ¿Cómo altera la separación angular Tx--Rx el soporte en $k$ y la PSF?
+  \item ¿Qué separación produce la mejor imagen biestática aislada?
+  \item ¿Qué separación hace que el canal bi añada más información a la imagen mono?
+  \item ¿Mejora la fusión coherente mono+bi la resolución horizontal, vertical, el volumen de la PSF, PSLR, ISLR, contraste o localización?
+  \item ¿Se mantiene la mejora para objetos con RCS anisótropa y distintas orientaciones?
+  \item ¿Reduce la operación cerca del pseudo-Brewster el retorno superficial de forma robusta (pérdidas, rugosidad, errores angulares)?
+  \item ¿Cuál es el costo, en calidad de imagen, de imponer una restricción de pseudo-Brewster?
+\end{enumerate}
+Las respuestas, con las cifras que las sustentan, están en el
+Capítulo~\ref{cap:respuestas}.
+
+\input{relatorio_1610_metodo}
+\input{relatorio_1610_resAB}
+\input{relatorio_1610_resC}
+\input{relatorio_1610_resD}
+\input{relatorio_1610_resE}
+\input{relatorio_1610_resF}
+\input{relatorio_1610_discusion}
+
+\appendix
+\input{relatorio_1610_apendiceA}
+\input{relatorio_1610_apendiceB}
+
+\end{document}

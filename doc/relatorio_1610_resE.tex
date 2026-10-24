@@ -1,0 +1,64 @@
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Experimento E: orientación y robustez}
+\label{cap:resE}
+
+\paragraph{Hipótesis.} Las mejoras de la fusión observadas con el punto y con los
+objetos en orientación nominal se mantienen cuando la orientación del objeto es
+desconocida.
+
+\paragraph{Método (§5.6).} Monte Carlo \emph{por adquisición}: en cada repetición se
+sortea una rotación uniforme en SO(3) (cuaternión gaussiano normalizado), se aplica
+al objeto durante toda la apertura y es la misma en los canales mono y bi (diseño
+pareado). Cubo (1000 orientaciones), caja, cilindro y tubo (200 cada uno),
+$\Delta\phi=45^{\circ},90^{\circ},135^{\circ},180^{\circ}$, 800 pulsos, rejilla de $2.4\times2.4\times3$\,m. Se
+corrigió así la práctica del 28/09 de sortear una orientación por posición. Se
+corrieron dos receptores: TM co-polar (Exp.~E) y alineado de doble polarización
+(Exp.~E2, $\Delta\phi=45^{\circ},90^{\circ},135^{\circ}$, 200 orientaciones por objeto). CSV:
+\texttt{expE/expE\_mc\_<objeto>.csv} (cada repetición, con su matriz de rotación),
+\texttt{expE/expE\_resumen.csv} y \texttt{expE2/expE\_resumen.csv} (medianas, IC\,95\,\%
+bootstrap y probabilidad de mejora).
+
+\input{relatorio_1610_tablaE}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{E_montecarlo.pdf}
+\caption{Monte Carlo SO(3) con Rx TM co-polar: distribución de (fusión N $-$ mono) por
+objeto y separación; porcentajes = probabilidad de mejora.}
+\label{fig:E_mc}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{E2_montecarlo_rx_alineado.pdf}
+\caption{Ídem con Rx de polarización alineada (doble polarización).}
+\label{fig:E2_mc}
+\end{figure}
+
+\paragraph{Resultados e interpretación.}
+\begin{enumerate}[itemsep=3pt]
+  \item \textbf{Potencia (control).} Con orientación aleatoria, la potencia media del canal
+  bi a 180° es la misma que la mono ($-2.9$ a $+0.9$\,dB según el objeto), como concluyó el
+  28/09. Con Rx TM co-polar cae $\approx20$\,dB a 90° y 2.4--5.2\,dB a 45° y 135°
+  ($\approx\cos^2\Delta\phi$): es el desajuste geométrico de polarización. Con el Rx alineado
+  queda entre 0 y $-1.6$\,dB de la mono en todas las separaciones.
+  \item \textbf{Rx TM co-polar:} a 45°--90° la fusión gana un contraste pequeño pero
+  sistemático ($+0.3$ a $+0.6$\,dB, mejora en el 78--100\,\% de las adquisiciones) y pierde
+  1.1--5.7\,dB de SNR (con el mismo presupuesto N; la fusión 2N recupera 3\,dB). PSLR y
+  volumen no cambian (medianas $\approx0$). A 135°--180° la fusión empeora el contraste
+  (hasta $-7.9$\,dB) y el volumen.
+  \item \textbf{Rx alineado:} a 90° el contraste mejora $+1.8$ a $+2.7$\,dB con
+  probabilidad del 90--98\,\% en los cuatro objetos; el PSLR mejora ligeramente
+  (mediana $-0.05$ a $-0.39$\,dB, 53--70\,\%), la pérdida de SNR baja a $-0.9$ a
+  $-2.1$\,dB (N) y la energía en la región del objeto sube (64--86\,\%). El precio es un
+  lóbulo $+0.6$ a $+1.0$\,dB más voluminoso. A 135° la ganancia de contraste baja a
+  $+0.9$ a $+1.2$\,dB.
+  \item \textbf{La mejora se mantiene con la orientación sólo si el Rx está alineado
+  en polarización y a 45°--90°.} La resolución y la localización no mejoran en ningún caso
+  (medianas $\le0.01$\,m de diferencia).
+\end{enumerate}
+
+\conclexp{E}{Con orientación aleatoria del objeto, la fusión mejora el contraste de forma
+sistemática sólo con un Rx de polarización alineada a 90° ($+1.8$ a $+2.7$\,dB en el 90--98\,\% de
+las orientaciones); con un Rx TM co-polar la ganancia es marginal ($+0.3$ a $+0.6$\,dB) y cuesta
+1--6\,dB de SNR, y en ningún caso mejoran la resolución ni la localización.}

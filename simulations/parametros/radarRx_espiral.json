@@ -14,7 +14,7 @@
         "FreqPortadora" : 10e9,
         "AperturaAzimut": 14,
         "AperturaElev"  : 50,
-        "NorthOffset"   : 90,
+        "NorthOffset"   : 180,
         "InclElev"      : 20,
         "Temperatura"   : 300,
         "B"             : 60e6

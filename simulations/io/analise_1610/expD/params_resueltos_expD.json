@@ -1,0 +1,288 @@
+{
+  "_descripcion": "Exp. D - Biblioteca de blancos (Orientacoes §5.5). P0: punto, esfera, cubo, caja, cilindro vertical. P1: tubo horizontal, tubo inclinado, cilindro inclinado, rejilla de 64 puntos en 4 profundidades. P2: escena con tres objetos de RCS y orientacion distintas. PEC por PO biestatica (malla con flecha < lambda_s/100). Canales mono, bi y fusion para las separaciones seleccionadas en el Exp. B.",
+  "c": 300000000.0,
+  "fc": 425000000.0,
+  "B": 50000000.0,
+  "Nf": 64,
+  "Pt": 100000.0,
+  "Tp": 1.3e-06,
+  "T_sys": 300,
+  "NF_dB": 0.0,
+  "antena": {
+    "G_dBi": 6,
+    "bw_az_deg": 14,
+    "bw_el_deg": 50,
+    "apunte": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tx_helice": {
+    "NumVoltas": 2,
+    "RaioMaior": 165.53,
+    "RaioMenor": 137.4,
+    "AltMaior": 131.45,
+    "AltMenor": 93.58,
+    "Vt": 113.5,
+    "PRF": 400,
+    "NorthOffset": 0
+  },
+  "n_pulsos": 1600,
+  "suelo": {
+    "nombre": "S1 referencia",
+    "eps_r": [
+      3.99,
+      0.4
+    ]
+  },
+  "suelos": {
+    "S0": {
+      "nombre": "S0 sin perdidas (validacion)",
+      "eps_r": [
+        4.0,
+        0.0
+      ]
+    },
+    "S1": {
+      "nombre": "S1 referencia",
+      "eps_r": [
+        3.99,
+        0.4
+      ]
+    },
+    "S2": {
+      "nombre": "S2 franco-arenoso humedo",
+      "eps_r": [
+        6.5,
+        0.9
+      ]
+    },
+    "S3": {
+      "nombre": "S3 franco humedo",
+      "eps_r": [
+        12.0,
+        2.5
+      ]
+    }
+  },
+  "rugosidad": {
+    "sigma_h": 0.02,
+    "corr_len": 0.2,
+    "patch_half": 12.0,
+    "facet": 0.15,
+    "taper": 0.15
+  },
+  "pol": "TM",
+  "roll_deg": 0.0,
+  "blanco": [
+    0.0,
+    0.0,
+    -2.0
+  ],
+  "rejilla_psf": {
+    "hx": 1.0,
+    "dx": 0.025,
+    "z_lo": -3.0,
+    "z_hi": 2.0,
+    "dz": 0.1
+  },
+  "cortes": {
+    "h": 2.5,
+    "dx": 0.005,
+    "z_lo": -4.5,
+    "z_hi": 2.0,
+    "dz": 0.01
+  },
+  "upsample": 32,
+  "semilla": 20261016,
+  "ventana_espectral": "rect",
+  "ventana_rango_m": [
+    -30.0,
+    60.0
+  ],
+  "dphi_list": [
+    45,
+    90,
+    135,
+    180
+  ],
+  "objetos": {
+    "punto": {
+      "prio": "P0",
+      "tipo": "punto"
+    },
+    "esfera": {
+      "prio": "P0",
+      "tipo": "esfera",
+      "dim": 0.5,
+      "rot": [
+        0,
+        0,
+        0
+      ]
+    },
+    "cubo": {
+      "prio": "P0",
+      "tipo": "cubo",
+      "dim": 1.0,
+      "rot": [
+        0,
+        0,
+        0
+      ]
+    },
+    "caja": {
+      "prio": "P0",
+      "tipo": "caja",
+      "dim": [
+        1.0,
+        0.5,
+        0.3
+      ],
+      "rot": [
+        0,
+        0,
+        0
+      ]
+    },
+    "cilindro_vertical": {
+      "prio": "P0",
+      "tipo": "cilindro",
+      "dim": [
+        0.3,
+        1.0
+      ],
+      "rot": [
+        0,
+        0,
+        0
+      ]
+    },
+    "tubo_horizontal": {
+      "prio": "P1",
+      "tipo": "tubo",
+      "dim": [
+        0.15,
+        2.0
+      ],
+      "rot": [
+        0,
+        90,
+        0
+      ]
+    },
+    "tubo_inclinado": {
+      "prio": "P1",
+      "tipo": "tubo",
+      "dim": [
+        0.15,
+        2.0
+      ],
+      "rot": [
+        0,
+        60,
+        30
+      ]
+    },
+    "cilindro_inclinado": {
+      "prio": "P1",
+      "tipo": "cilindro",
+      "dim": [
+        0.3,
+        1.0
+      ],
+      "rot": [
+        45,
+        0,
+        0
+      ]
+    }
+  },
+  "rejilla_obj": {
+    "hx": 1.5,
+    "dx": 0.04,
+    "z_lo": -2.5,
+    "z_hi": 1.5,
+    "dz": 0.1
+  },
+  "rejilla64": {
+    "xy": [
+      -1.5,
+      -0.5,
+      0.5,
+      1.5
+    ],
+    "z": [
+      -1.0,
+      -2.5,
+      -4.0,
+      -5.5
+    ],
+    "suelo": "S0",
+    "malla": {
+      "hx": 2.2,
+      "dx": 0.04,
+      "z_lo": -7.0,
+      "z_hi": 0.0,
+      "dz": 0.1
+    }
+  },
+  "escena_P2": [
+    {
+      "nombre": "cubo",
+      "tipo": "cubo",
+      "dim": 1.0,
+      "pos": [
+        -1.2,
+        0.0,
+        -2.0
+      ],
+      "rot": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "nombre": "tubo",
+      "tipo": "tubo",
+      "dim": [
+        0.15,
+        2.0
+      ],
+      "pos": [
+        1.0,
+        0.6,
+        -2.5
+      ],
+      "rot": [
+        0,
+        90,
+        30
+      ]
+    },
+    {
+      "nombre": "esfera",
+      "tipo": "esfera",
+      "dim": 0.3,
+      "pos": [
+        0.0,
+        -1.3,
+        -1.5
+      ],
+      "rot": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "rejilla_P2": {
+    "hx": 2.5,
+    "dx": 0.04,
+    "z_lo": -2.0,
+    "z_hi": 1.5,
+    "dz": 0.1
+  }
+}

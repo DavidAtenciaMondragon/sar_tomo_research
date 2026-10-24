@@ -1,0 +1,173 @@
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Experimento F: trayectoria del Rx para imagen}
+\label{cap:resF}
+
+\paragraph{Hipótesis.} Partiendo de la región prometedora del Exp.~B
+($\Delta\phi\approx90^{\circ}$--$120^{\circ}$), variar la separación a lo largo de la
+adquisición rellena el disco horizontal del dominio $k$ con más anillos y
+mejora la concentración de energía de la imagen fusionada, con un costo de
+vuelo bajo. El radio del Rx (a la misma altura) podría aportar diversidad
+vertical.
+
+\paragraph{Método (§5.7).} Variables:
+$\Delta\phi_0\in\{60^{\circ},\dots,165^{\circ}\}$, barrido lineal
+$\Delta\phi(t)=\Delta\phi_0+A(2t/T-1)$ con $A\in\{0,15^{\circ},30^{\circ},45^{\circ}\}$ y razón de radio
+$\kappa\in\{0.85,1,1.15\}$, siempre con $z_{Rx}=z_{Tx}$: 96 candidatos.
+Ninguna métrica contiene la potencia del eco. Se evalúan por separado
+$Q_{img}=\mathrm{ISLR}_{mono}-\mathrm{ISLR}_{fus}$, $A_{PSF}=10\log_{10}(V_{fus}/V_{mono})$,
+$\Delta\mathrm{SCR}=\mathrm{SCR}_{fus}-\mathrm{SCR}_{mono}$ (S1, $s=2$\,cm, TM, 2
+realizaciones) y $C_{voo}=(v^{Rx}_{max}/v_{Tx}-1)_++|L_{Rx}/L_{Tx}-1|$
+(inviable si la separación es $<15$\,m o $v^{Rx}_{max}>1.5\,v_{Tx}$).
+Ponderación espectral Hann. El costo ponderado, con métricas normalizadas al
+intervalo $[0,1]$ de los candidatos viables, es
+\begin{equation}
+  J = w_1\,\hat Q_{img} + w_2\,\widehat{\mathrm{SCR}} - w_3\,\hat A_{PSF} - w_4\,\hat C_{voo},
+  \qquad (w_1,w_2,w_3,w_4)=(1,\,0.5,\,1,\,1).
+\end{equation}
+CSV: \texttt{expF\_candidatos.csv} (todas las métricas por candidato),
+\texttt{expF\_eleccion\_pesos.csv}, \texttt{expF\_robustez.csv}, \texttt{expF2\_fase.csv}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{F_pareto.pdf}
+\caption{Frontera de Pareto (círculos rojos, 38 de 96 candidatos) en
+las proyecciones $Q_{img}$--$C_{voo}$, $Q_{img}$--$\Delta$SCR y $Q_{img}$--$A_{PSF}$;
+color $=\Delta\phi_0$; estrella: máximo de $J$.}
+\label{fig:F_pareto}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Elección según los pesos (Pareto-óptimas en todos los casos).}
+\label{tab:F_pesos}
+\resizebox{\textwidth}{!}{\begin{tabular}{@{}lcccc|ccc|rrrr@{}}
+\toprule
+Pesos & $w_1$ & $w_2$ & $w_3$ & $w_4$ & $\Delta\phi_0$ & $A$ & $\kappa$ & $Q_{img}$ & $\Delta$SCR & $A_{PSF}$ & $C_{voo}$ \\
+\midrule
+principal & 1 & 0.5 & 1 & 1 & 105° & 45° & 0.85 & 7.72 & 4.65 & 1.83 & 0.04 \\
+sin SCR ni vuelo & 1 & 0 & 1 & 0 & 105° & 45° & 1.15 & 7.36 & 0.66 & 1.55 & 0.60 \\
+más SCR & 1 & 1 & 0.5 & 1 & 105° & 45° & 0.85 & 7.72 & 4.65 & 1.83 & 0.04 \\
+vuelo prioritario & 0.5 & 0.5 & 0.5 & 2 & 75° & 0° & 1.00 & 4.00 & 3.12 & 0.96 & 0.00 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{table}[H]
+\centering\small
+\caption{Trayectoria propuesta frente a mono, a la mejor separación constante y a la región de Ref1
+(misma ponderación Hann; métricas separadas, como exige §5.7).}
+\label{tab:F_final}
+\resizebox{\textwidth}{!}{\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+ & PSLR & ISLR & $V_{-3}$ & $\delta_x$ & $\delta_z$ & Contr. & SCR \\
+ & [dB] & [dB] & [l] & [m] & [m] & [dB] & [dB] \\
+\midrule
+Mono (Ref2) & $-7.73$ & 6.71 & 29.4 & 0.158 & 2.08 & 19.5 & 6.9 \\
+Mono+bi, $\Delta\phi=105^{\circ}$ constante & $-10.40$ & 1.86 & 43.2 & 0.19 & 2.08 & 22.4 & 10.0 \\
+\textbf{Mono+bi propuesta} ($60^{\circ}\to150^{\circ}$, $\kappa=0.85$) & $\mathbf{-10.10}$ & $\mathbf{-1.01}$ & 44.8 & 0.20 & 2.06 & \textbf{25.0} & 11.5 \\
+Mono+bi, $\Delta\phi=165^{\circ}$ constante (región Ref1) & $-5.2$ & 7.5 & 61.7 & 0.23 & 2.08 & 14.5 & $-32.8$ \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{F_trayectoria_final.pdf}
+\caption{Trayectoria propuesta del Rx comparada con Ref1 y Ref2; a la
+derecha, $\Delta\phi(t)$ con el Tx a 10\,m/s (190\,s de adquisición).}
+\label{fig:F_final}
+\end{figure}
+
+\paragraph{Resultados e interpretación.}
+\begin{enumerate}[itemsep=3pt]
+  \item \textbf{Trayectoria propuesta:} Rx a la misma altura que el Tx, radio
+  $0.85\,\rho_{Tx}$, separación que crece linealmente de 60° a 150° durante las
+  dos vueltas. Frente a la imagen mono: ISLR $-7.7$\,dB, PSLR $-2.4$\,dB,
+  contraste $+5.5$\,dB, a costa de un lóbulo principal $+52$\,\% más
+  voluminoso ($\delta_x$ 0.158$\to$0.20\,m). Frente a la mejor separación
+  constante (105°), el barrido gana 2.9\,dB de ISLR: los anillos de distinto
+  radio rellenan el disco de $k$.
+  \item \textbf{Costo de vuelo bajo:} velocidad máxima del Rx 0.97 veces la del
+  Tx, recorrido 0.96, aceleración máxima 0.77\,m/s$^2$ a 10\,m/s, separación
+  mínima 128\,m. Las 96 trayectorias son viables con las restricciones impuestas.
+  \item \textbf{El radio no aporta resolución vertical (resultado negativo).} A la
+  misma altura, $\kappa=0.85$--$1.15$ cambia $\delta_z$ en $\approx1$\,\%
+  (2.06--2.08\,m): la extensión $k_z$ la fija la banda y no la diferencia de
+  elevación ($\Delta\theta\approx\pm3^{\circ}$). $\kappa$ sólo influye en $C_{voo}$ y
+  marginalmente en $Q_{img}$.
+  \item \textbf{SCR:} la ganancia de SCR de la fusión está entre $-0.5$ y $+5.6$\,dB para
+  $\Delta\phi_0\le150^{\circ}$ y es del orden de la dispersión entre realizaciones
+  ($\pm3$\,dB); sólo la región $\Delta\phi_0\ge165^{\circ}$ es claramente mala
+  ($-33$ a $-40$\,dB, especular). El SCR discrimina la región Ref1, pero no
+  ordena las demás.
+  \item \textbf{Sensibilidad a los pesos:} con tres de cuatro juegos de pesos se
+  elige el mismo barrido (105°, $A=45^{\circ}$); sólo si el vuelo domina se elige
+  $\Delta\phi=75^{\circ}$ constante. La elección es estable.
+\end{enumerate}
+
+\section{Robustez, sincronización y calibración de fase}
+\label{sec:sincro}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{F_robustez.pdf}
+\caption{Robustez de la fusión con la trayectoria propuesta frente a errores del
+canal bi \emph{sin calibrar}.}
+\label{fig:F_rob}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{F2_fase.pdf}
+\caption{Fase residual constante entre canales: sin calibrar (naranja),
+calibrada sobre el lóbulo principal del dispersor más brillante (verde),
+fusión incoherente $\tfrac12(|I_m|^2+|I_b|^2)$ (discontinua) y mono (azul).}
+\label{fig:F2}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Tolerancias del canal bi (fusión propuesta; nominal: PSLR $-10.1$,
+ISLR $-1.0$\,dB; mono: $-7.7$ / $6.7$\,dB).}
+\label{tab:tolerancias}
+\begin{tabular}{@{}L{4.7cm}L{4.0cm}L{5.6cm}@{}}
+\toprule
+Perturbación & Tolerada & Observación \\
+\midrule
+Ruido de posición del Rx (blanco, por pulso) & $\le10$\,cm ($\lambda_0/7$) & ISLR $-0.2$\,dB a 10\,cm; se promedia en la apertura \\
+Deriva de posición (paseo aleatorio, rms) & $\le5$\,cm & 20\,cm destruye la ganancia (PSLR $-2.0$\,dB) \\
+Ruido de fase del oscilador (por pulso) & $\le45^{\circ}$ rms & sólo pérdida de amplitud \\
+Offset de sincronismo constante & \textbf{calibrable} & 1\,ns = 153° de fase: sin calibrar anula la fusión;
+                                                       calibrado, PSLR $-9.7$, ISLR $-1.0$\,dB \\
+Deriva de sincronismo (lineal) & $<1$\,ns en la adquisición & 1\,ns: PSLR $-6.5$\,dB; 5\,ns: $-2.1$\,dB \\
+Error del índice del suelo ($\pm10$\,\%) & sí & afecta igual a mono y fusión (localización 0.17\,m) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Requisitos de sincronización y calibración del Rx remoto (§11).}
+\begin{itemize}[itemsep=2pt]
+  \item La fusión coherente exige conocer \textbf{una fase constante} entre
+  canales con error $\lesssim30^{\circ}$ (Fig.~\ref{fig:F2}: a 60° se pierde ya
+  2.1\,dB de ISLR; a 150° la fusión es peor que la mono). Un offset de reloj
+  constante es exactamente eso, más un desplazamiento en rango despreciable
+  ($c\,\Delta t/2n$). Se estima sin ambigüedad sobre el lóbulo principal de un
+  reflector fuerte (o con la señal directa Tx$\to$Rx, cuya geometría se conoce por
+  GNSS-RTK) y la fusión calibrada recupera exactamente la nominal. Estimarla sobre
+  toda la imagen falla ($\approx180^{\circ}$ de error) porque dominan los anillos en
+  contrafase.
+  \item Las \textbf{derivas} (de reloj o de posición) no son calibrables con una
+  constante: la deriva de reloj debe mantenerse $\ll1$\,ns en los 190\,s de
+  adquisición ($\lesssim5\times10^{-12}$ de estabilidad relativa, nivel
+  GPSDO/OCXO disciplinado o enlace de sincronización bidireccional), y la deriva de posición por debajo de $\approx5$\,cm rms
+  (RTK). El ruido blanco de posición y de fase se tolera bien.
+  \item La \textbf{fusión incoherente} (sumar intensidades) no necesita fase pero
+  rinde 2.0\,dB menos de ISLR y 4.4\,dB menos de contraste que la coherente
+  calibrada; su PSLR es similar ($-10.7$\,dB). Es un respaldo si no hay calibración
+  fiable, no un sustituto.
+\end{itemize}
+
+\conclexp{F}{La trayectoria recomendada (Rx a la misma altura, radio $0.85\rho_{Tx}$ y separación
+barrida de 60° a 150°) baja el ISLR 7.7\,dB y sube el contraste 5.5\,dB respecto de la mono con
+un costo de vuelo casi nulo, siempre que la fase entre canales se calibre: un offset de reloj de
+1\,ns sin calibrar anula la fusión.}

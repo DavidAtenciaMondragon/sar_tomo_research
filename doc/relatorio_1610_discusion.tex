@@ -1,0 +1,241 @@
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Respuestas a las preguntas de investigación}
+\label{cap:respuestas}
+
+\begin{longtable}{@{}L{4.3cm}L{10.2cm}@{}}
+\caption{Respuestas (§4) y criterio de éxito (§12), con la evidencia que las sustenta.}
+\label{tab:respuestas}\\
+\toprule
+\textbf{Pregunta} & \textbf{Respuesta} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Pregunta} & \textbf{Respuesta} \\
+\midrule
+\endhead
+1. ¿Cómo altera $\Delta\phi$ el soporte en $k$ y la PSF? &
+A la misma altura y radio, el canal bi ocupa un anillo horizontal de radio
+$|\cos(\Delta\phi/2)|$ veces el mono, con idéntica extensión en $k_z$
+(Figs.~\ref{fig:B_k}, \ref{fig:A_k}). La PSF bi se ensancha como
+$\delta_{xy}/|\cos(\Delta\phi/2)|$ (error $<1$\,\% hasta 150°) y su resolución
+vertical no cambia. En Ref1 el anillo colapsa en el origen y no hay
+enfoque horizontal ($\delta_x=17$\,m). \\
+2. ¿Mejor imagen bi aislada? &
+La de menor separación viable: toda separación degrada el bi aislado; no hay
+óptimo intermedio. Con la separación mínima de seguridad el bi aislado
+coincide prácticamente con la mono y no aporta información. En SCR, en cambio, el bi aislado
+en TM a 135°--140° es la mejor imagen con blancos reales: 8 a 20\,dB sobre la mono (Exp.~C2),
+con una resolución horizontal 2.6 veces peor. \\
+3. ¿Qué separación añade más información a la mono? &
+$\Delta\phi\approx90^{\circ}$--$120^{\circ}$ constante (rango efectivo de la matriz de
+adquisición 28.4$\to$33.8; área ocupada en $(k_x,k_y)$ $+52$\,\% a 90° y $+62$\,\% a 75°); mejor aún un barrido
+$60^{\circ}\to150^{\circ}$ (Exp.~F). Fuera de $[60^{\circ},150^{\circ}]$ la complementariedad cae. \\
+4. ¿Mejora la fusión coherente resolución, volumen, PSLR, ISLR, contraste, localización? &
+\textbf{Mejora lóbulos y contraste, no la resolución.} Punto isótropo,
+fusión N: PSLR $-2.0$ (90°) a $-5.2$\,dB (120°), ISLR $-5.3$\,dB (90°), contraste
+$+4.0$\,dB (90°); con el barrido del Exp.~F: ISLR $-7.7$\,dB, contraste $+5.5$\,dB.
+\textbf{Empeora} la resolución $-3$\,dB horizontal ($+16$ a $+30$\,\%) y el volumen
+del lóbulo ($+35$ a $+58$\,\%); la vertical no cambia. La localización del punto ya es
+perfecta en mono (error $<2$\,cm) y no cambia. La separabilidad de blancos próximos
+empeora (73\,\% $\to$ 27\,\% a 0.30\,m). Todo es geométrico: fusN $\equiv$ fus. \\
+5. ¿Se mantiene con RCS anisótropa y orientaciones? &
+\textbf{Sí, pero sólo con un Rx de polarización alineada y a 45°--90°.}
+Con Rx TM co-polar, a 90° el canal bi de un objeto real cae $\approx20$\,dB en
+potencia media (desajuste geométrico de polarización en el suelo) y la fusión de igual
+peso sólo deja $+0.3$ a $+0.6$\,dB de contraste a costa de 5--6\,dB de SNR. Con el Rx
+alineado (doble polarización), sobre 200--1000 orientaciones SO(3) por adquisición, la
+fusión a 90° mejora el contraste $+1.8$ a $+2.7$\,dB con probabilidad 90--98\,\% en cubo,
+caja, cilindro y tubo, con $-1$ a $-2$\,dB de SNR (N). En orientación nominal, los objetos
+con cara horizontal hacen que el especular bi domine a 135°--180° y la fusión empeora.
+En escenas con varios objetos, la fusión a 135° reduce el enmascaramiento 10\,dB.
+\\
+6. ¿El pseudo-Brewster reduce el retorno superficial de forma robusta? &
+\textbf{Sólo parcialmente y sólo donde no interesa.} En S1 el mínimo de reflectancia
+TM es ancho pero poco profundo ($-34.5$\,dB; pierde 0.7/2.4/6.0/13\,dB con 0.5/1/2/5°
+de error; roll 5° irrelevante): es robusto a errores, pero sólo suprime 17\,dB respecto de
+la incidencia base. Esa supresión actúa sobre la especular coherente, que sólo llega al
+Rx en la geometría Ref1: allí el SCR mejora 14--16\,dB pero queda en $\approx-41$\,dB (el blanco
+sigue enmascarado). En mono y en las separaciones intermedias el clutter dominante es
+difuso y el SCR no depende de Brewster (mismas tendencias en TM y TE). En el suelo sin
+pérdidas el cero es exacto pero desaparece con 0.5°. En suelos húmedos el mínimo es más
+somero ($-30.7$ y $-26.5$\,dB) y la atenuación del blanco domina. El efecto útil es
+otro: el nulo SPM ``Brewster biestático'' en VV ($\Delta\phi\approx135^{\circ}$--$140^{\circ}$), que con
+esfera y cubo en orientación aleatoria da al canal bi aislado 8 a 20\,dB más de SCR que la mono
+(Exp.~C2). El nulo HH en TE a 90° no sirve: también desacopla el eco del blanco real. Ojo: el
+nulo VV es de primer orden; el segundo orden lo rellena.
+\\
+7. ¿Costo en imagen de imponer pseudo-Brewster? &
+\textbf{Pequeño:} la órbita de incidencia constante en $\theta_{pB}$ mejora la
+resolución horizontal un 11\,\%, empeora la vertical un 12.5\,\%, sube el ISLR 1.2--1.8\,dB,
+baja el contraste 0.5--1.2\,dB y baja el SCR 0.6--2.2\,dB. Además, la órbita de
+incidencia constante (F2) da \emph{menos} SCR que la hélice (F1) en 54 de 60 comparaciones
+($-3.5$\,dB de media; Tabla~\ref{tab:C_f1f2}). El único beneficio aparece en Ref1, inservible
+para imagen. No compensa como restricción de trayectoria (Tabla~\ref{tab:C_concl}).
+\\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Criterio de éxito (§12)}} \\
+¿El canal bi añade información a la mono? &
+Sí, en forma de lóbulos secundarios más bajos, mayor contraste, mejor
+condicionamiento y menor enmascaramiento entre objetos de RCS distinta; no en
+resolución. Sólo con calibración de fase entre canales. \\
+¿Qué posición/trayectoria lo maximiza? &
+Rx a la misma altura, $\kappa\approx0.85$, $\Delta\phi(t)$ barrido $60^{\circ}\to150^{\circ}$
+(o, si el vuelo manda, $\Delta\phi=75^{\circ}$--$90^{\circ}$ constante), con Rx de doble
+polarización alineado al campo del Tx. Para suprimir clutter, en cambio, $\Delta\phi\approx140^{\circ}$
+constante en TM, con el canal bi aislado o una fusión ponderada. Nunca Ref1. \\
+¿Dónde está la mejora? & Lóbulos (PSLR/ISLR) y contraste con la fusión; supresión de
+clutter con el canal bi aislado en TM a 135°--140° (ver pregunta 6). \\
+¿Se mantiene para blancos, orientaciones y suelos? &
+Para orientaciones aleatorias, sí en contraste (con Rx alineado); no en resolución.
+Para suelos, la fusión es geométrica e independiente del suelo (B, C: mismas tendencias en
+S0--S1), pero en suelos húmedos (S2, S3) el SCR del blanco es negativo en todas las
+geometrías.
+\\
+¿Vale la pena imponer pseudo-Brewster? &
+No como restricción: la ganancia de SCR se limita a Ref1 y desaparece en suelos húmedos o
+con 0.5° de error en el caso ideal, y la órbita que la impone es peor que la hélice en SCR y
+resolución vertical. El SCR sube con la incidencia y con el Rx a 135°--140° en TM usado como canal aislado,
+no con Brewster.
+\\
+\bottomrule
+\end{longtable}
+
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Resultados negativos}
+\label{cap:negativos}
+
+Lista explícita (§10). Cada punto es un resultado reproducible del CSV indicado.
+\begin{enumerate}[itemsep=3pt]
+  \item \textbf{Ref1 (diametral) no sirve para imagen} y su fusión con la mono es
+  peor que la mono sola (Exp.~A, B): PSLR $-7.9\to-3.8$\,dB, ISLR $+5.6$\,dB.
+  \item \textbf{La fusión no mejora la resolución $-3$\,dB} en ninguna separación
+  (Exp.~B, F): la ensancha. La anisotropía 3D baja sólo porque el lóbulo
+  horizontal se ensancha.
+  \item \textbf{El Rx a la misma altura no aporta resolución vertical}, ni con
+  $\Delta\phi$ ni con el radio $\kappa=0.85$--$1.15$ ($\delta_z$ cambia $\le1$\,\%).
+  \item \textbf{La separabilidad de blancos próximos empeora} con la fusión
+  (Exp.~D): a 0.30\,m, 73\,\% (mono) frente a 27\,\% (90°).
+  \item \textbf{La fusión de igual peso diluye la SNR} cuando el canal bi es débil:
+  objetos con caras planas a 90° pierden 5--7\,dB de SNR (con el mismo presupuesto N).
+  \item \textbf{Más eco biestático no implica mejor imagen}: a 135°--180° el canal bi
+  de cubo/caja/cilindro es $+6$ a $+30$\,dB más fuerte y la fusión hereda su lóbulo
+  ancho ($\Delta V$ hasta $+28$\,dB).
+  \item \textbf{La fusión coherente sin calibrar puede ser peor que la mono}: una fase
+  residual de 150°--180° (p.\,ej.\ 1\,ns de offset de reloj) la anula.
+  \item \textbf{El SCR no ordena las separaciones intermedias} del Exp.~F (diferencias
+  dentro de $\pm3$\,dB de dispersión entre realizaciones).
+  \item \textbf{El pseudo-Brewster no rescata Ref1}: SCR $\approx-41$\,dB en S1 aun en el
+  mínimo; sólo en el suelo ideal sin pérdidas Ref1 llega a $+61$\,dB, y lo pierde con $\pm2^{\circ}$.
+  \item \textbf{El pseudo-Brewster no cambia el SCR de mono ni de las separaciones intermedias}
+  (Exp.~C): sus variaciones con la incidencia son iguales en TE y en TM.
+  \item \textbf{En suelos húmedos (S2, S3) ninguna geometría alcanza SCR $>0$} para un blanco
+  de $1\,\mathrm{m}^2$ a 2\,m.
+  \item \textbf{La órbita de altura constante acumula coherentemente los lóbulos lejanos en rango
+  del reflejo de nadir} sobre su eje si no se pondera el espectro (Exp.~C, rectangular).
+  \item \textbf{Un Rx TM co-polar anula la complementariedad a $\Delta\phi\approx90^{\circ}$}
+  para objetos reales: $-20$\,dB de potencia media del canal bi (Exp.~D y E); el punto
+  isótropo escalar no lo revela.
+  \item \textbf{El nulo HH en TE a 90° no mejora el SCR de blancos reales} (Exp.~C2): el mismo
+  desacople que anula el clutter anula el eco; la esfera pierde 7.1\,dB de SCR frente a la mono.
+  El punto escalar, que daba $+17.8$\,dB, no sirve para evaluar efectos de polarización.
+  \item \textbf{La fusión de igual peso desperdicia un canal con poco clutter} (Exp.~C2): a 140°
+  en TM queda 10 a 15\,dB por debajo del canal bi aislado.
+  \item \textbf{Con orientación aleatoria la fusión no mejora PSLR, resolución ni
+  localización} (medianas $\approx0$; Exp.~E).
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Limitaciones}
+\label{cap:limitaciones}
+
+\begin{itemize}[itemsep=2pt]
+  \item Blancos PEC por PO (sin difracción de aristas, ondas de superficie ni
+  rebotes múltiples); el tubo ($ka\approx2.7$) está en el límite de validez de PO.
+  Co-polar únicamente (sin polarización cruzada del blanco ni del SPM fuera del plano).
+  \item Superficie: SPM de primer orden ($k_0s\le0.36$) más especular coherente;
+  sin términos de segundo orden, que rellenan los nulos del SPM (el nulo VV
+  ``biestático'', del que depende la ventaja del bi aislado a 135°--140°, es por tanto una cota
+  optimista). Facetas
+  en $\pm12$\,m: el clutter más lejano se omite.
+  \item Suelo homogéneo, $\varepsilon$ constante en la banda; geometría de rayos con
+  $\mathrm{Re}(n)$; sin clutter volumétrico ni capas.
+  \item Ganancia de antena gaussiana apuntada al centro; sin acoplamiento directo
+  Tx--Rx ni su supresión; ruido térmico sin figura de ruido.
+  \item SCR en imagen estimado con 2--3 realizaciones de la superficie congelada
+  (dispersión $\approx\pm3$\,dB) en la vecindad del blanco.
+  \item La hélice del Tx es la óptima del trabajo anterior y es fija; con dos vueltas
+  completas la PSF es casi invariante en la escena, por lo que las conclusiones sobre
+  $\Delta\phi$ podrían cambiar con aperturas parciales.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Conclusiones y propuesta para la reunión}
+\label{cap:conclusiones}
+
+\section{Conclusiones}
+\begin{enumerate}[itemsep=3pt]
+  \item \textbf{El canal biestático sí añade información a la imagen monoestática}, pero no
+  donde se buscaba antes: no en potencia (confirmado otra vez: a 180° la potencia media bi
+  es igual a la mono), ni en resolución $-3$\,dB (la fusión la ensancha), ni en resolución
+  vertical (a la misma altura $k_z$ no cambia). La aporta en \textbf{lóbulos secundarios,
+  contraste, condicionamiento y enmascaramiento}: con un punto, la fusión a 90°--120° baja
+  el ISLR 5.3\,dB y el PSLR hasta 5.2\,dB; con la trayectoria barrida $60^{\circ}\to150^{\circ}$, el ISLR
+  7.7\,dB y el contraste $+5.5$\,dB; con objetos reales y orientación aleatoria, el contraste
+  $+1.8$ a $+2.7$\,dB (Rx alineado); en una escena con tres objetos, el enmascaramiento
+  10\,dB.
+  \item \textbf{Todo el beneficio es geométrico} (fusión con el mismo presupuesto de muestras
+  idéntica a la de 2N) y \textbf{exige coherencia}: una fase constante entre canales debe
+  calibrarse ($\lesssim30^{\circ}$); un offset de reloj de 1\,ns sin calibrar anula la fusión. La
+  fusión incoherente (sumar potencias) rinde 2\,dB menos de ISLR y 4.4\,dB menos de contraste.
+  \item \textbf{La región útil es $\Delta\phi\approx60^{\circ}$--$150^{\circ}$, con Rx de polarización
+  alineada.} Ref1 (180°) es inservible y empeora la fusión; por debajo de 45° el canal bi es
+  redundante. Un Rx TM co-polar pierde $\approx20$\,dB a 90° con objetos reales.
+  \item \textbf{El pseudo-Brewster no justifica restringir la trayectoria.} En suelo con
+  pérdidas el mínimo es ancho ($\pm1^{\circ}$ cuesta 2.4\,dB) pero somero ($-34.5$\,dB en S1) y
+  sólo actúa sobre la especular coherente, que sólo llega en Ref1 (SCR $\approx-41$\,dB en el
+  mínimo). En mono y en separaciones intermedias el clutter es difuso y el SCR depende de la
+  rugosidad y la incidencia por igual en TM y TE. En el suelo sin pérdidas el mínimo es
+  perfecto pero desaparece con 0.5°. El costo en imagen de la restricción es pequeño
+  ($\pm12$\,\% en resoluciones).
+  \item \textbf{Un nulo biestático del clutter es más útil que Brewster, pero sólo en TM.} El
+  nulo SPM de VV en $\Delta\phi\approx135^{\circ}$--$140^{\circ}$ sobrevive con blancos reales: el canal
+  bi aislado mejora el SCR 8 a 20\,dB sobre la mono con esfera y cubo en orientación aleatoria,
+  a costa de una resolución horizontal 2.6 veces peor. El nulo HH en TE a 90°, que con el punto
+  escalar parecía el mejor resultado, es un artefacto: también desacopla el eco del blanco. El
+  nulo VV es de primer orden y debe verificarse con modelos de orden superior y medidas.
+  \item \textbf{El canal bi tiene dos usos distintos.} Para imagen (lóbulos y contraste), fusión
+  coherente con $\Delta\phi$ barrido de 60° a 150°. Para detección limitada por clutter, canal bi
+  aislado en TM a $\approx140^{\circ}$. La fusión de igual peso sirve para lo primero, pero
+  desperdicia lo segundo: hay que estudiar una fusión ponderada o una reconstrucción conjunta.
+  \item \textbf{Resultados negativos} (Cap.~\ref{cap:negativos}): la contribución fuerte no es
+  ``el biestático es mejor'', sino \emph{cuándo} (separación intermedia, Rx alineado,
+  calibración de fase), \emph{dónde} (lóbulos, contraste, enmascaramiento) y \emph{por qué}
+  (relleno del disco horizontal del dominio $k$).
+\end{enumerate}
+
+\section{Propuesta para la reunión del 17/10}
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Función de costo.} Adoptar
+  $J=w_1\hat Q_{img}+w_2\widehat{\mathrm{SCR}}-w_3\hat A_{PSF}-w_4\hat C_{voo}$ con
+  $Q_{img}=$ reducción de ISLR (o contraste) de la fusión, $A_{PSF}$ = crecimiento del
+  volumen $-3$\,dB, $C_{voo}$ cinemático, sin término de potencia; pesos (1, 0.5, 1, 1). La
+  elección es estable frente a los pesos. Proponemos sustituir la PSF del punto por el
+  contraste medio del Monte Carlo SO(3) con Rx alineado como $Q_{img}$ en la siguiente
+  iteración.
+  \item \textbf{Trayectoria propuesta.} Para imagen: Rx a la misma altura, radio
+  $0.85\rho_{Tx}$, $\Delta\phi(t)$ de 60° a 150° en las dos vueltas, receptor de doble
+  polarización y calibración de fase sobre la señal directa o un reflector. Para detección con
+  clutter fuerte: $\Delta\phi\approx140^{\circ}$ constante en TM. Falta validar la primera con
+  objetos anisótropos, orientaciones aleatorias y clutter, porque se eligió con el punto.
+  \item \textbf{Próximo artículo.} ``Physics-aware receiver-trajectory design for complementary
+  monostatic--bistatic subsurface UAV-SAR imaging'': contribución en la fusión coherente
+  (relleno del dominio $k$), el nulo biestático VV como criterio de ubicación del Rx frente al
+  clutter, la regla de polarización del Rx y los requisitos de sincronización; el pseudo-Brewster pasaría a ser un análisis de sensibilidad
+  (resultado negativo documentado) y no un criterio de diseño.
+  \item \textbf{Preguntas abiertas.} (i) ¿Aceptamos perder 16--30\,\% de resolución $-3$\,dB a
+  cambio de 5--8\,dB de ISLR? (ii) ¿Qué apertura parcial (menos de dos vueltas) es realista?
+  Con aperturas parciales el dominio $k$ deja de ser anular y el óptimo de $\Delta\phi$ puede
+  cambiar. (iii) ¿Disponemos de Rx de doble polarización en el RD350? (iv) Validar el nulo
+  VV con un modelo IEM/AIEM, polarización cruzada y medidas. (v) ¿Qué combinación de canales
+  conviene: fusión ponderada, reconstrucción conjunta o incoherente?
+\end{itemize}

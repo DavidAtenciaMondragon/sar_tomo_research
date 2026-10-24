@@ -1,0 +1,242 @@
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Experimento A: referencias de imagen}
+\label{cap:resA}
+
+\paragraph{Hipótesis.} Ref2 (monoestática) es la referencia permanente; Ref1
+(diametral, $\Delta\phi=180^{\circ}$, misma altura y radio) es un \emph{baseline}
+geométrico extremo que debe reconstruir mal; su fusión con Ref2 no debería
+mejorar la imagen.
+
+\paragraph{Método.} Punto isótropo de $1\,\mathrm{m}^2$ en $(0,0,-2)$\,m, suelo
+S1, mismos pulsos para los dos canales; rejilla $2\times2\times5$\,m con
+$\Delta=2.5$\,cm/10\,cm; cortes de $\pm25$\,m para medir anchos censurados.
+Datos complejos en \texttt{expA/datos\_complejos\_expA.npz}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{A_geometria.pdf}
+\caption{Geometría completa: Tx transceiver (canal
+mono = Ref2), Rx remoto en Ref1 ($\Delta\phi=180^{\circ}$) y en una posición
+intermedia ($\Delta\phi=90^{\circ}$); a la derecha, el perfil radial común de las
+hélices y las líneas de incidencia (mín., pseudo-Brewster de S1, máx.).}
+\label{fig:geom}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Exp.~A: métricas de la PSF (\texttt{expA\_metricas.csv}). $\delta_x^{\pm25}$: ancho en el corte largo.}
+\label{tab:expA}
+\begin{tabular}{@{}lrrrrrrrrr@{}}
+\toprule
+Canal & $\delta_x$ & $\delta_x^{\pm25}$ & $\delta_z$ & $V_{-3}$ & Aniso & PSLR & ISLR & Contr. & SNR \\
+      & [m] & [m] & [m] & [l] & & [dB] & [dB] & [dB] & [dB] \\
+\midrule
+Ref2 mono              & 0.158 & 0.159 & 1.39 & 19.2 & 8.9 & $-7.9$ & 6.4 & 21.3 & 78.0 \\
+Ref1 bi (180°)         & $>2$ & \textbf{17.2} & 1.39 & $>5331$ & --- & $0.0$ & --- & 8.5 & 78.0 \\
+Ref1+Ref2 (2N)         & 0.235 & --- & 1.39 & 41.1 & 5.9 & $-3.8$ & 11.9 & 11.4 & 81.0 \\
+Ref1+Ref2 (N)          & 0.235 & --- & 1.39 & 41.1 & 5.9 & $-3.8$ & 11.9 & 11.4 & 78.0 \\
+\midrule
+Bi intermedio 90°      & 0.221 & 0.223 & 1.39 & 38.8 & 6.2 & $-7.9$ & 5.1 & 19.6 & 78.0 \\
+Mono+bi 90° (N)        & 0.182 & --- & 1.39 & 25.9 & 7.4 & $-9.9$ & 1.0 & 25.3 & 78.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{A_psf_cortes.pdf}
+\caption{Cortes de la PSF en $x$, $y$ y $z$ para Ref2, Ref1 y su fusión (misma
+escala: pico mono $=0$\,dB). Ref1 es plana en el plano horizontal: no enfoca.}
+\label{fig:A_cortes}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{A_imagenes.pdf}
+\caption{Imágenes de referencia con la misma escala dinámica (30\,dB):
+plano $z=-2$\,m y corte $y=0$.}
+\label{fig:A_img}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{A_kspace_ref.pdf}
+\caption{Dónde se pierde el soporte en Ref1: el canal mono cubre un anillo
+horizontal de radio $2k_0\sin\theta_i\approx14$\,rad/m; en Ref1 las
+direcciones de ida y vuelta en el suelo son simétricas respecto de la vertical,
+$\vect K_h=k_sn'(\hat u_{T,h}+\hat u_{R,h})=0$ para todo pulso, y todo el
+soporte cae sobre el eje $k_z$.}
+\label{fig:A_k}
+\end{figure}
+
+\paragraph{Resultados e interpretación.}
+\begin{itemize}[itemsep=2pt]
+  \item La potencia media recibida es idéntica en Ref1 y Ref2
+  ($-68.87$\,dBm), confirmando la conclusión del 28/09 en esta geometría.
+  \item \textbf{Ref1 reconstruye mal, como se esperaba.} Su soporte en $k$ es
+  un segmento sobre el eje $k_z$ (Fig.~\ref{fig:A_k}); conserva exactamente la
+  resolución vertical (1.39\,m) pero pierde toda la horizontal: el único
+  enfoque lateral residual proviene de la curvatura del frente de onda
+  ($\delta_x=17$\,m con $R\approx190$\,m).
+  \item \textbf{La fusión Ref1+Ref2 es peor que Ref2}: el canal Ref1 añade un
+  pedestal plano a la PSF, sube los lóbulos (PSLR $-7.9\to-3.8$\,dB, ISLR
+  $+6.4\to+11.9$\,dB) y ensancha el lóbulo principal en un 49\,\%. Es un
+  resultado negativo claro: la geometría diametral no debe usarse.
+  \item La fusión con el mismo presupuesto (N) da exactamente la misma imagen
+  que la de 2N (correlación $>0.99999$): todo cambio de forma es geométrico.
+  La única diferencia es la SNR ($+3.01$\,dB), atribuible solo al número de
+  muestras.
+\end{itemize}
+
+\conclexp{A}{Ref1 conserva la resolución vertical pero pierde toda la horizontal
+($\delta_x=17$\,m) y su fusión empeora la mono (PSLR $-7.9\to-3.8$\,dB), de modo que sólo
+sirve como referencia geométrica extrema y no como configuración de imagen.}
+
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Experimento B: barrido de la separación Tx--Rx}
+\label{cap:resB}
+
+\paragraph{Hipótesis.} El canal bi a la misma altura y radio contrae el anillo
+horizontal de soporte por un factor $|\cos(\Delta\phi/2)|$; un anillo interior
+complementario podría reducir los lóbulos del anillo monoestático (función
+$J_0$, PSLR $\approx-7.9$\,dB) a costa de ensanchar el lóbulo principal.
+
+\paragraph{Método.} $\Delta\phi=0^{\circ}{:}15^{\circ}{:}180^{\circ}$ constante, $z_{Rx}=z_{Tx}$,
+$\kappa=1$; cuatro imágenes por caso (mono, bi, fus, fusN), blanco en el eje
+y blanco descentrado en $(6,4,-2)$\,m; soporte en $k$ y condicionamiento.
+Barrido directo, sin optimizador (§5.3). CSV: \texttt{expB\_metricas.csv},
+\texttt{expB\_kspace\_condicionamiento.csv}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{B_geometria.pdf}
+\caption{Geometría del Exp.~B. Arriba, planta del Tx (azul) y del Rx (naranja) para cada
+$\Delta\phi$: el Rx recorre \emph{la misma hélice} que el Tx, con los mismos radios y alturas,
+rotada $\Delta\phi$ en acimut y sincronizada (marcas = mismos pulsos; línea punteada = línea
+de base). Abajo, $\rho(t)$ y $z(t)$ de ambos, idénticos en todos los casos. Lo único que
+cambia entre columnas es el desfase acimutal. Las dos espiras se ven separadas en planta
+porque, en un mismo acimut, Tx y Rx pasan en instantes distintos y, por tanto, con radios
+distintos de la hélice.}
+\label{fig:B_geo}
+\end{figure}
+
+\paragraph{Lectura de las figuras siguientes.} Los anillos de las Figs.~\ref{fig:B_k} y
+\ref{fig:B_img} \emph{no son trayectorias}. En la Fig.~\ref{fig:B_k}, cada punto es el
+vector de onda biestático $\vect{k}=k(\hat{\vect u}_{Tx}+\hat{\vect u}_{Rx})$ de un pulso, en
+rad/m. Como los dos UAV vuelan a la misma altura y radio, su componente horizontal vale
+$2k\sin\theta\,|\cos(\Delta\phi/2)|$: el anillo bi se contrae con $\Delta\phi$ aunque la
+órbita del Rx sea la misma. En la Fig.~\ref{fig:B_img}, los anillos son los lóbulos de la
+PSF (tipo $J_0$), en metros alrededor del blanco.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{B_kspace.pdf}
+\caption{Soporte en el dominio de $k$: Ref2, tres separaciones
+intermedias y Ref1. Arriba, plano $(k_x,k_y)$; abajo, $(|k_h|,k_z)$. El canal
+bi es un anillo de radio $|\cos(\Delta\phi/2)|$ veces el monoestático, con la
+misma extensión en $k_z$. Son números de onda (rad/m), no trayectorias: la órbita del Rx
+es la misma en todas las columnas (Fig.~\ref{fig:B_geo}).}
+\label{fig:B_k}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{B_resoluciones.pdf}
+\caption{Resoluciones $x$, $y$, $z$ vs.\ $\Delta\phi$. Curva
+discontinua: $\delta_{xy}^{mono}/|\cos(\Delta\phi/2)|$ (forma cerrada, ec.~\ref{eq:A_dxy_eje}).}
+\label{fig:B_res}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{B_volumen_anisotropia.pdf}
+\caption{Volumen del lóbulo $-3$\,dB y anisotropía 3D de la PSF vs.\ $\Delta\phi$.}
+\label{fig:B_vol}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{B_pslr_islr.pdf}
+\caption{PSLR, ISLR y contraste vs.\ $\Delta\phi$. La línea azul es la
+imagen monoestática; verde, la fusión; punteado, la fusión con el mismo
+presupuesto de muestras (coincide).}
+\label{fig:B_lob}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{B_informacion.pdf}
+\caption{Información: área ocupada en $(k_x,k_y)$, rango efectivo y coherencia
+mutua de la matriz de adquisición linealizada ($7\times7\times5$ vóxeles,
+Gram normalizado por canal).}
+\label{fig:B_info}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{B_imagenes.pdf}
+\caption{Imágenes lado a lado con la misma escala (pico mono $=0$\,dB, 30\,dB):
+mono, bi y fusión para $\Delta\phi=45^{\circ},90^{\circ},135^{\circ},180^{\circ}$. Los anillos son
+los lóbulos secundarios de la PSF en una ventana de $2\times2$\,m alrededor del blanco.}
+\label{fig:B_img}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Exp.~B, blanco en el eje: canal bi aislado y fusión (N) frente a mono.
+Mono: $\delta_x=0.157$\,m, $V=19.2$\,l, PSLR $-7.88$\,dB, ISLR $6.37$\,dB,
+contraste 21.3\,dB, rango efectivo 28.4.}
+\label{tab:expB}
+\begin{tabular}{@{}r|rrr|rrrrrr@{}}
+\toprule
+ & \multicolumn{3}{c|}{\textbf{Bi aislado}} & \multicolumn{6}{c}{\textbf{Fusión mono+bi (N)}} \\
+$\Delta\phi$ & $\delta_x$ & $V$ & ISLR & $\delta_x$ & $V$ & PSLR & ISLR & Contr. & rango ef. \\
+\midrule
+ 15 & 0.158 & 19.7 & 6.36 & 0.158 & 19.6 & $-7.90$ & 6.35 & 21.3 & 28.3 \\
+ 30 & 0.162 & 20.8 & 6.31 & 0.160 & 20.2 & $-7.92$ & 6.21 & 21.4 & 28.1 \\
+ 45 & 0.169 & 22.6 & 6.19 & 0.163 & 21.0 & $-8.00$ & 5.71 & 21.7 & 28.2 \\
+ 60 & 0.180 & 25.6 & 5.87 & 0.167 & 21.9 & $-8.28$ & 4.54 & 22.6 & 28.9 \\
+ 75 & 0.199 & 29.4 & 5.58 & 0.174 & 23.4 & $-8.79$ & 2.53 & 24.2 & 30.4 \\
+ 90 & 0.221 & 38.8 & 5.10 & 0.182 & 25.9 & $-9.91$ & \textbf{1.04} & \textbf{25.3} & 32.4 \\
+105 & 0.258 & 52.0 & 4.37 & 0.192 & 28.0 & $-12.19$ & 1.60 & 24.3 & \textbf{33.8} \\
+120 & 0.315 & 75.9 & 3.45 & 0.204 & 30.3 & $\mathbf{-13.09}$ & 2.50 & 22.8 & 33.7 \\
+135 & 0.412 & 131 & 1.62 & 0.214 & 34.8 & $-10.24$ & 2.32 & 22.2 & 31.5 \\
+150 & 0.612 & 285 & $-1.13$ & 0.224 & 37.6 & $-9.48$ & 3.47 & 20.4 & 26.7 \\
+165 & 1.216 & 1118 & $-9.6$ & 0.232 & 40.8 & $-5.25$ & 7.30 & 16.2 & 20.0 \\
+180 & 17.2 & $>5331$ & --- & 0.235 & 41.1 & $-3.81$ & 11.95 & 11.4 & 16.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Resultados e interpretación.}
+\begin{enumerate}[itemsep=3pt]
+  \item \textbf{Ley geométrica verificada.} La resolución horizontal del canal bi
+  sigue $\delta_{xy}^{mono}/|\cos(\Delta\phi/2)|$ con error $<1$\,\% hasta
+  150°; la vertical no cambia (1.386\,m en todos los casos) porque, a la misma
+  altura, la extensión $k_z$ es idéntica ($\sigma_{kz}=1.174$\,rad/m constante).
+  \item \textbf{Mejor imagen biestática aislada (pregunta 2):} la de menor separación
+  viable. Toda separación degrada el lóbulo principal del bi aislado; no
+  existe un óptimo intermedio para el bi solo. Con una separación mínima de
+  seguridad de 15\,m entre UAVs ($\Delta\phi\gtrsim6^{\circ}$), el bi aislado más
+  nítido es prácticamente un segundo monoestático y no aporta información.
+  \item \textbf{Mayor complementariedad (pregunta 3): $\Delta\phi\approx90^{\circ}$--$120^{\circ}$.} El anillo
+  interior rellena el disco de $k$: el área ocupada en $(k_x,k_y)$ crece de
+  294 a 475\,rad$^2$/m$^2$ (75°) y el rango efectivo de 28.4 a 33.8 (105°).
+  En la imagen fusionada, el ISLR cae 5.3\,dB (90°), el PSLR mejora 5.2\,dB
+  (120°) y el contraste sube 4.0\,dB (90°).
+  \item \textbf{Costo:} el lóbulo principal horizontal se ensancha
+  ($\delta_x$ $+16$\,\% a 90°, $+30$\,\% a 120°; volumen $+35$\,\% y $+58$\,\%).
+  La fusión no mejora la resolución $-3$\,dB: mejora los lóbulos, el contraste y el
+  condicionamiento. La anisotropía 3D baja (8.9$\to$7.4 a 90°) sólo porque el lóbulo
+  horizontal se ensancha, no porque mejore $\delta_z$.
+  \item \textbf{Resultados idénticos para el blanco descentrado} ($6,4,-2$\,m;
+  diferencias $<0.3$\,dB en PSLR): con la hélice de dos vueltas completas la
+  PSF es casi invariante en la escena.
+  \item \textbf{Normalización:} fus y fusN coinciden con correlación $1.00000$ en
+  los 26 casos. Ninguna mejora de forma se debe al doble de muestras.
+\end{enumerate}
+
+\conclexp{B}{El canal bi a la misma altura no mejora ninguna resolución (la horizontal empeora
+como $1/|\cos(\Delta\phi/2)|$ y la vertical no cambia), pero con $\Delta\phi\approx90^{\circ}$--$120^{\circ}$
+rellena el dominio $k$ y la fusión baja el ISLR 5.3\,dB, mejora el PSLR hasta 5.2\,dB y sube el
+contraste 4\,dB, a cambio de un lóbulo principal un 16--30\,\% más ancho.}

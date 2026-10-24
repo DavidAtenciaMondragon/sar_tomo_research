@@ -1,0 +1,137 @@
+% ══════════════════════════════════════════════════════════════════════════
+\chapter*{Glosario}
+\addcontentsline{toc}{chapter}{Glosario}
+\label{cap:glosario}
+
+\section*{Siglas}
+
+\begin{longtable}{@{}L{2.4cm}L{12.0cm}@{}}
+\toprule
+\textbf{Sigla} & \textbf{Significado} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Sigla} & \textbf{Significado} \\
+\midrule
+\endhead
+AIEM, IEM & \emph{(Advanced) Integral Equation Model}: modelos de dispersión de superficies rugosas
+            más generales que el SPM; incluyen términos de orden superior. \\
+BP & \emph{Back-projection}: reconstrucción que suma, en cada vóxel, los ecos corregidos por el
+     retardo de ese vóxel. \\
+CSV & Archivo de texto con columnas separadas por comas; contiene todas las métricas de cada
+      experimento. \\
+FWHM & \emph{Full Width at Half Maximum}: ancho a media potencia. Equivale a $\delta_{x,y,z}$
+       (ancho a $-3$\,dB); los CSV conservan el nombre \texttt{fwhm\_*}. \\
+GNSS, RTK & Posicionamiento por satélite; RTK (\emph{Real-Time Kinematic}) es la variante con
+            precisión centimétrica. \\
+GPSDO, OCXO & Osciladores de alta estabilidad (disciplinado por GPS; de cristal con horno) para
+              sincronizar los relojes del Tx y del Rx. \\
+HH, VV & Polarización horizontal (TE) o vertical (TM) en transmisión y recepción; se usa para el
+         retorno de la superficie. \\
+ISLR & \emph{Integrated Sidelobe Ratio}: energía fuera del lóbulo principal dividida por la
+       energía dentro. Menor es mejor. \\
+MIP & \emph{Maximum Intensity Projection}: proyección de una imagen 3D en 2D tomando el máximo de
+      $|I|$ a lo largo de un eje. ``MIP en $z$'' da una vista en planta. \\
+PEC & \emph{Perfect Electric Conductor}: conductor perfecto; material de los blancos simulados. \\
+PO & \emph{Physical Optics} (Óptica Física): aproximación para calcular el campo dispersado por
+     un objeto a partir de las corrientes en sus caras iluminadas. \\
+PSCR & Pico del blanco dividido por el pico de la superficie en toda la rejilla (Exp.~C2). \\
+PSF & \emph{Point Spread Function}: imagen de un único punto; describe la resolución y los
+      lóbulos del sistema. \\
+PSLR & \emph{Peak Sidelobe Ratio}: pico del mayor lóbulo secundario respecto del pico principal.
+       Menor es mejor. \\
+RCS & \emph{Radar Cross Section}: sección eficaz radar del blanco, en m$^2$ o dBsm. \\
+Rx, Tx & Receptor y transmisor. El Tx es un \emph{transceiver}: también recibe el canal mono. \\
+SAR & \emph{Synthetic Aperture Radar}: radar de apertura sintética. \\
+SCR & \emph{Signal-to-Clutter Ratio}: potencia del blanco dividida por la de la superficie en el
+      vóxel del blanco. Mayor es mejor. \\
+SNR & \emph{Signal-to-Noise Ratio}: potencia del blanco dividida por la del ruido térmico. \\
+SO(3) & Grupo de rotaciones en 3D. ``Monte Carlo SO(3)'': orientaciones del objeto sorteadas
+        uniformemente. \\
+SPM & \emph{Small Perturbation Method}: modelo de dispersión de primer orden para superficies
+      poco rugosas ($k_0s\ll1$). \\
+TM, TE & Polarización con el campo eléctrico en el plano de incidencia (TM, ``vertical'') o
+         perpendicular a él (TE, ``horizontal''). Brewster sólo afecta a TM. \\
+UAV & \emph{Unmanned Aerial Vehicle}: dron que lleva el Tx o el Rx. \\
+\bottomrule
+\end{longtable}
+
+\section*{Configuraciones y nombres usados en el relatorio}
+
+\begin{longtable}{@{}L{2.8cm}L{11.6cm}@{}}
+\toprule
+\textbf{Término} & \textbf{Significado} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Término} & \textbf{Significado} \\
+\midrule
+\endhead
+Mono, Ref2 & Canal monoestático: el Tx recibe su propio eco. Es la referencia permanente. \\
+Bi & Canal biestático: el Rx remoto recibe el eco del mismo pulso del Tx. \\
+Ref1 & Canal bi diametral: Rx a la misma altura y radio, en el lado opuesto ($\Delta\phi=180^{\circ}$). \\
+fus (2N) & Fusión coherente $\tfrac12(I_{mono}+I_{bi})$ con los dos canales completos. \\
+fusN (N) & Fusión con el mismo número de muestras que la mono (canales alternados por pulso).
+           Aísla la ganancia geométrica de la ganancia por más muestras. \\
+Fusión incoherente & Suma de intensidades, $\tfrac12(|I_{mono}|^2+|I_{bi}|^2)$; no necesita fase. \\
+Hélice base & Trayectoria óptima del Tx del trabajo anterior: 2 vueltas, incidencia de 46° a 60°. \\
+F1, F2 & Familias de trayectoria del Exp.~C: F1 es la hélice girada hacia una incidencia central;
+         F2 es una órbita de incidencia constante. \\
+S0--S3 & Suelos simulados: S0 sin pérdidas ($\varepsilon_r=4$), S1 de referencia
+         ($3.99-j0.40$), S2 ($6.5-j0.9$) y S3 ($12-j2.5$), cada vez más húmedos. \\
+P0, P1, P2 & Conjuntos de blancos del Exp.~D: objetos simples, objetos alargados o inclinados, y
+             escena con tres objetos. \\
+Rx alineado & Rx de doble polarización que combina sus canales para recibir la componente del
+              campo del Tx; evita el desajuste de polarización a $\Delta\phi\approx90^{\circ}$. \\
+Pseudo-Brewster & Incidencia con mínimo (no nulo) de la reflectancia TM en un suelo con pérdidas. \\
+Nulo VV biestático & Separación $\Delta\phi^\ast\approx135^{\circ}$--$140^{\circ}$ donde se anula el retorno
+                     difuso VV de primer orden. \\
+Especular & Reflexión coherente de la superficie en el punto especular del par Tx--Rx; en el
+            canal mono, el reflejo de nadir. \\
+Difusa & Retorno incoherente de la rugosidad de la superficie (modelo SPM). \\
+Dominio $k$ & Espacio de los vectores de onda $\vect K$ medidos; su ocupación fija la resolución
+              y los lóbulos de la imagen. \\
+Rango efectivo & Número de valores singulares significativos de la matriz de adquisición;
+                 mide cuánta información independiente aporta la geometría. \\
+Ponderación Hann & Ventana aplicada al espectro en frecuencia para bajar los lóbulos en rango,
+                   a costa de un lóbulo principal más ancho. \\
+Roll, atitud & Giro de la antena alrededor de la línea de vista; mezcla las polarizaciones TM y TE. \\
+P$_{mej}$ & Probabilidad de mejora: fracción de adquisiciones del Monte Carlo en que la fusión
+            supera a la mono. \\
+\bottomrule
+\end{longtable}
+
+\section*{Símbolos}
+
+\begin{longtable}{@{}L{2.8cm}L{11.6cm}@{}}
+\toprule
+\textbf{Símbolo} & \textbf{Significado} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Símbolo} & \textbf{Significado} \\
+\midrule
+\endhead
+$\Delta\phi$ & Separación acimutal entre Tx y Rx, vista desde el centro de la escena. \\
+$\kappa$ & Razón entre el radio de la órbita del Rx y la del Tx. \\
+$\rho$, $z$ & Radio horizontal y altura de una plataforma. \\
+$\theta$, $\theta_c$ & Incidencia en la superficie; $\theta_c$ es la incidencia central de una
+                       trayectoria del Exp.~C. \\
+$\theta_{pB}$ & Incidencia de pseudo-Brewster del suelo. \\
+$\theta_{esp}$ & Incidencia en el punto especular del par Tx--Rx. \\
+$\delta_x,\delta_y,\delta_z$ & Resoluciones: ancho a $-3$\,dB de la PSF en cada eje. \\
+$V_{-3}$ & Volumen del lóbulo principal a $-3$\,dB, en litros. \\
+$\varepsilon_r$ & Permitividad relativa compleja del suelo, $\varepsilon'-j\varepsilon''$. \\
+$n$ & Índice de refracción del suelo, $\sqrt{\varepsilon_r}$. \\
+$s$, $\ell$ & Rugosidad de la superficie: desviación típica de la altura y longitud de correlación. \\
+$\sigma^0$ & Coeficiente de dispersión de la superficie por unidad de área. \\
+$r_{TM}$, $r_{TE}$ & Coeficientes de reflexión de Fresnel. \\
+$f_c$, $B$, $\lambda_0$ & Frecuencia central (425\,MHz), ancho de banda (50\,MHz) y longitud de
+                         onda en el aire. \\
+$k_0$ & Número de onda en el aire, $2\pi/\lambda_0$. \\
+$M$, $N_f$ & Número de pulsos y de frecuencias. \\
+$Q_{img}$, $A_{PSF}$, $C_{voo}$, $J$ & Métricas del Exp.~F: reducción de ISLR por la fusión,
+                                       crecimiento del volumen del lóbulo, costo de vuelo y costo
+                                       ponderado total. \\
+\bottomrule
+\end{longtable}

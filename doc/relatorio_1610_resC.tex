@@ -1,0 +1,423 @@
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Experimento C: incidencia con y sin pseudo-Brewster}
+\label{cap:resC}
+
+\paragraph{Hipótesis (§2.1).} Cerca del pseudo-Brewster se \emph{reduce} el
+retorno de la interfaz en TM (no aumenta el eco del blanco), lo que mejoraría
+la relación blanco--superficie si esa reducción es robusta a pérdidas,
+rugosidad, errores angulares y de atitud.
+
+\paragraph{Método.} Se comparan dos familias de trayectoria del Tx (F1, hélice; F2,
+incidencia constante), descritas abajo, en varias incidencias, suelos, rugosidades,
+polarizaciones y errores de apunte (Tabla~\ref{tab:C_var}). Canales: mono, bi a 90°, 135°
+y 180° (Ref1), y fusión. El SCR se mide en el vóxel del blanco (punto de
+$1\,\mathrm{m}^2$ a 2\,m de profundidad), con la superficie congelada y compartida por los
+dos canales (3 realizaciones), ponderación Hann y ventana de recepción
+(Sección~\ref{sec:ponderacion}). CSV:
+\texttt{expC\_enlace\_reflectancia.csv}, \texttt{expC\_enlace\_error\_roll.csv},
+\texttt{expC\_scr\_imagen.csv}, \texttt{expC\_psf\_vs\_incidencia.csv}; versión
+con espectro rectangular en \texttt{expC\_rect/}.
+
+\paragraph{Geometría de F1 y F2.} Las dos familias se construyen punto a punto a partir de
+la hélice base (\texttt{geometry.familia\_C}). Cada pulso conserva su acimut y su distancia al
+centro de la escena, que en la hélice óptima es casi constante ($\approx189$\,m, porque su línea
+de base es perpendicular a la línea de vista). Sólo cambia la incidencia $\theta$, medida en el
+centro de la superficie $(0,0,0)$:
+\begin{itemize}[itemsep=1pt]
+  \item \textbf{F1:} cada punto se gira en su plano vertical $\theta_c-\langle\theta_0\rangle$. La
+  trayectoria sigue siendo una hélice y conserva su barrido propio de incidencia
+  ($\theta_c\pm7^{\circ}$).
+  \item \textbf{F2:} cada punto se coloca exactamente en $\theta_c$. Como la distancia es casi
+  constante, F2 es una órbita de dos vueltas a altura y radio constantes; en
+  $\theta_{pB}=63.45^{\circ}$, 84.6\,m de altura y 169\,m de radio.
+\end{itemize}
+Un \emph{cono de incidencia constante} $\theta$ es el conjunto de puntos que, vistos desde
+el centro de la superficie, forman el mismo ángulo $\theta$ con la vertical: un cono con vértice
+en $(0,0,0)$ y semiángulo $\theta$ (Fig.~\ref{fig:C_3d}). La hélice base y F1 lo atraviesan
+(su incidencia cambia en cada pulso); F2 vive sobre él.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C_trayectorias_3d.pdf}
+\caption{Trayectorias completas del Tx en 3D (\texttt{exp\_C\_fig\_trayectorias3d.py}). (a)
+Hélice base, entre los conos de $46.3^{\circ}$ y $60.5^{\circ}$. (b) F1 en $\theta_{pB}$: la
+misma hélice girada hacia abajo, que cruza el cono de $\theta_{pB}$ (rojo) a mitad de la
+apertura. (c) F2 en $\theta_{pB}$: todos los pulsos sobre el cono de $63.45^{\circ}$, es decir,
+un círculo de 169\,m de radio a 85\,m de altura recorrido dos veces.}
+\label{fig:C_3d}
+\end{figure}
+
+El Rx sigue a su Tx a la misma altura y el mismo radio, desfasado $\Delta\phi$, como en el
+Exp.~B. En F2 ve, por tanto, la misma incidencia $\theta_c$.
+
+La reflexión especular no ocurre en $\theta_c$, sino en el punto especular del par Tx--Rx, que
+está a mitad de camino entre sus nadires (Fig.~\ref{fig:C_geo}\,c). Su incidencia es
+\begin{equation}
+  \theta_{esp}=\arctan\!\big(\tan\theta_c\,\sin(\Delta\phi/2)\big),
+  \label{eq:C_esp}
+\end{equation}
+y está a $\rho\,|\cos(\Delta\phi/2)|$ del centro. En el canal mono la especular es el reflejo de
+nadir ($\theta_{esp}=0$); a $90^{\circ}$, con $\theta_c=\theta_{pB}$, $\theta_{esp}=54.8^{\circ}$; a
+$135^{\circ}$, $61.6^{\circ}$. Sólo en Ref1 ($180^{\circ}$) coincide con $\theta_c$
+(Fig.~\ref{fig:C_geo}\,d). \textbf{Por eso, elegir $\theta_c=\theta_{pB}$ sólo pone la
+reflexión especular en Brewster en Ref1.} En las demás configuraciones, lo que se suprime en
+$\theta_c$ es el retorno difuso. El modelo calcula la especular en el punto especular real de
+cada pulso (\texttt{scene.specular\_echo}, plano infinito), no en $\theta_c$.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C_geometria.pdf}
+\caption{Geometría del Exp.~C (\texttt{exp\_C\_fig\_geometria.py}). (a) Plano vertical
+$(\rho,z)$: hélice base, F1 en $\theta_{pB}$ (segmento de $\pm7^{\circ}$) y F2 (un punto por
+$\theta_c$, con los errores $\theta_{pB}+\delta$ y las incidencias fuera de Brewster). (b)
+Incidencia del Tx en cada pulso. (c) Planta de F2 en $\theta_{pB}$, con el Rx a 90°, 135° y
+180° y el punto especular de cada par. (d) Incidencia en el punto especular frente a
+$\Delta\phi$: ecuación (\ref{eq:C_esp}) y valores de la simulación.}
+\label{fig:C_geo}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Variables del Exp.~C y cómo entran en la simulación (\texttt{params/expC.json},
+\texttt{exp\_C\_brewster.py}).}
+\label{tab:C_var}
+\begin{tabular}{@{}L{2.5cm}L{3.3cm}L{8.6cm}@{}}
+\toprule
+\textbf{Variable} & \textbf{Valores} & \textbf{Qué cambia en la simulación} \\
+\midrule
+Familia & F1, F2 & Forma de la trayectoria del Tx (y del Rx): hélice con barrido de $\pm7^{\circ}$
+o cono de incidencia constante \\
+$\theta_c$ & 35°, 45°, 53.4° (base), 75°; $\theta_{pB}+\delta$ & Incidencia central del Tx en el
+centro de la superficie; fija la altura y el radio de la órbita \\
+$\theta_{pB}$ & S0 63.43°, S1 63.45°, S2 68.66°, S3 74.05° & Mínimo de $|r_{TM}(\theta)|^2$ del suelo;
+sólo sirve para elegir $\theta_c$ \\
+$\delta$ (error angular) & 0, $\pm0.5$, $\pm1$, $\pm2$, $\pm5$° & Desplaza toda la trayectoria:
+$\theta_c=\theta_{pB}+\delta$ (error sistemático de apunte o de altura) \\
+$\Delta\phi$ & 0 (mono), 90°, 135°, 180° & Rx en la misma órbita desfasado $\Delta\phi$; fija
+$\theta_{esp}$ (ec.~\ref{eq:C_esp}) y la posición del punto especular \\
+Polarización & TM, TE & Coeficiente de Fresnel en la especular, núcleo SPM ($\approx$VV o HH) en la
+difusa y transmitancia del blanco; Tx y Rx co-polares \\
+Roll $\gamma$ & 0, 1, 2, 5° & Antena girada alrededor de la línea de vista: pesos
+$\cos^2\gamma$ (TM) y $\sin^2\gamma$ (TE); sólo F2 en $\theta_{pB}$, S1, TM \\
+Suelo & S0--S3 (S0 4, S1 3.99$-j$0.40, S2 6.5$-j$0.9, S3 12$-j$2.5) & Fresnel, $\sigma^0$ SPM,
+transmitancia y $\theta_{pB}$. S1 completo; S0, S2 y S3 en $\theta_{pB}$, $\theta_{pB}\pm2^{\circ}$ y 53.4° \\
+Rugosidad $s$ & 0, 1, 2, 4\,cm ($\ell=20$\,cm) & Especular $\times\,e^{-2k_0^2s^2\cos^2\theta_{esp}}$
+(componente coherente); difusa SPM con amplitud $\propto s$ sobre un parche de $\pm12$\,m
+(facetas de 15\,cm, 3 realizaciones) \\
+SCR & enlace e imagen & Enlace: potencias $P_{blanco}/(P_{esp}+P_{dif})$. Imagen:
+$|I_{blanco}|^2/\langle|I_{sup}|^2\rangle$ en el vóxel del blanco tras la back-projection
+(ventana Hann y ventana de recepción) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Enlace: reflectancia y su robustez}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C_reflectancia.pdf}
+\caption{Reflectancia TM y TE de los suelos (izq.) y reflectancia TM
+efectiva frente al error de incidencia y de atitud para S0 (sin pérdidas) y
+S1 ($\varepsilon_r=3.99-j0.40$).}
+\label{fig:C_refl}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Reflectancia TM efectiva [dB] en $\theta_{pB}+\delta$ (\texttt{expC\_enlace\_error\_roll.csv}).
+Roll 0°: media de $\pm\delta$ (simétrica a $<1$\,dB); roll 5°: pares $+\delta$\,/\,$-\delta$.
+Última columna: incidencia base 53.4°. Menor es mejor (más supresión). Color según la supresión
+respecto de la incidencia base (en el peor de los dos signos de $\delta$):
+\colorbox{mejor}{$\ge10$\,dB}, \colorbox{regular}{5--10\,dB}, \colorbox{peor}{$<5$\,dB}.}
+\label{tab:C_err}
+\resizebox{\textwidth}{!}{\begin{tabular}{@{}lrrrrrr|r@{}}
+\toprule
+Suelo / roll & $\delta=0$ & $\pm0.5^{\circ}$ & $\pm1^{\circ}$ & $\pm2^{\circ}$ & $\pm5^{\circ}$ & & fuera (53.4°) \\
+\midrule
+S0, roll 0° & \cellcolor{mejor}$-189.7$ & \cellcolor{mejor}$-41.7$ & \cellcolor{mejor}$-35.7$ & \cellcolor{mejor}$-29.7$ & \cellcolor{peor}$-21.7$ & & $-17.5$ \\
+S0, roll 5° & \cellcolor{mejor}$-46.8$ & \cellcolor{mejor}$-37.8$/$-49.1$ & \cellcolor{mejor}$-33.4$/$-38.9$ & \cellcolor{mejor}$-28.2$/$-31.5$ & \cellcolor{peor}$-20.3$/$-23.3$ & & --- \\
+S1, roll 0° & \cellcolor{mejor}$-34.5$ & \cellcolor{mejor}$-33.8$ & \cellcolor{mejor}$-32.1$ & \cellcolor{mejor}$-28.5$ & \cellcolor{peor}$-21.5$ & & $-17.5$ \\
+S1, roll 5° & \cellcolor{mejor}$-34.4$ & \cellcolor{mejor}$-32.9$/$-34.5$ & \cellcolor{mejor}$-31.0$/$-33.3$ & \cellcolor{regular}$-27.3$/$-29.8$ & \cellcolor{peor}$-20.1$/$-23.0$ & & --- \\
+S2 ($\theta_{pB}=68.66^{\circ}$) & \cellcolor{mejor}$-30.7$ & & & & & & $-12.6$ \\
+S3 ($\theta_{pB}=74.05^{\circ}$) & \cellcolor{mejor}$-26.5$ & & & & & & $-8.7$ \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{itemize}[itemsep=2pt]
+  \item En el suelo sin pérdidas el mínimo es un cero exacto, pero \textbf{desaparece
+  con 0.5°} de error ($-190\to-42$\,dB): es el ``mínimo extremadamente estrecho'' que
+  §2.1 advierte que no basta para justificar una trayectoria.
+  \item Con pérdidas el mínimo es \textbf{poco profundo pero ancho}: en S1 sólo
+  $-34.5$\,dB, y se pierden 0.7, 2.4, 6.0 y 13.0\,dB con errores de 0.5°, 1°, 2° y 5°.
+  Respecto de la incidencia base (53.4°), la supresión disponible es de 17.0\,dB.
+  El mínimo empeora con la humedad ($-30.7$ y $-26.5$\,dB en S2 y S3) y se desplaza
+  a 68.7° y 74.0°.
+  \item El roll de 1°--5° es irrelevante en S1 (variación $\le1.5$\,dB); en S0 sólo
+  desplaza el cero $\approx0.3^{\circ}$ (modelo co-polar, sin término cruzado).
+\end{itemize}
+
+\paragraph{Brewster biestático del clutter difuso.} La ec.~\eqref{eq:spm} muestra
+que, para el retorno difuso, el pseudo-Brewster no es un punto sino una \emph{curva} en el
+espacio (incidencia, separación): para $\theta<\theta_{pB}$ existe una separación
+$\Delta\phi^\ast(\theta)<180^{\circ}$ donde el retorno difuso VV de primer orden se anula.
+La curva termina en el Brewster clásico ($\Delta\phi=180^{\circ}$, $\theta=\theta_{pB}$) y
+nunca pasa por la mono ($\Delta\phi=0$). En HH el nulo está en $\Delta\phi=90^{\circ}$ para
+cualquier incidencia y es puramente geométrico. Comparar TM con TE en la misma geometría
+separa ambos efectos (§5.4).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C_sigma0_mapa_suelos.pdf}
+\caption{$\sigma^0$ biestático SPM con el Rx a la misma elevación que el Tx, para los
+cuatro suelos ($s=2$\,cm). Arriba VV (TM), abajo HH (TE). Curva roja: mínimo de VV en cada
+incidencia, $\cos\phi_s=\varepsilon\sin^2\theta/(\varepsilon-\sin^2\theta)$; vertical roja:
+nulo de HH. Discontinua: $\theta_{pB}$ de cada suelo; banda clara: incidencias de la hélice base.}
+\label{fig:C_sigma0_suelos}
+\end{figure}
+
+El comportamiento es el mismo en los cuatro suelos (Fig.~\ref{fig:C_sigma0_suelos}):
+\begin{itemize}[itemsep=1pt]
+  \item \textbf{VV:} en la incidencia media de la hélice (53.4°) el mínimo está en
+  $\Delta\phi^\ast=140^{\circ}$ (S0, S1), 136° (S2) y 133° (S3). Está 34--39\,dB por debajo de la mono
+  en los suelos con pérdidas (en S0, 74\,dB) y se mantiene a menos de 10\,dB del mínimo en una
+  franja de 4--8° de $\Delta\phi$ (0.1° en S0). Al subir la humedad se desplaza poco y se estrecha.
+  \item \textbf{HH:} nulo exacto en $\Delta\phi=90^{\circ}$ para todos los suelos e incidencias, porque
+  $\alpha_{hh}\propto\cos\phi_s$ no depende de $\varepsilon_r$: es el desacople geométrico entre los
+  vectores TE del Tx y del Rx, ortogonales a 90°.
+\end{itemize}
+La sección siguiente muestra cómo se reflejan estos nulos en el SCR del punto escalar, y
+la Sección~\ref{sec:C2} comprueba si sobreviven con blancos reales.
+
+\section{SCR en la imagen}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C_scr_incidencia_rugosa.pdf}
+\caption{SCR en el vóxel del blanco frente a la incidencia central (S1, $s=2$\,cm),
+familias F1 y F2, TM y TE. Línea roja: pseudo-Brewster.}
+\label{fig:C_scr}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C_scr_error_angular.pdf}
+\caption{SCR frente al error de incidencia respecto de $\theta_{pB}$ (F2, S1, $s=2$\,cm).}
+\label{fig:C_err}
+\end{figure}
+
+\input{relatorio_1610_tablaC_scr}
+
+\paragraph{Lectura de la Tabla~\ref{tab:C_scr}.} Cuanto más alto el SCR, mejor.
+\begin{enumerate}[itemsep=3pt]
+  \item \textbf{El pseudo-Brewster sólo se nota en Ref1, y Ref1 es inservible.} Es la única
+  columna con un pico en $\theta_{pB}$: en TM pasa de $-55.3$ a $-41.5$\,dB, y en TE no hay pico
+  (control). Aun así queda más de 40\,dB por debajo de cualquier otro canal (toda la columna en rojo).
+  Con espectro rectangular la conclusión es la misma ($-34.4$\,dB en $\theta_{pB}$).
+  \item \textbf{En los demás canales, más incidencia es mejor, sin pico en $\theta_{pB}$.} El SCR
+  crece de forma casi monótona de 35° a 75°, igual en TM que en TE. Por ejemplo, mono F1:
+  3.1\,$\to$\,8.0\,$\to$\,14.8\,dB en TM y 6.2\,$\to$\,11.5\,$\to$\,18.5\,dB en TE, en
+  53.4°, 63.45° y 75°. La causa es que la difusa cae con la incidencia, por la longitud de
+  correlación $\ell$ (factor $W(K)$), no Brewster. El máximo de casi todas las columnas está en
+  75°, la mayor incidencia probada.
+  \item \textbf{TE supera a TM.} En mono TE gana 2--5\,dB en todas las incidencias,
+  al contrario de lo que se esperaría si Brewster (TM) importara: en retrodispersión la difusa
+  VV es mayor que la HH.
+  \item \textbf{Mejor canal con el punto escalar.} En TE, el bi a 90° es el mejor en las 10 filas
+  (12--36\,dB según la incidencia), por el nulo de HH a 90°. \emph{Este resultado no se
+  sostiene con blancos reales} (Sección~\ref{sec:C2}). En TM, un canal a 135° (bi o mono+bi) es el mejor en 7 de 10 filas, con 3--13\,dB
+  sobre la mono.
+\end{enumerate}
+
+\input{relatorio_1610_tablaC_f1f2}
+
+\paragraph{F1 frente a F2.} La hélice (F1) supera al cono (F2) en 54 de las 60 comparaciones
+de igual incidencia, polarización y canal, con 3.5\,dB de SCR de media
+(Tabla~\ref{tab:C_f1f2}). El eco del blanco es idéntico en las dos familias (diferencia
+$\le0.2$\,dB): lo que cambia es cuánto clutter de la superficie llega al vóxel del blanco. La
+superficie está 2\,m por encima del blanco, y F2 tiene peor resolución vertical
+($\delta_z$ 2.34 frente a 2.08\,m) y peor ISLR (Tabla~\ref{tab:C_costo}), de modo que filtra
+más energía de la superficie hacia el blanco. F2, la órbita que impone Brewster, es por tanto
+peor también en SCR, la métrica para la que se propuso.
+
+\input{relatorio_1610_tablaC_err}
+
+\paragraph{Robustez al error de incidencia (Tabla~\ref{tab:C_err_scr}).} En S1, con F2, errores
+de hasta $\pm5^{\circ}$ cambian el SCR de mono, bi y fusión en unos $\pm3$\,dB sin tendencia (del
+orden de la dispersión entre realizaciones). Con F1 la variación llega a $\pm5$\,dB, pero sigue
+la tendencia general con la incidencia ($+\delta$ mejora, $-\delta$ empeora), no un efecto de
+Brewster. Sólo Ref1 cae al alejarse de $\theta_{pB}$, hasta 15\,dB con $\pm5^{\circ}$. Es decir,
+fuera de Ref1 el SCR es robusto al error angular \emph{porque no depende de Brewster}. En el suelo sin pérdidas
+(S0), Ref1 llega a 61\,dB en $\theta_{pB}$ exacto y cae a $-12$\,dB con $\pm2^{\circ}$: es el
+mínimo extremadamente estrecho que §2.1 descarta.
+
+\paragraph{Otros factores (una línea cada uno).}
+\begin{itemize}[itemsep=1pt]
+  \item \textbf{Rugosidad:} el SCR de mono y bi intermedio cae $\approx6$\,dB cada vez que $s$ se
+  duplica (difusa $\propto s^2$); el de Ref1 casi no cambia (domina la especular).
+  \item \textbf{Suelos húmedos} (S2, S3): SCR negativo en todas las geometrías ($-14$ a $-28$\,dB
+  en S2 y $-58$ a $-84$\,dB en S3), porque domina la atenuación del blanco a 2\,m (13.6 y
+  27.7\,dB/m por trayecto, frente a 7.7\,dB/m en S1). El pseudo-Brewster no lo remedia.
+  \item \textbf{Atitud:} un roll de 0--5° no cambia el SCR en S1 ($\le0.2$\,dB).
+\end{itemize}
+
+\section{Costo en imagen de la restricción de incidencia}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C_costo_imagen.pdf}
+\caption{Resolución, volumen y PSLR frente a la incidencia central para F1 (continuo)
+y F2 (discontinuo), mono y mono+bi 135°.}
+\label{fig:C_costo}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Hélice base (F1 en 53.4°) frente a la restricción de pseudo-Brewster (F2 en
+$\theta_{pB}$), con ponderación Hann (\texttt{expC\_psf\_vs\_incidencia.csv},
+\texttt{expC\_scr\_imagen.csv}). En cada canal, \colorbox{mejor}{verde} marca la trayectoria que
+gana cada métrica. Menor es mejor salvo en contraste y SCR.}
+\label{tab:C_costo}
+\begin{tabular}{@{}llrrrrrr@{}}
+\toprule
+Trayectoria & Canal & $\delta_x$ [m] & $\delta_z$ [m] & $V_{-3}$ [l] & ISLR [dB] & Contraste [dB] & SCR [dB] \\
+\midrule
+F1 base (53.4°) & mono & 0.157 & \cellcolor{mejor}2.08 & 29.0 & \cellcolor{mejor}6.5 & \cellcolor{mejor}19.6 & \cellcolor{mejor}3.1 \\
+F2 cono $\theta_{pB}$ & mono & \cellcolor{mejor}0.140 & 2.34 & \cellcolor{mejor}25.0 & 8.3 & 18.4 & 2.5 \\
+\midrule
+F1 base (53.4°) & mono+bi 135° & 0.213 & \cellcolor{mejor}2.08 & 52.0 & \cellcolor{mejor}2.4 & \cellcolor{mejor}20.4 & \cellcolor{mejor}9.5 \\
+F2 cono $\theta_{pB}$ & mono+bi 135° & \cellcolor{mejor}0.191 & 2.34 & \cellcolor{mejor}46.0 & 3.6 & 19.9 & 7.3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Costo (pregunta 7).} Imponer la órbita de pseudo-Brewster (F2 en $\theta_{pB}$) sólo gana en
+horizontal: $\delta_x$ mejora un 11\,\% (mayor $\sin\theta$) y el volumen del lóbulo un
+12--14\,\%. Pierde en todo lo demás: $\delta_z$ empeora un 12.5\,\% (se pierde la diversidad de
+elevación de la hélice), el ISLR sube 1.2--1.8\,dB, el contraste baja 0.5--1.2\,dB y el SCR baja
+0.6--2.2\,dB. Además obliga a bajar la plataforma a $\approx85$\,m.
+
+\section{Exp.~C2: ¿sobreviven los nulos con blancos reales?}
+\label{sec:C2}
+
+\paragraph{Motivación.} El SCR de la Tabla~\ref{tab:C_scr} usa un punto escalar ($S=1$), que no
+tiene polarización: sólo la superficie siente los nulos de VV y HH. Un blanco real también
+dispersa con polarización, y el mismo desacople geométrico puede anular su eco. El Exp.~C2
+separa ambos efectos.
+
+\paragraph{Método.} Tx en la hélice base (53.4°), suelo S1, $s=2$\,cm, $\ell=20$\,cm,
+ponderación Hann y 3 realizaciones de la superficie congelada. Rx en la misma hélice con
+$\Delta\phi=0^{\circ}{:}15^{\circ}{:}180^{\circ}$ y 140°, TM y TE co-polares. Cuatro blancos en $(0,0,-2)$\,m:
+punto escalar, esfera PEC de $r=0.5$\,m, cubo PEC de 1\,m en orientación nominal y el mismo cubo
+en 24 orientaciones SO(3). Métricas: SCR en el vóxel del blanco, como en el Exp.~C, y PSCR,
+el pico del blanco bajo la superficie dividido por el pico de la superficie en toda la rejilla,
+para el canal bi aislado y para la fusión con el mismo presupuesto (N). Script
+\texttt{exp\_C2\_nulos.py}; CSV \texttt{expC2/expC2\_scr\_vs\_dphi.csv}. La rejilla y las
+realizaciones difieren de las del Exp.~C, de modo que los valores absolutos del punto difieren
+hasta 3\,dB de la Tabla~\ref{tab:C_scr}; las comparaciones se hacen dentro de esta tabla.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{C2_nulos_scr.pdf}
+\caption{Exp.~C2 frente a $\Delta\phi$ (hélice base, S1, $s=2$\,cm). (a, d) Potencia en la
+imagen del canal bi respecto de la mono: superficie en el vóxel del blanco (rojo) y eco de cada
+blanco. (b, e) Ganancia de SCR en el vóxel respecto de la mono. (c, f) Ganancia de PSCR (pico
+del blanco / pico de la superficie). Continua: bi aislado; discontinua: fusión mono+bi (N).
+Líneas grises en 90° (nulo HH) y 140° (nulo VV).}
+\label{fig:C2}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Exp.~C2: SCR en el vóxel del blanco [dB]. ``Superficie'': potencia de la superficie
+en el vóxel respecto de la mono. \colorbox{mejor}{verde}: mejora de más de 3\,dB sobre la mono
+de la misma polarización; \colorbox{peor}{rojo}: empeora más de 3\,dB.}
+\label{tab:C2}
+\begin{tabular}{@{}llrrrrr@{}}
+\toprule
+Pol. & Canal & Superficie & Punto & Esfera & Cubo nominal & Cubo SO(3) \\
+\midrule
+TM & mono & 0.0 & 0.7 & $-0.9$ & $-9.5$ & $-12.0$ \\
+ & bi 90° & $-2.0$ & 2.6 & \cellcolor{peor}$-13.3$ & \cellcolor{peor}$-25.3$ & \cellcolor{peor}$-27.9$ \\
+ & bi 120° & $-4.6$ & \cellcolor{mejor}5.2 & \cellcolor{peor}$-6.1$ & \cellcolor{peor}$-19.1$ & \cellcolor{mejor}$-6.2$ \\
+ & bi 135° & $-12.5$ & \cellcolor{mejor}13.1 & \cellcolor{mejor}7.5 & \cellcolor{mejor}14.7 & \cellcolor{mejor}6.2 \\
+ & bi 140° & $-13.6$ & \cellcolor{mejor}14.2 & \cellcolor{mejor}\textbf{9.8} & \cellcolor{mejor}\textbf{20.1} & \cellcolor{mejor}\textbf{8.3} \\
+ & bi 150° & $-1.2$ & 1.8 & $-0.9$ & \cellcolor{mejor}13.7 & \cellcolor{mejor}$-2.7$ \\
+ & mono+bi 140° & $-5.7$ & \cellcolor{mejor}6.4 & $-0.9$ & \cellcolor{mejor}4.7 & \cellcolor{mejor}$-4.2$ \\
+\midrule
+TE & mono & 0.0 & 3.9 & 2.3 & $-6.4$ & $-8.8$ \\
+ & bi 90° & $-17.8$ & \cellcolor{mejor}\textbf{21.7} & \cellcolor{peor}$-4.8$ & $-6.2$ & $-9.0$ \\
+ & mono+bi 90° & $-5.5$ & \cellcolor{mejor}9.4 & 2.2 & $-7.4$ & $-9.3$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Resultados e interpretación.}
+\begin{enumerate}[itemsep=3pt]
+  \item \textbf{El nulo HH en TE a 90° es un artefacto del punto escalar.} La superficie cae
+  17.8\,dB, pero el eco de la esfera cae 25\,dB y el del cubo SO(3) 18\,dB. El SCR de la esfera
+  empeora 7.1\,dB respecto de la mono y el del cubo SO(3) no cambia. Es el mismo mecanismo que el
+  de la Sección~\ref{sec:D3}: a 90° los vectores TE del Tx y del Rx son ortogonales, y eso
+  desacopla tanto la superficie como el blanco. Sólo el punto, sin polarización, gana 17.8\,dB.
+  \item \textbf{El nulo VV en TM a 135°--140° sí sobrevive.} La superficie cae 12.5 a 13.6\,dB,
+  mientras que el eco de los blancos apenas cae (esfera, $-4.1$ y $-2.9$\,dB) o incluso sube
+  (cubo SO(3), $+5.8$ y $+6.7$\,dB, por la especular de sus caras). El SCR del canal bi aislado
+  mejora respecto de la mono 8.4 a 10.7\,dB en la esfera, 24 a 30\,dB en el cubo nominal y 18 a
+  20\,dB en el cubo con orientación aleatoria. En PSCR la mejora es menor pero del mismo signo:
+  $+2.5$ a $+3.7$\,dB en la esfera y $+12$ a $+14$\,dB en el cubo SO(3).
+  \item \textbf{La ventana es estrecha.} A 120° y a 150° la esfera ya no mejora ($-6.1$ y
+  $-0.9$\,dB) y desde 150° la especular de nadir domina el PSCR. El Rx debe mantenerse a
+  $\approx\pm5^{\circ}$ de 140°, coherente con la anchura de 4--8° del nulo VV
+  (Fig.~\ref{fig:C_sigma0_suelos}).
+  \item \textbf{La fusión de igual peso desperdicia el canal limpio.} La imagen fusionada es la
+  media de las dos, y el clutter de la mono la domina: su superficie sólo baja 5.7\,dB, casi el
+  límite de 6\,dB de una media de dos canales. A 140° la fusión deja la esfera igual que la mono y
+  queda 10 a 15\,dB por debajo del bi aislado. Para aprovechar el nulo hay que usar el canal bi
+  solo o una fusión ponderada por el clutter de cada canal.
+  \item \textbf{El precio es la resolución.} A 135° el canal bi tiene $\delta_x=0.41$\,m frente a
+  0.157\,m en la mono (Tabla~\ref{tab:expB}), con la misma $\delta_z$. Es un modo de detección
+  en escenarios limitados por clutter, no un modo de imagen fina.
+\end{enumerate}
+
+\conclexp{C2}{Con blancos reales, la única geometría que suprime el clutter de forma útil es
+TM con el Rx a 135°--140° usado como canal aislado: el SCR mejora 8 a 20\,dB sobre la mono, a
+cambio de una resolución horizontal 2.6 veces peor. El nulo HH en TE a 90° es un artefacto del
+punto escalar.}
+
+\section{Conclusiones del Exp.~C: ¿qué es mejor?}
+
+\begin{table}[H]
+\centering\small
+\caption{Respuesta directa a las preguntas del Exp.~C (S1, $\varepsilon_r=3.99-j0.40$, $s=2$\,cm).
+\colorbox{mejor}{verde}: la opción recomendada.}
+\label{tab:C_concl}
+\begin{tabular}{@{}L{3.6cm}L{3.2cm}L{3.4cm}L{4.4cm}@{}}
+\toprule
+\textbf{Pregunta} & \textbf{Mejor opción} & \textbf{Margen} & \textbf{Por qué} \\
+\midrule
+¿Volar restringido al pseudo-Brewster? & \cellcolor{mejor}No & F2 en $\theta_{pB}$ pierde 0.6--2.2\,dB de SCR (mono y mono+bi 135°) frente a la hélice base &
+Sólo suprime la especular, que sólo pesa en Ref1 \\
+¿Hélice (F1) o cono (F2)? & \cellcolor{mejor}F1 (hélice) & $+3.5$\,dB de SCR medio; gana 54/60 &
+Mejor $\delta_z$ e ISLR: menos superficie en el vóxel del blanco \\
+¿Qué incidencia? & \cellcolor{mejor}La mayor viable (75° fue la mejor probada) & Mono TM: $+11.7$\,dB de 53.4° a 75° &
+La difusa cae con $\theta$ ($\ell$); igual en TM y TE \\
+¿Qué canal en TM? & \cellcolor{mejor}Bi aislado a 135°--140° & 8--20\,dB de SCR sobre la mono con esfera y cubo SO(3) (Exp.~C2) & Nulo VV biestático; el eco del blanco no cae (SPM; hay que validarlo) \\
+¿TM o TE? & \cellcolor{mejor}TM & TE a 90° sólo gana con el punto escalar; con la esfera pierde 7\,dB & El desacople a 90° anula también el eco del blanco \\
+¿Fusión de igual peso? & \cellcolor{peor}No para clutter & Queda 10--15\,dB por debajo del bi aislado a 140° & El clutter de la mono domina la media \\
+¿Ref1 (180°)? & \cellcolor{peor}Nunca & $-41$ a $-81$\,dB & La especular cae sobre el blanco \\
+¿Es robusto al error angular? & Sí, salvo Ref1 & F2: $\pm3$\,dB con $\pm5^{\circ}$ & Porque no depende de Brewster \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{En una frase.} El pseudo-Brewster no es un criterio útil de trayectoria: la órbita
+que lo impone (F2) es peor que la hélice en SCR, resolución vertical y lóbulos, y sólo mejora
+Ref1, que sigue inservible. Lo que sí sube el SCR es la geometría, no Brewster: mayor incidencia y, sobre todo,
+el Rx a 135°--140° en TM usado como canal aislado, que mejora 8 a 20\,dB el SCR de blancos reales.
+
+\paragraph{Cautelas.} (i) La incidencia de 75° se evaluó sin restricciones operativas: el
+Tx volaría a $\approx49$\,m de altura, con más alcance y otra cobertura del haz. (ii) El nulo
+de VV es de SPM de primer orden y debe verificarse con un modelo de orden superior (IEM/AIEM),
+con polarización cruzada y con medidas. (iii) El Exp.~C2 usa 3 realizaciones de la superficie y
+24 orientaciones del cubo; las ganancias de 8 a 20\,dB superan con margen la dispersión de
+$\pm3$\,dB.

@@ -216,6 +216,88 @@ fig3_path = fullfile(outputDir, sprintf('comparacion_3d_%s.jpg', timestamp));
 saveas(fig3, fig3_path);
 fprintf('Figura (3D + planta) guardada en: %s\n', fig3_path);
 
+%% ==================== Figura 4: un subplot por par Tx-Rx ====================
+% Misma información que la Figura 3 pero SIN superponer enfoques: cada
+% enfoque tiene su propio subplot (M subplots, 3 por defecto) para poder ver
+% con claridad la geometría del par Tx-Rx de cada uno. Las líneas grises
+% finas unen Tx(i) con Rx(i) (posiciones simultáneas del par biestático).
+
+fig4 = figure('Position', [100, 100, 1600, 600]);
+set(fig4, 'WindowState', 'maximized');
+
+ax4 = gobjects(1, M);
+for k = 1:M
+    ax4(k) = subplot(1, M, k); hold(ax4(k), 'on');
+    col = palette(mod(k-1, size(palette,1))+1, :);
+
+    % Líneas de emparejamiento Tx(i) <-> Rx(i). Se dibuja solo 1 de cada
+    % 'stepPair' para no tapar las trayectorias (con N~275 el haz completo
+    % es una mancha gris). Una sola entrada en la leyenda.
+    npairs   = min(size(data(k).Tx, 2), size(data(k).Rx, 2));
+    nShowMax = 30;
+    stepPair = max(1, ceil(npairs / nShowMax));
+    first = true;
+    for i = 1:stepPair:npairs
+        hpair = plot3(ax4(k), [data(k).Tx(1,i), data(k).Rx(1,i)], ...
+                              [data(k).Tx(2,i), data(k).Rx(2,i)], ...
+                              [data(k).Tx(3,i), data(k).Rx(3,i)], ...
+            '-', 'Color', [0.45 0.45 0.45], 'LineWidth', 0.6);
+        if first
+            set(hpair, 'DisplayName', sprintf('Par Tx_i - Rx_i (1 de cada %d)', stepPair));
+            first = false;
+        else
+            set(hpair, 'HandleVisibility', 'off');
+        end
+    end
+
+    plot3(ax4(k), data(k).Tx(1,:), data(k).Tx(2,:), data(k).Tx(3,:), '-o', ...
+        'Color', col, 'LineWidth', 1.3, 'MarkerSize', 3, 'DisplayName', 'Tx');
+    colRx = col * 0.5;   % tono oscuro del mismo color: Tx claro (sólido), Rx oscuro (guiones)
+    plot3(ax4(k), data(k).Rx(1,:), data(k).Rx(2,:), data(k).Rx(3,:), '--s', ...
+        'Color', colRx, 'LineWidth', 1.2, 'MarkerSize', 3.5, 'MarkerFaceColor', colRx, ...
+        'DisplayName', 'Rx óptimo');
+
+    % Marcar inicio de cada trayectoria
+    plot3(ax4(k), data(k).Tx(1,1), data(k).Tx(2,1), data(k).Tx(3,1), 'p', ...
+        'MarkerSize', 11, 'MarkerFaceColor', col, 'MarkerEdgeColor', 'k', ...
+        'DisplayName', 'Inicio Tx');
+    plot3(ax4(k), data(k).Rx(1,1), data(k).Rx(2,1), data(k).Rx(3,1), 'p', ...
+        'MarkerSize', 10, 'MarkerFaceColor', colRx, 'MarkerEdgeColor', 'k', ...
+        'DisplayName', 'Inicio Rx');
+
+    plot3(ax4(k), tg_plot(1,:), tg_plot(2,:), tg_plot(3,:), 'd', 'Color', 'black', ...
+        'MarkerSize', 4, 'LineWidth', 1, 'MarkerFaceColor', 'red', ...
+        'DisplayName', 'Blancos subsuperficiales');
+
+    % Plano del suelo (z=0) con la extensión propia de este enfoque
+    ext = max([abs(data(k).Tx(1:2,:)), abs(data(k).Rx(1:2,:))], [], 'all');
+    [Xk, Yk] = meshgrid(linspace(-ext, ext, 12), linspace(-ext, ext, 12));
+    surf(ax4(k), Xk, Yk, zeros(size(Xk)), 'FaceAlpha', 0.20, 'FaceColor', [0.8 0.8 0.6], ...
+        'EdgeColor', 'none', 'HandleVisibility', 'off');
+
+    xlabel(ax4(k), 'X [m]'); ylabel(ax4(k), 'Y [m]'); zlabel(ax4(k), 'Z [m]');
+    title(ax4(k), sprintf('%s\n\\psi_0=%.2f°, N=%d, P_r=%.2f dBm', ...
+        data(k).label, data(k).psi0_deg, data(k).N, data(k).mean_pot), 'FontSize', 9);
+    legend(ax4(k), 'Location', 'northeast', 'FontSize', 7);
+    grid(ax4(k), 'on'); view(ax4(k), 45, 20); axis(ax4(k), 'tight');
+    box(ax4(k), 'on'); hold(ax4(k), 'off');
+end
+
+% Mismos límites en los M subplots para que las geometrías sean comparables
+allX = tg_plot(1,:); allY = tg_plot(2,:); allZ = [0, tg_plot(3,:)];
+for k = 1:M
+    allX = [allX, data(k).Tx(1,:), data(k).Rx(1,:)]; %#ok<AGROW>
+    allY = [allY, data(k).Tx(2,:), data(k).Rx(2,:)]; %#ok<AGROW>
+    allZ = [allZ, data(k).Tx(3,:), data(k).Rx(3,:)]; %#ok<AGROW>
+end
+pad = @(v) [min(v) - 0.05*(max(v)-min(v)) - eps, max(v) + 0.05*(max(v)-min(v)) + eps];
+set(ax4, 'XLim', pad(allX), 'YLim', pad(allY), 'ZLim', pad(allZ));
+
+sgtitle('Par Tx-Rx de cada enfoque (un subplot por enfoque)', 'FontWeight', 'bold');
+fig4_path = fullfile(outputDir, sprintf('comparacion_pares_tx_rx_%s.jpg', timestamp));
+saveas(fig4, fig4_path);
+fprintf('Figura (pares Tx-Rx) guardada en: %s\n', fig4_path);
+
 %% ==================== Funciones locales ====================
 
 function filepath = latestMatFile(directory, pattern)

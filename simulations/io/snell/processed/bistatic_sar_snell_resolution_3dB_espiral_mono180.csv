@@ -1,0 +1,4 @@
+Axis,Resolution_m,LowerLimit_m,UpperLimit_m,PeakX_m,PeakY_m,PeakZ_m,Threshold_dB
+X,0.24,-0.12,0.12,0,0,-5,-3
+Y,0.24,-0.12,0.12,0,0,-5,-3
+Z,0.199730650974501,-5.09103787856256,-4.89130722758806,0,0,-5,-3

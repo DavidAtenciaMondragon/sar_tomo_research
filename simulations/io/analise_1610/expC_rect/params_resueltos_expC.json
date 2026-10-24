@@ -1,0 +1,145 @@
+{
+  "_descripcion": "Exp. C - Incidencia con y sin pseudo-Brewster (Orientacoes §5.4). Familias de trayectoria del Tx: F1 = helice base girada en incidencia (dispersion propia +-7 deg), F2 = cono de incidencia constante (restriccion pseudo-Brewster). Errores angulares 0, +-0.5, +-1, +-2, +-5 deg. TM y TE. Suelos S0..S3, superficie lisa y rugosidad moderada. Metricas: reflectancia, retorno superficial, SCR (enlace e imagen) y metricas de imagen.",
+  "c": 300000000.0,
+  "fc": 425000000.0,
+  "B": 50000000.0,
+  "Nf": 64,
+  "Pt": 100000.0,
+  "Tp": 1.3e-06,
+  "T_sys": 300,
+  "NF_dB": 0.0,
+  "antena": {
+    "G_dBi": 6,
+    "bw_az_deg": 14,
+    "bw_el_deg": 50,
+    "apunte": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tx_helice": {
+    "NumVoltas": 2,
+    "RaioMaior": 165.53,
+    "RaioMenor": 137.4,
+    "AltMaior": 131.45,
+    "AltMenor": 93.58,
+    "Vt": 113.5,
+    "PRF": 400,
+    "NorthOffset": 0
+  },
+  "n_pulsos": 1600,
+  "suelo": {
+    "nombre": "S1 referencia",
+    "eps_r": [
+      3.99,
+      0.4
+    ]
+  },
+  "suelos": {
+    "S0": {
+      "nombre": "S0 sin perdidas (validacion)",
+      "eps_r": [
+        4.0,
+        0.0
+      ]
+    },
+    "S1": {
+      "nombre": "S1 referencia",
+      "eps_r": [
+        3.99,
+        0.4
+      ]
+    },
+    "S2": {
+      "nombre": "S2 franco-arenoso humedo",
+      "eps_r": [
+        6.5,
+        0.9
+      ]
+    },
+    "S3": {
+      "nombre": "S3 franco humedo",
+      "eps_r": [
+        12.0,
+        2.5
+      ]
+    }
+  },
+  "rugosidad": {
+    "sigma_h": 0.02,
+    "corr_len": 0.2,
+    "patch_half": 12.0,
+    "facet": 0.15,
+    "taper": 0.15
+  },
+  "pol": "TM",
+  "roll_deg": 0.0,
+  "blanco": [
+    0.0,
+    0.0,
+    -2.0
+  ],
+  "rejilla_psf": {
+    "hx": 1.0,
+    "dx": 0.025,
+    "z_lo": -3.0,
+    "z_hi": 2.0,
+    "dz": 0.1
+  },
+  "cortes": {
+    "h": 2.5,
+    "dx": 0.005,
+    "z_lo": -4.5,
+    "z_hi": 2.0,
+    "dz": 0.01
+  },
+  "upsample": 32,
+  "semilla": 20261016,
+  "theta_fuera": [
+    35.0,
+    45.0,
+    53.39,
+    75.0
+  ],
+  "errores_deg": [
+    -5,
+    -2,
+    -1,
+    -0.5,
+    0,
+    0.5,
+    1,
+    2,
+    5
+  ],
+  "dphi_canales": [
+    90,
+    135,
+    180
+  ],
+  "realizaciones": 3,
+  "vecindad_scr": {
+    "h": 0.08,
+    "dx": 0.04,
+    "hz": 0.4,
+    "dz": 0.1
+  },
+  "roll_list_deg": [
+    0,
+    1,
+    2,
+    5
+  ],
+  "suelos_extra": [
+    "S0",
+    "S2",
+    "S3"
+  ],
+  "rugosidad_lista": [
+    0.0,
+    0.01,
+    0.02,
+    0.04
+  ]
+}

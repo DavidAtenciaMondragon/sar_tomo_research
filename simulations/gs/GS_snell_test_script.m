@@ -70,7 +70,7 @@ zlabel('Z')
 grid minor 
 hold off
 legend("Tx","Rx","Target")
-saveas(figTrajectory, fullfile(figOutputDir,'trayectorias_snell.png'));
+saveas(figTrajectory, fullfile(figOutputDir,sprintf('trayectorias_snell%s.png', paramSuffix)));
 
 %% Create grid 
 [X,Y,Z,xAxis,yAxis,zAxis] = createProcessingGridFromSystem(strSystem, strTarget, 'gridSnell');
@@ -102,7 +102,7 @@ plot(r2Rx)
 legend("r1Tx","r2Tx","r1Rx","r2Rx")
 grid minor
 hold off 
-saveas(figRanges, fullfile(figOutputDir,'slant_ranges_snell.png'));
+saveas(figRanges, fullfile(figOutputDir,sprintf('slant_ranges_snell%s.png', paramSuffix)));
 
 
 % Create raw matrix 

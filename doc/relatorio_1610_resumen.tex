@@ -1,0 +1,39 @@
+\begin{abstract}
+\noindent
+Este relatorio responde a las orientaciones del 03/10/2026: el Tx es un
+\emph{transceiver} que siempre adquiere el canal monoestático, y la pregunta es cuándo,
+dónde y por qué un canal biestático simultáneo mejora esa imagen. Se construyó un motor
+de simulación coherente (ecos complejos del mismo pulso, refracción de Fermat/Snell,
+suelo complejo, Óptica Física biestática, superficie especular y difusa SPM,
+back-projection 3D), validado contra el pipeline MATLAB existente, contra la Tabla~2 del
+relatorio del 28/09 y contra soluciones analíticas. Con él se ejecutaron los
+experimentos A--F y se calcularon todas las métricas pedidas en CSV.
+La fusión se normaliza de forma explícita: una fusión con el mismo número de muestras
+que la mono da exactamente la misma imagen, de modo que toda mejora de forma es
+geométrica.
+Resultados principales. (1) Ref1 (diametral) no enfoca en horizontal y su fusión empeora
+la mono. (2) El canal bi a la misma altura contrae el anillo horizontal del dominio $k$
+por $|\cos(\Delta\phi/2)|$. Con $\Delta\phi\approx90^{\circ}$--$120^{\circ}$, o con un barrido
+$60^{\circ}\to150^{\circ}$, la fusión rellena el disco: ISLR $-5$ a $-8$\,dB, PSLR hasta $-5$\,dB y
+contraste $+4$ a $+5.5$\,dB, a costa de un 16--30\,\% más de anchura $-3$\,dB. No mejora la
+resolución vertical, que fija la banda. (3) Con objetos reales, un Rx TM co-polar pierde
+$\approx20$\,dB a 90° por desajuste geométrico de polarización. Con un Rx de doble
+polarización alineado, un Monte Carlo SO(3) por adquisición muestra una mejora de
+contraste de $+1.8$ a $+2.7$\,dB en el 90--98\,\% de las orientaciones. (4) La fusión
+coherente exige calibrar una fase entre canales: 1\,ns de offset sin calibrar la anula,
+y una vez calibrada se recupera exactamente. (5) El pseudo-Brewster en suelo con pérdidas
+($\varepsilon_r=3.99-j0.40$) es un mínimo ancho pero somero ($-34.5$\,dB) que sólo reduce
+la especular coherente de Ref1: el SCR mejora 14--16\,dB pero queda en $-41$\,dB. En el
+resto de las geometrías el clutter es difuso y no depende de Brewster. (6) Lo que sí suprime
+el clutter es un nulo \emph{biestático} del retorno difuso VV: en TM, con
+$\Delta\phi\approx135^{\circ}$--$140^{\circ}$, el canal bi \emph{aislado} mejora el SCR de una esfera y
+de un cubo con orientación aleatoria en 8 a 20\,dB respecto de la mono, mientras que la
+fusión de igual peso pierde la mayor parte de esa ganancia. El nulo HH en TE a 90°, que con
+el punto escalar daba el mejor SCR, desaparece con blancos reales porque también desacopla
+su eco. En el suelo sin
+pérdidas el mínimo desaparece con 0.5° de error. La restricción cuesta poco en imagen
+(${\pm}12$\,\%), pero no compensa. Se proponen dos modos de uso del Rx: para imagen, misma altura,
+radio $0.85\rho_{Tx}$ y separación barrida de 60° a 150° con fusión coherente; para detección
+limitada por clutter, separación fija de $\approx140^{\circ}$ en TM con el canal bi aislado o una
+fusión ponderada. Se listan explícitamente los resultados negativos.
+\end{abstract}

@@ -143,7 +143,7 @@ ylabel('y (m)')
 zlabel('z (m)')
 axis equal
 colormap parula
-saveas(figSlice, fullfile(figOutputDir,'slice_abs_output_snell.png'));
+saveas(figSlice, fullfile(figOutputDir,sprintf('slice_abs_output_snell%s.png', paramSuffix)));
 
 % -------------------------------------------------------------------
 
@@ -175,7 +175,7 @@ camlight headlight
 lighting gouraud
 colormap jet
 caxis([-40 0])
-saveas(figIso, fullfile(figOutputDir,'isosurface_output_snell.png'));
+saveas(figIso, fullfile(figOutputDir,sprintf('isosurface_output_snell%s.png', paramSuffix)));
 
 disp('Resolucion automatica a -3 dB:');
 resolutionCsvFile = fullfile(processedDir, sprintf('bistatic_sar_snell_resolution_3dB%s.csv', paramSuffix));

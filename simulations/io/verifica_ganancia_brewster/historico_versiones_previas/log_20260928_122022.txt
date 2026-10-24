@@ -1,0 +1,59 @@
+================ VERIFICA_GANANCIA_BREWSTER (20260928_122022) ================
+Parámetros: _espiral_mono0
+  fc = 10.000 GHz | lambda0 = 0.0300 m | lambda_suelo = 0.0150 m
+  Pt = 100.0 kW | G = 6.0 dBi | B = 50.0 MHz | T = 300 K | Pn = kTB = -96.84 dBm
+  n1 = 1 | n2 = 2 | tan_delta = 0.05 (pérdidas no incluidas)
+  Radar a h = 100 m | cubo PEC arista 1.00 m, centro en z = -2.00 m, yaw = 0°
+  Brewster (aire): theta_B = 63.43° -> elevación eps_B = 26.57°
+  Barrido: eps = 20:5:90° (15 posiciones)
+
+-- Validación del PO de MATLAB contra tools/rcs_core/resultados --
+  cubo_1m_400MHz_TMTM_mom.mat        (MOM, 1.33 lambda): nadir 13.49 vs 12.67 dBsm | error medio |dB| (lóbulos) = 2.27 dB
+  cubo_3m_400MHz_TMTM_po.mat         (PO, 4.00 lambda): nadir 32.58 vs 32.58 dBsm | error medio |dB| (lóbulos) = 0.01 dB
+  (con PO el error debe ser ~0 dB; frente a MoM la diferencia refleja las limitaciones de PO)
+
+-- RCS del cubo en el suelo (PO, lambda_s = 0.0150 m, f equivalente en vacío = 20.00 GHz) --
+  sigma(nadir) = 47.47 dBsm (teórico placa 4*pi*A^2/lambda_s^2 = 47.47 dBsm)
+  Campo lejano en el suelo: 2D^2/lambda_s = 267 m (D = diagonal de cara 1.41 m)
+
+-- Resultados por posición (TM, monoestático, R = R_aire + R_suelo) --
+  eps°   th_i°   th_t°   x_Tx[m]    R_air    R_sue   T_down     T_up   T^2[dB] sig[dBsm]    Pr[dBm]  Pr1[dBm]  SNR[dB]
+  20.0   70.00   28.02    275.81   292.38     2.27   0.9839   0.9839    -0.141      1.51     -68.83    -70.35    28.01
+  25.0   65.00   26.95    215.47   236.62     2.24   0.9993   0.9993    -0.006      0.88     -65.69    -66.57    31.15
+  30.0   60.00   25.66    174.17   200.00     2.22   0.9973   0.9973    -0.023     -1.33     -65.02    -63.69    31.82
+  35.0   55.00   24.18    143.71   174.34     2.19   0.9870   0.9870    -0.114      3.00     -58.43    -61.42    38.41
+  40.0   50.00   22.52    120.00   155.57     2.17   0.9732   0.9732    -0.236     -7.80     -67.38    -59.59    29.45
+  45.0   45.00   20.70    100.76   141.42     2.14   0.9585   0.9585    -0.368     -4.20     -62.28    -58.08    34.56
+  50.0   40.00   18.75     84.59   130.54     2.11   0.9443   0.9443    -0.498     -2.91     -59.75    -56.84    37.09
+  55.0   35.00   16.67     70.62   122.08     2.09   0.9313   0.9313    -0.618      2.22     -53.59    -55.81    43.25
+  60.0   30.00   14.48     58.25   115.47     2.07   0.9200   0.9200    -0.724      5.69     -49.27    -54.96    47.57
+  65.0   25.00   12.20     47.06   110.34     2.05   0.9104   0.9104    -0.815      3.25     -51.03    -54.28    45.81
+  70.0   20.00    9.85     36.74   106.42     2.03   0.9026   0.9026    -0.890      5.67     -48.06    -53.73    48.77
+  75.0   15.00    7.44     27.06   103.53     2.02   0.8966   0.8966    -0.948      9.95     -43.36    -53.32    53.47
+  80.0   10.00    4.98     17.81   101.54     2.01   0.8923   0.8923    -0.990     15.99     -37.04    -53.03    59.80
+  85.0    5.00    2.50      8.84   100.38     2.00   0.8897   0.8897    -1.015     17.21     -35.65    -52.86    61.19
+  90.0    0.00    0.00      0.00   100.00     2.00   0.8889   0.8889    -1.023     47.47      -5.33    -52.80    91.51
+  (Pr1 = misma ecuación con sigma constante = 1 m^2 del target_espiral_mono0.json: aísla transmitancia + distancia)
+
+Chequeo geométrico (Fermat de flightpath/ vs. Snell analítico): max |d theta_i| = 1.78e-14°
+
+-- Brewster --
+  Curva continua: T^2 máx = 1.0000 (-0.0000 dB) en eps = 26.55° (theta_i = 63.45°)
+  Punto de la malla de 5° más cercano a Brewster: eps = 25° (theta_i = 65.00°, |d| = 1.57°), T^2 = 0.9986
+  Ganancia de transmitancia Brewster vs nadir: +1.02 dB (T^2 = 1.0000 vs 0.7901)
+  Pr1 (sigma cte) máximo en eps = 90.00°: el término 1/R^4 domina, la ganancia de Brewster
+    no compensa: Pr1(eps_B) - Pr1(nadir) = -12.79 dB  [T^2: +1.02 dB, R^4: -13.81 dB]
+
+-- Cubo (sigma PO) --
+  Pr máximo de la malla de 5°: -5.33 dBm en eps = 90° (sigma = 47.47 dBsm)
+  En eps = 25° (más cercano a Brewster): Pr = -65.69 dBm (sigma = 0.88 dBsm)
+  Lóbulo especular de la cara superior: ancho a -3 dB ~ 0.38° en theta_t (0.76° en eps cerca del nadir)
+  Fuera del nadir la RCS del cubo cae a lóbulos laterales/arista de la cara superior: domina
+  sobre la transmitancia; con paso de 5° cada punto cae en un lóbulo lateral distinto.
+
+  NOTA: pérdidas dieléctricas no incluidas. Con tan_delta = 0.05 a 10.0 GHz: alpha = 10.47 Np/m
+        (91.0 dB/m) -> a nadir 2*2.0 m de suelo restarían 364 dB adicionales.
+
+Guardado: io\verifica_ganancia_brewster\verifica_ganancia_brewster_20260928_122022.csv
+          io\verifica_ganancia_brewster\verifica_ganancia_brewster_20260928_122022.png
+          io\verifica_ganancia_brewster\log_20260928_122022.txt

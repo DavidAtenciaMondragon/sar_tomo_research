@@ -1,0 +1,4 @@
+enfoque,archivo,psi0_deg,N,potencia_media_dBm,delta_xy_media_cm,delta_z_media_cm,costo_medio
+Solo Rx (línea base),io\plan_vuelo\optimizacion_20260911_100959.mat,57.9803,268,-33.3055,670.0406,134.5950,6.330553
+Tx+Rx (ecuación radar),io\otimiza_tx\otimiza_tx_20260911_101139.mat,60.5685,275,-32.4942,1121.7416,132.3724,6.249424
+Tx+Rx (transmitancia pura),io\otimiza_tx_brewster_puro\otimiza_tx_brewster_puro_20260911_104452.mat,60.5685,275,-36.8643,Inf,136.9384,0.005989

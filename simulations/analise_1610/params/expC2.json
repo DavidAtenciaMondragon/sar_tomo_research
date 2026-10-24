@@ -1,0 +1,13 @@
+{
+  "_descripcion": "Exp. C2 - Uso de los nulos SPM de la superficie para ubicar el Rx (complemento del Exp. C, pregunta de la reunion). SCR en imagen frente a dphi = 0:15:180 (+140) con el Tx en la helice base, TM y TE co-polares, suelo S1, s = 2 cm, l = 20 cm. Blancos: punto escalar (S = 1, como el Exp. C), esfera PEC r = 0.5 m, cubo PEC 1 m nominal y cubo con orientacion aleatoria SO(3). El punto escalar no tiene polarizacion; los objetos PO si, de modo que se separa el nulo de la superficie del desacople de polarizacion del propio blanco.",
+  "dphi_list": [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 140, 150, 165, 180],
+  "pols": ["TM", "TE"],
+  "realizaciones": 3,
+  "n_orient_so3": 24,
+  "objetos": {
+    "esfera": {"tipo": "esfera", "dim": 0.5},
+    "cubo": {"tipo": "cubo", "dim": 1.0}
+  },
+  "rejilla_scr": {"hx": 1.0, "dx": 0.05, "z_lo": -1.5, "z_hi": 2.5, "dz": 0.1},
+  "ventana_espectral": "hann"
+}

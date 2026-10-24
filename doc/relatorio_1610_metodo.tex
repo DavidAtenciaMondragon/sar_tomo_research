@@ -1,0 +1,182 @@
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Método}
+\label{cap:metodo}
+
+\section{Motor de simulación}
+
+Se escribió un motor nuevo en Python/numba (\texttt{simulations/analise\_1610/bisar})
+porque el estudio exige miles de imágenes 3D complejas con ecuación radar,
+superficie y blancos PO; el núcleo de RCS ya estaba en Python
+(\texttt{tools/rcs\_core}) y se portó la PO biestática de
+\texttt{verifica\_ganancia\_brewster.m}. Cada pieza se validó contra el código
+existente (Sección~\ref{sec:validacion}).
+
+\paragraph{Geometría.} El Tx (transceiver) recorre la hélice óptima de
+\texttt{run\_otimiza\_tx.m} (\texttt{radarTx\_espiral\_mono0.json}: 2 vueltas,
+radio 137.4$\to$165.5\,m, altura 131.5$\to$93.6\,m, incidencia
+$46.3^{\circ}$--$60.5^{\circ}$, media $53.4^{\circ}$), diezmada a $M=1600$ pulsos. El Rx remoto
+vuela a la \emph{misma altura} que el Tx en cada instante,
+\begin{equation}
+  \vect{p}_{Rx}(t) = \big(\kappa(t)\rho_{Tx}(t)\cos[\phi_{Tx}(t)+\Delta\phi(t)],\;
+  \kappa(t)\rho_{Tx}(t)\sin[\phi_{Tx}(t)+\Delta\phi(t)],\; z_{Tx}(t)\big),
+\end{equation}
+con $\kappa=1$ y $\Delta\phi$ constante en el Exp.~B (orientación §5.3) y
+$\Delta\phi(t)$, $\kappa$ libres en el Exp.~F. Con $\kappa=1$ y $\Delta\phi$ constante, el
+Rx recorre \emph{exactamente la misma hélice} que el Tx (mismos radios, mismas alturas,
+misma velocidad), rotada rígidamente $\Delta\phi$ en acimut: es la hélice de
+\texttt{funcao\_espiral} con \texttt{NorthOffset}$\,=\Delta\phi$, iniciada en el mismo instante
+(Tx en acimut $0^{\circ}$, Rx en $\Delta\phi$). Ambos recorren sincronizados las dos vueltas, de
+modo que la separación acimutal se mantiene constante en todos los pulsos. Se verificó
+numéricamente que las dos construcciones coinciden ($<3\times10^{-13}$\,m). El blanco de referencia es un punto
+isótropo de $\sigma=1\,\mathrm{m}^2$ en $(0,0,-2)$\,m.
+
+\paragraph{Señal.} Portadora 425\,MHz, banda 50\,MHz muestreada en $N_f=64$
+frecuencias (señal comprimida en rango), $P_t=100$\,kW, $G=6$\,dBi con haz
+gaussiano $14^{\circ}\times50^{\circ}$ apuntado al centro, $T_p=1.3\,\mu$s, $T=300$\,K.
+El eco del pulso $m$ en la frecuencia $f_k$ para el canal (Tx, Rx) es
+\begin{equation}
+  s_{mk} = \frac{\sqrt{P_t}\,\lambda_k}{(4\pi)^{3/2}}
+  \frac{\sqrt{G_tG_r}}{R_TR_R}\,\tau_t\tau_r\,
+  e^{-\alpha_k(R^{s}_T+R^{s}_R)}\,S_{mk}\,e^{-j2\pi f_k\tau_m},
+  \qquad \tau_m=\frac{R^a_T+n'R^s_T+R^a_R+n'R^s_R}{c},
+  \label{eq:eco}
+\end{equation}
+donde los tramos en aire ($R^a$) y suelo ($R^s$) salen del rayo de Fermat
+(Newton sobre la ley de Snell), $\tau_{t,r}=\sqrt{1-|r_{TM/TE}|^2}$ son las
+transmitancias de amplitud, $\alpha_k=k_0|n''|$ la atenuación y $S_{mk}$ la
+amplitud compleja de dispersión ($S=1$ para el punto, PO para objetos). El
+canal mono usa $\mathrm{Rx}=\mathrm{Tx}$ con \emph{el mismo pulso}.
+
+\paragraph{Suelos.} $\varepsilon_r=\varepsilon'-j\varepsilon''$: S0 $=4$ (sin
+pérdidas, validación), S1 $=3.99-j0.40$ (referencia de la orientación),
+S2 $=6.5-j0.9$, S3 $=12-j2.5$. Pseudo-Brewster (mínimo de $|r_{TM}|^2$):
+$63.43^{\circ}$, $63.45^{\circ}$, $68.66^{\circ}$ y $74.05^{\circ}$, con mínimos de
+$-\infty$, $-34.5$, $-30.7$ y $-26.5$\,dB.
+
+\paragraph{Superficie.} Dos componentes con la misma ecuación radar:
+(i) \emph{especular coherente}: un punto especular por pulso (teoría de
+imágenes, exacta por fase estacionaria para plano infinito), con
+$r_{TM/TE}(\theta)$ y factor de Ament $\chi=\exp[-\tfrac12k_0^2s^2(\cos\theta_i+\cos\theta_s)^2]$;
+(ii) \emph{difusa}: facetas de $0.15\times0.15$\,m en $\pm12$\,m con amplitud
+$a_p\sqrt{\sigma^0_{pp}\,\Delta A}$, $a_p\sim\mathcal{CN}(0,1)$ \emph{congelada}
+durante toda la apertura y compartida por los canales mono y bi, y
+$\sigma^0$ del SPM de primer orden biestático (rugosidad moderada $s=2$\,cm,
+$\ell=20$\,cm, $k_0s=0.18$):
+\begin{equation}
+  \sigma^0_{pp} = 8k_0^4s^2\cos^2\theta_i\cos^2\theta_s|\alpha_{pp}|^2
+  W(k_0[\sin\theta_s\cos\phi_s-\sin\theta_i],\,k_0\sin\theta_s\sin\phi_s),
+\end{equation}
+\begin{equation}
+  \alpha_{hh}=\frac{(\varepsilon-1)\cos\phi_s}{(\cos\theta_i+q_i)(\cos\theta_s+q_s)},\qquad
+  \alpha_{vv}=\frac{(\varepsilon-1)\,[\varepsilon\sin\theta_i\sin\theta_s-\cos\phi_s\,q_iq_s]}
+                  {(\varepsilon\cos\theta_i+q_i)(\varepsilon\cos\theta_s+q_s)},
+  \label{eq:spm}
+\end{equation}
+$q=\sqrt{\varepsilon-\sin^2\theta}$, $\phi_s$ medido desde la dirección especular.
+En retrodispersión $\alpha_{hh}=r_{TE}$; en dirección especular $\alpha_{vv}=0$
+exactamente en Brewster. El error de atitud (roll $\gamma$) mezcla
+polarizaciones: $r_{\mathrm{ef}}=\cos^2\gamma\,r_{TM}+\sin^2\gamma\,r_{TE}$.
+
+\paragraph{Blancos.} PEC por PO biestática co-polar con integral exacta por
+triángulo, polarización TM/TE general (vectores $\hat v,\hat h$ continuos en
+la dirección, de modo que mono y bi convergen cuando $\Delta\phi\to0$),
+evaluada en el suelo ($\lambda_s=\lambda_0/n'$) en las direcciones refractadas
+y en cada frecuencia.
+
+\paragraph{Imagen.} Back-projection con refracción exacta por vóxel y pulso:
+\begin{equation}
+  I(\vect r) = \frac{1}{\sum_m w_m N_f}\sum_m w_m\sum_k s_{mk}\,e^{\,j2\pi f_k\tau_m(\vect r)} ,
+\end{equation}
+(envolvente interpolada sobre el perfil sobremuestreado $32\times$, fase exacta).
+
+\paragraph{Ponderación en rango y ventana de recepción.}\label{sec:ponderacion} Los Exp.~A, B, D y E
+usan el filtro adaptado sin ponderar (espectro rectangular), igual que
+\texttt{PROC\_snell\_test\_script.m}: es lo adecuado para la forma de la PSF.
+En los experimentos limitados por clutter (C y F) se aplica además una
+ponderación Hann en frecuencia (normalizada a media 1) y una ventana de
+recepción de $[-30,+60]$\,m alrededor del camino Tx--centro--Rx. La razón es
+un hallazgo del Exp.~C: en una órbita de altura constante, el reflejo
+especular de nadir del canal mono tiene retardo constante, y sus lóbulos
+lejanos en rango ($\approx-38$\,dB a 25 celdas con espectro rectangular) se
+acumulan coherentemente sobre el eje de la órbita, justo donde está el blanco.
+Con Hann la fuga cae de $-78$ a $-129$\,dBm (pico del blanco $-69.08$\,dBm,
+pérdida de 0.08\,dB), a cambio de un lóbulo vertical $\approx1.6$ veces más
+ancho. El Exp.~C se repitió con espectro rectangular como análisis de
+sensibilidad (\texttt{io/analise\_1610/expC\_rect}) y sus conclusiones no cambian.
+
+\section{Normalización de la fusión}
+\label{sec:normalizacion}
+
+Para que el aumento del número de muestras no se confunda con ganancia
+geométrica (§5.1, §11), cada imagen es la \emph{media} coherente de sus muestras y
+se definen dos fusiones:
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{fus (2N)}: $I_{fus}=\tfrac12(I_{mono}+I_{bi})$, ambos canales completos
+  (lo que el sistema adquiere realmente).
+  \item \textbf{fusN (N, mismo presupuesto)}: canal mono en los pulsos impares y
+  bi en los pares, con el mismo número total de muestras que la imagen mono.
+\end{itemize}
+Las métricas de forma (resoluciones $\delta_{x,y,z}$, volumen, anisotropía, PSLR, ISLR, contraste) son
+invariantes a la escala; la SNR se calcula propagando el ruido térmico,
+$\mathrm{var}=kT/(T_pM_{\mathrm{ef}})$, con $M_{\mathrm{ef}}=M$ (mono, bi, fusN)
+y $2M$ (fus). Así el $+3$\,dB por duplicar muestras aparece \emph{sólo} en la
+SNR de fus y se declara como tal. Todas las imágenes se muestran con la misma
+referencia (pico monoestático $=0$\,dB) y el mismo rango dinámico (30\,dB).
+
+\section{Métricas}
+
+\begin{table}[H]
+\centering\small
+\caption{Métricas implementadas (\texttt{bisar/metrics.py}).}
+\label{tab:metricas}
+\begin{tabular}{@{}L{3.1cm}L{11.2cm}@{}}
+\toprule
+$\delta_{x,y,z}$ & ancho a $-3$\,dB en cortes por el pico (interpolación lineal en dB);
+               censurado si no cruza dentro de la ventana. Equivale al FWHM en potencia
+               (columnas \texttt{fwhm\_*} de los CSV); formas cerradas en el Apéndice~\ref{ap:resolucion} \\
+$V_{-3\,\mathrm{dB}}$ & volumen de la componente conexa $|I|^2\ge\tfrac12$pico que contiene el pico \\
+Anisotropía & $\sqrt{\lambda_{max}/\lambda_{min}}$ del tensor de segundo momento del lóbulo $-3$\,dB (3D y $xy$) \\
+PSLR, ISLR & lóbulo principal = elipsoide con semiejes al primer nulo en $x,y,z$; ventana fija
+             $2\times2\times5$\,m; ISLR = energía fuera / dentro \\
+Contraste & pico / potencia media fuera del lóbulo principal \\
+Localización & distancia del pico (refinamiento parabólico) a la posición verdadera \\
+Amplitud & $20\log_{10}(|I_{pico}|/\overline{|a|})$ (pérdida de enfoque) \\
+Separabilidad & fracción de blancos con máximo local y caída $\ge3$\,dB hacia cada vecino \\
+Dominio $k$ & $\vect K=\tfrac{2\pi fn'}{c}(\hat u_T+\hat u_R)$; área ocupada en $(k_x,k_y)$ (celdas de $0.25$\,rad/m),
+              dispersión $\sigma_{k}$ (Fisher) \\
+Condicionamiento & matriz $A_{iv}=e^{-j\vect K_i\cdot\vect r_v}$ sobre $7\times7\times5$ vóxeles; rango efectivo
+                   (Roy--Vetterli), coherencia mutua; Gram normalizado por canal \\
+SCR & $|I_{blanco}(\vect r_0)|^2/\mathrm{E}|I_{sup}|^2$ en la vecindad del blanco (imagen) y
+      $\bar P_{blanco}/\bar P_{sup}$ (enlace) \\
+SNR & $|I_{pico}|^2T_pM_{\mathrm{ef}}/kT$ \\
+Vuelo & separación mínima Tx--Rx, $v_{max}^{Rx}/v_{Tx}$, longitud relativa, aceleración a $v_{Tx}=10$\,m/s \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Validación del motor}
+\label{sec:validacion}
+
+\begin{table}[H]
+\centering\small
+\caption{Validaciones (\texttt{analise\_1610/tests}).}
+\label{tab:validacion}
+\begin{tabular}{@{}L{5.6cm}L{4.4cm}L{4.4cm}@{}}
+\toprule
+\textbf{Prueba} & \textbf{Referencia} & \textbf{Motor nuevo} \\
+\midrule
+RCS PO en nadir (Tabla 2 del 28/09): cubo, caja, cilindro, esfera, cono
+ & 20.04, 14.02, 8.94, $-1.54$, $-15.86$\,dBsm & idénticos (0.00\,dB) \\
+Placa especular $4\pi A^2\cos^2\theta/\lambda^2$, $\theta=15,30,45^{\circ}$
+ & 19.74, 18.79, 17.03\,dBsm & 19.73, 18.88, 17.01\,dBsm \\
+BP vs.\ núcleo de PROC (MATLAB), 10\,GHz, corte fino $x$ & 6.66\,mm & 6.71\,mm \\
+BP vs.\ PROC, eje $z$ (mono0 / offset0) & 0.200 / 0.206\,m & 0.202 / 0.207\,m \\
+PSF horizontal mono a 425\,MHz vs.\ anillo de Bessel & 0.157\,m & 0.1575\,m \\
+PSF bi $\Delta\phi=90^{\circ}$ vs.\ $\delta_{xy}/\cos(\Delta\phi/2)$ & 0.222\,m & 0.221\,m \\
+Suma de facetas de Kirchhoff (plano liso, Ref1) vs.\ teoría de imágenes & $-0.102$\,dBm & $-0.095$\,dBm \\
+Potencia difusa media (40 realizaciones) vs.\ $\int\sigma^0dA$ & 0\,dB & $-0.24$ a $+0.45$\,dB \\
+SPM: $\alpha_{hh}$ en retrodispersión vs.\ $r_{TE}$; $\alpha_{vv}$ especular en Brewster
+ & $-0.5104$; 0 & $-0.5104$; 0 \\
+\bottomrule
+\end{tabular}
+\end{table}

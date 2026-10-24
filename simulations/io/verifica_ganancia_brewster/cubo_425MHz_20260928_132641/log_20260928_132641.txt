@@ -1,0 +1,142 @@
+================ VERIFICA_GANANCIA_BREWSTER (20260928_132641) ================
+Parámetros: _espiral_mono0
+  fc = 0.425 GHz | lambda0 = 0.7059 m | lambda_suelo = 0.3529 m
+  Pt = 100.0 kW | Gt = 6.0 dBi | Gr = 6.0 dBi | B = 50.0 MHz | T = 300 K | Pn = kTB = -96.84 dBm
+  n1 = 1 | n2 = 2 | tan_delta = 0.05 (pérdidas no incluidas)
+  Tx en arco r = 100 m centrado en (0,0,0), lado +x | Rx: monoestático (= Tx) y especular (lado -x)
+  Cubo PEC arista 1.00 m, centro en z = -2.00 m, yaw = 0° | polarización TM->TM
+  Brewster (aire): theta_B = 63.43°
+  Barrido: eps = 20:5:90° (15 posiciones)
+
+-- Validación del PO de MATLAB contra tools/rcs_core/resultados (monoestático) --
+  cubo_1m_400MHz_TMTM_mom.mat        (MOM, 1.33 lambda): nadir 13.49 vs 12.67 dBsm | error medio |dB| (lóbulos) = 2.27 dB
+  cubo_3m_400MHz_TMTM_po.mat         (PO, 4.00 lambda): nadir 32.58 vs 32.58 dBsm | error medio |dB| (lóbulos) = 0.01 dB
+  (con PO el error debe ser ~0 dB; frente a MoM la diferencia refleja las limitaciones de PO)
+
+-- Validación del PO biestático: especular de la cara superior --
+  theta =  0.0°: PO 20.038 dBsm | teórico 20.038 dBsm
+  theta = 15.0°: PO 19.727 dBsm | teórico 19.737 dBsm
+  theta = 30.0°: PO 18.878 dBsm | teórico 18.789 dBsm
+  theta = 45.0°: PO 17.013 dBsm | teórico 17.028 dBsm
+
+-- RCS del cubo en el suelo (PO, lambda_s = 0.3529 m, f equivalente en vacío = 0.85 GHz) --
+  sigma(nadir) = 20.04 dBsm (teórico placa 4*pi*A^2/lambda_s^2 = 20.04 dBsm)
+  Campo lejano en el suelo: 2D^2/lambda_s = 11 m (D = diagonal de cara 1.41 m)
+
+-- Resultados por posición (TM->TM, R = R_aire + R_suelo) --
+  sigM/PrM: monoestático | sigB/PrB: biestático especular | beta: ángulo biestático en el suelo
+  PrSup: reflexión especular de la superficie en el Rx biestático | SCR = PrB - PrSup
+  eps°   th_i°   th_t°   beta°  T^2[dB] sigM[dBsm] sigB[dBsm]  PrM[dBm]  PrB[dBm]  dPr[dB]     PrSup  SCR[dB]     SNRM     SNRB
+  20.0   69.79   27.98   55.97   -0.130     -0.63     18.95    -24.98     -5.40    19.58      2.70    -8.10    71.86    91.44
+  25.0   64.75   26.89   53.77   -0.004      0.76     19.00    -23.48     -5.24    18.24    -12.08     6.85    73.36    91.60
+  30.0   59.72   25.58   51.16   -0.027      1.66     19.06    -22.61     -5.21    17.40     -4.12    -1.10    74.23    91.63
+  35.0   54.70   24.08   48.17   -0.120      1.36     19.14    -23.02     -5.23    17.78      2.36    -7.59    73.82    91.61
+  40.0   49.69   22.41   44.83   -0.244     -1.76     19.25    -26.27     -5.26    21.01      5.40   -10.66    70.57    91.58
+  45.0   44.69   20.59   41.18   -0.376    -16.09     19.37    -40.75     -5.28    35.47      7.25   -12.53    56.09    91.56
+  50.0   39.70   18.63   37.25   -0.505     -0.10     19.51    -24.90     -5.29    19.61      8.49   -13.78    71.94    91.55
+  55.0   34.72   16.55   33.09   -0.624      5.66     19.64    -19.27     -5.29    13.98      9.38   -14.67    77.57    91.55
+  60.0   29.75   14.36   28.73   -0.729      7.03     19.76    -18.01     -5.28    12.73     10.03   -15.31    78.83    91.55
+  65.0   24.78   12.10   24.19   -0.819      3.63     19.86    -21.51     -5.28    16.23     10.51   -15.80    75.33    91.55
+  70.0   19.81    9.76   19.52   -0.893     -6.92     19.93    -32.15     -5.29    26.86     10.87   -16.16    64.69    91.55
+  75.0   14.86    7.37   14.73   -0.950     10.55     19.99    -14.74     -5.30     9.44     11.12   -16.42    82.10    91.54
+  80.0    9.90    4.93    9.87   -0.991     16.35     20.02     -8.98     -5.31     3.67     11.30   -16.61    87.86    91.53
+  85.0    4.95    2.47    4.95   -1.015     19.16     20.04     -6.20     -5.32     0.88     11.39   -16.72    90.64    91.52
+  90.0    0.00    0.00    0.00   -1.023     20.04     20.04     -5.33     -5.33     0.00     11.43   -16.76    91.51    91.51
+
+Chequeo geométrico: |Tx| = 100.0000..100.0000 m | |Rx| = 100.0000..100.0000 m | max |theta_i - (90-eps)| = 0.306°
+Simetría del biestático especular: max |T_up,B - T_down| = 4.44e-16 | max |R_R - R_T| = 0.00e+00 m
+Brewster en el arco: eps_B = 26.31° (theta_i = 63.43°)
+
+-- Transmitancia (común a ambas configuraciones por simetría) --
+  Curva continua: T^2 máx = 1.0000 en eps = 26.30° (theta_i = 63.44°)
+  Punto de la malla de 5° más cercano a Brewster: eps = 25° (theta_i = 64.75°), T^2 = 0.9990
+  Ganancia de transmitancia Brewster vs nadir: +1.02 dB
+  Con sigma cte = 1 m^2: Pr(eps_B) - Pr(nadir) = +1.14 dB (mono y biestático coinciden aquí)
+
+-- Monoestático vs biestático especular (cubo) --
+  sigma: mono -16.09..20.04 dBsm | biestático 18.95..20.04 dBsm (barrido 5°)
+  Especular de la cara superior (4*pi*A^2*cos^2(theta_t)/lambda_s^2):
+    el Rx especular la ve en TODO el barrido; el monoestático solo en nadir (lóbulo de ~8.96°).
+  Pr_B - Pr_M: mínimo +0.88 dB, medio +16.63 dB, máximo +35.47 dB (excluyendo nadir, donde es 0)
+  En eps = 25° (más cercano a Brewster): PrM = -23.48 dBm, PrB = -5.24 dBm (+18.24 dB)
+  Pr_B continuo (sin nadir) máximo: -5.21 dBm en eps = 29.20° (theta_i = 60.53°)
+
+-- Reflexión especular de superficie en el Rx biestático --
+  SCR máximo (continuo) = 50.6 dB en eps = 26.30° (Gamma_TM -> 0 en Brewster)
+  En eps = 25°: PrSup = -12.08 dBm, SCR = 6.85 dB | en eps = 45°: SCR = -12.53 dB
+  (plano perfecto: Gamma_TM es exactamente 0 en Brewster; con rugosidad quedaría un residuo)
+
+  NOTA: pérdidas dieléctricas no incluidas. Con tan_delta = 0.05 a 0.4 GHz: alpha = 0.45 Np/m
+        (3.9 dB/m) -> a nadir 2*2.0 m de suelo restarían 15 dB al cubo (no a la superficie).
+
+-- Patrones de RCS en 360° (Tx fijo en la dirección refractada de Brewster, theta_t,B = 26.57°) --
+  Cono accesible desde el aire: |psi| <= asin(n1/n2) = 30.0° (fuera de él la RCS no es observable)
+  Corte xz  | mono: máx 20.04 dBsm en psi = 0.00° | biestático: máx 22.60 dBsm en psi = -153.05°
+            | mono en psi = +theta_t,B: 1.07 dBsm | biestático en el especular psi = -theta_t,B: 19.04 dBsm
+  Corte az  | mono: máx 1.06 dBsm | biestático: máx 19.01 dBsm en phi = 180.00°
+  El máximo biestático absoluto está en psi = -153.05°: dirección de avance (forward scatter,
+  sombra del cubo), apunta hacia abajo y no es observable desde el aire.
+  Lóbulo especular biestático: semiancho -3 dB = 9.85° en el suelo = 26.57° en el aire
+    -> a r = 100 m el Rx debe estar a +/- 46.4 m de la posición especular exacta
+  Por qué la sigma biestática del barrido es casi constante: con Rx especular la bisectriz
+  Tx-Rx es SIEMPRE vertical, así que la cara superior se ve siempre en su lóbulo especular
+  (teorema de equivalencia mono/biestático: sigma_B(beta) ~ sigma_M(bisectriz) = nadir).
+  Solo cae el factor cos^2(theta_t): de 0 a 28.0°, -1.08 dB.
+  Esfera 3D (paso 0.25°, 1038961 direcciones): mono máx 20.04 dBsm en az = 0.0°, el = -90.0°
+                                           biestático máx 22.60 dBsm en az = 180.0°, el = -63.0°
+
+================ MONTE CARLO: CUBO CON ORIENTACIÓN ALEATORIA ================
+  Polarización: TM en todo el cálculo (Fresnel TM en la interfaz y RCS TM->TM co-polar;
+                no se calcula TE ni polarización cruzada).
+  10000 orientaciones independientes POR POSICIÓN (15 posiciones, 150000 en total), modo 'xy': giro en x y en y uniformes en [-45°, 45°], semilla 1.
+  Mono y especular usan el mismo cubo en cada repetición (comparación pareada).
+  Chequeo vectores rotados vs malla rotada: max error = 3.2e-14 dB
+
+  Cómo leer la tabla:
+    Media M / Media B : potencia media recibida (promedio en W, pasado a dBm) con su IC 95%.
+                        Es la ENERGÍA que llega en promedio: la dominan las pocas orientaciones
+                        en las que una cara del cubo queda especular.
+    B-M               : cuánto más recibe en media el especular que el mono [dB]. Si su IC
+                        contiene el 0, no hay diferencia estadísticamente clara.
+    Mediana M / B     : el caso "típico" (la mitad de las repeticiones recibe menos que esto).
+    P(B>M)            : fracción de repeticiones en que el especular recibe más que el mono.
+    Aciertos M/B      : repeticiones con sigma > 10.0 dBsm (cara en espejo: a menos de 10 dB del
+                        pico de placa); de ellas depende la media.
+
+  eps°   th_i° | Media M [dBm] (IC95)     | Media B [dBm] (IC95)     | B-M [dB] (IC95)        |    Med. M    Med. B | P(B>M) | Aciert M/B
+  20.0   69.79 |  -23.23 [ -23.7, -22.7] |  -23.13 [ -23.6, -22.7] |  +0.11 [ -0.6, +0.8] |    -39.87    -40.79 |   0.48 |  244/ 283
+  25.0   64.75 |  -23.29 [ -23.8, -22.8] |  -23.26 [ -23.7, -22.8] |  +0.03 [ -0.7, +0.7] |    -40.25    -40.74 |   0.48 |  214/ 280
+  30.0   59.72 |  -22.98 [ -23.5, -22.5] |  -23.36 [ -23.9, -22.9] |  -0.38 [ -1.1, +0.3] |    -40.25    -40.80 |   0.48 |  248/ 260
+  35.0   54.70 |  -23.51 [ -24.1, -23.0] |  -23.66 [ -24.2, -23.2] |  -0.15 [ -0.8, +0.6] |    -40.66    -40.75 |   0.49 |  233/ 248
+  40.0   49.69 |  -23.14 [ -23.6, -22.7] |  -23.91 [ -24.4, -23.5] |  -0.77 [ -1.5, -0.1] |    -41.14    -41.20 |   0.51 |  272/ 250
+  45.0   44.69 |  -23.23 [ -23.7, -22.8] |  -24.27 [ -24.7, -23.8] |  -1.05 [ -1.7, -0.4] |    -41.40    -41.33 |   0.53 |  249/ 232
+  50.0   39.70 |  -23.49 [ -24.0, -23.0] |  -24.06 [ -24.5, -23.6] |  -0.57 [ -1.2, +0.1] |    -41.50    -41.32 |   0.52 |  242/ 224
+  55.0   34.72 |  -24.21 [ -24.7, -23.7] |  -24.46 [ -24.9, -24.0] |  -0.25 [ -0.9, +0.4] |    -41.79    -41.86 |   0.51 |  221/ 224
+  60.0   29.75 |  -24.18 [ -24.7, -23.7] |  -24.06 [ -24.6, -23.6] |  +0.13 [ -0.6, +0.8] |    -42.19    -41.89 |   0.50 |  224/ 234
+  65.0   24.78 |  -24.15 [ -24.6, -23.7] |  -24.58 [ -25.1, -24.1] |  -0.43 [ -1.1, +0.2] |    -42.92    -42.19 |   0.52 |  246/ 244
+  70.0   19.81 |  -24.33 [ -24.9, -23.8] |  -24.08 [ -24.6, -23.6] |  +0.26 [ -0.4, +0.9] |    -42.67    -42.42 |   0.52 |  218/ 254
+  75.0   14.86 |  -24.27 [ -24.8, -23.8] |  -24.31 [ -24.8, -23.8] |  -0.04 [ -0.6, +0.5] |    -42.53    -42.70 |   0.50 |  241/ 223
+  80.0    9.90 |  -24.27 [ -24.8, -23.8] |  -24.36 [ -24.9, -23.9] |  -0.09 [ -0.5, +0.4] |    -43.01    -43.17 |   0.50 |  249/ 212
+  85.0    4.95 |  -24.66 [ -25.2, -24.2] |  -24.59 [ -25.1, -24.1] |  +0.08 [ -0.2, +0.3] |    -43.51    -43.52 |   0.52 |  212/ 228
+  90.0    0.00 |  -24.18 [ -24.7, -23.7] |  -24.18 [ -24.7, -23.7] |  +0.00 [ +0.0, +0.0] |    -42.97    -42.97 |   0.00 |  257/ 257
+
+  CONCLUSIÓN (posiciones fuera del nadir, 14):
+    - Especular significativamente MEJOR en media: 0 posiciones
+    - Especular significativamente PEOR en media : 2 posiciones
+    - Sin diferencia clara (IC contiene 0)       : 12 posiciones
+    - Media de todas las posiciones: B-M = -0.23 dB | P(B>M) media = 0.50
+    - Referencia con el cubo SIN rotar (cara superior horizontal): B-M medio = +9.56 dB
+    - Aciertos especulares por posición: mono 212..272, especular 212..283 de 10000. Con pocos
+      aciertos la media es ruidosa: mirar el IC antes de concluir (sube Nmc para estrecharlo).
+    - La mediana (caso típico) está en la zona no especular, donde PO puede errar 5-20 dB.
+
+Guardado: io\verifica_ganancia_brewster\verifica_ganancia_brewster_20260928_132641.csv
+          io\verifica_ganancia_brewster\verifica_ganancia_brewster_20260928_132641.png
+          io\verifica_ganancia_brewster\log_20260928_132641.txt
+          io\verifica_ganancia_brewster\rcs3d_mono_20260928_132641.png
+          io\verifica_ganancia_brewster\rcs3d_biestatico_20260928_132641.png
+          io\verifica_ganancia_brewster\patrones_rcs_360_20260928_132641.csv
+          io\verifica_ganancia_brewster\rcs3d_20260928_132641.mat
+          io\verifica_ganancia_brewster\montecarlo_20260928_132641.png
+          io\verifica_ganancia_brewster\montecarlo_resumen_20260928_132641.csv
+          io\verifica_ganancia_brewster\montecarlo_20260928_132641.mat

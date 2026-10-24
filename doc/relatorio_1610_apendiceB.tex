@@ -1,0 +1,56 @@
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Reproducción, figuras y matriz de simulaciones}
+\label{ap:repro}
+
+\paragraph{Código.} \texttt{simulations/analise\_1610} (instrucciones en
+\texttt{README.md}): \texttt{python run\_all.py} ejecuta A--F; además
+\texttt{exp\_C\_figuras\_enlace.py}, \texttt{exp\_D2\_rejilla\_densa.py},
+\texttt{exp\_F2\_calibracion\_fase.py}, \texttt{exp\_F\_fig\_robustez.py}. Un JSON
+por experimento en \texttt{params/} (hereda de \texttt{common.json}); cada
+corrida guarda \texttt{params\_resueltos\_expX.json}. Pruebas en \texttt{tests/}.
+Todas las métricas en CSV en \texttt{simulations/io/analise\_1610/expX/}.
+
+\begin{table}[H]
+\centering\small
+\caption{Conjunto mínimo de figuras (§7).}
+\label{tab:figuras}
+\begin{tabular}{@{}rL{7.4cm}L{5.4cm}@{}}
+\toprule
+\# & Figura pedida & En este relatorio \\
+\midrule
+1 & Geometría Tx, Rx, Ref1, Ref2, intermedia & Fig.~\ref{fig:geom} \\
+2 & Soporte en $k$: Ref2, Ref1 y tres intermedias & Fig.~\ref{fig:B_k} (y \ref{fig:A_k}) \\
+3 & PSF 3D y cortes $x,y,z$ mono, bi, mono+bi & Figs.~\ref{fig:A_cortes}, \ref{fig:B_img} \\
+4 & Resoluciones $x,y,z$ vs.\ $\Delta\phi$ & Fig.~\ref{fig:B_res} \\
+5 & Volumen y anisotropía vs.\ $\Delta\phi$ & Fig.~\ref{fig:B_vol} \\
+6 & PSLR e ISLR vs.\ $\Delta\phi$ & Fig.~\ref{fig:B_lob} \\
+7 & Reflectancia TM y TE vs.\ incidencia & Fig.~\ref{fig:C_refl} \\
+8 & SCR vs.\ incidencia y error angular & Figs.~\ref{fig:C_scr}, \ref{fig:C_err} \\
+9 & Imágenes mono, bi, fusión, misma escala & Figs.~\ref{fig:A_img}, \ref{fig:B_img}, \ref{fig:D_mip} \\
+10 & Métricas de la fusión vs.\ mono por clase de blanco & Fig.~\ref{fig:D_fus}, \ref{fig:E_mc} \\
+11 & Pareto imagen--SCR--vuelo & Fig.~\ref{fig:F_pareto} \\
+12 & Trayectoria final vs.\ Ref1 y Ref2 & Fig.~\ref{fig:F_final} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering\small
+\caption{Matriz de simulaciones ejecutada (§8).}
+\label{tab:matriz}
+\begin{tabular}{@{}L{2.6cm}L{6.2cm}L{5.4cm}@{}}
+\toprule
+Eje & Valores pedidos & Ejecutados \\
+\midrule
+Canal & mono; bi; fusión & mono, bi, fus (2N), fusN (N), incoherente \\
+Separación & 0°--180° en pasos de 15° & 13 valores (B); 8$\times$4$\times$3 (F) \\
+Incidencia & fuera de Brewster, cerca, barrido local & 35, 45, 53.4, 75° y $\theta_{pB}+\{0,\pm0.5,\pm1,\pm2,\pm5\}$; dos familias \\
+Suelo & sin pérdidas; $\varepsilon$ complejo; dos adicionales & S0, S1, S2, S3 \\
+Superficie & lisa; rugosidad moderada & $s=0,1,2,4$\,cm, $\ell=20$\,cm \\
+Polarización & TM y TE & TM, TE, roll 0--5° \\
+Blanco & punto, esfera, cubo, caja, cilindro, tubería, rejilla 64 & los 7 + tubo y cilindro inclinados, rejilla densa, escena P2 \\
+Orientación & nominal; inclinada; Monte Carlo SO(3) & nominal, inclinados, SO(3) por adquisición (200--1000) \\
+Robustez & ángulo, trayectoria, fase, sincronismo, suelo & todas (Exp.~C y F) \\
+\bottomrule
+\end{tabular}
+\end{table}

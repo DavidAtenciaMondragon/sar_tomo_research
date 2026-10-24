@@ -1,0 +1,6 @@
+{
+  "_descripcion": "Exp. A - Referencias de imagen (Orientacoes §5.2): Ref2 monoestatica, Ref1 diametral (dphi = 180, misma altura y radio), fusion Ref1+Ref2. Punto isotropo sigma = 1 m^2 en (0,0,-2). Suelo S1.",
+  "dphi_ref1": 180.0,
+  "dphi_intermedia": 90.0,
+  "corte_largo_h": 25.0
+}

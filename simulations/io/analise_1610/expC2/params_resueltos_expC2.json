@@ -1,0 +1,143 @@
+{
+  "_descripcion": "Exp. C2 - Uso de los nulos SPM de la superficie para ubicar el Rx (complemento del Exp. C, pregunta de la reunion). SCR en imagen frente a dphi = 0:15:180 (+140) con el Tx en la helice base, TM y TE co-polares, suelo S1, s = 2 cm, l = 20 cm. Blancos: punto escalar (S = 1, como el Exp. C), esfera PEC r = 0.5 m, cubo PEC 1 m nominal y cubo con orientacion aleatoria SO(3). El punto escalar no tiene polarizacion; los objetos PO si, de modo que se separa el nulo de la superficie del desacople de polarizacion del propio blanco.",
+  "c": 300000000.0,
+  "fc": 425000000.0,
+  "B": 50000000.0,
+  "Nf": 64,
+  "Pt": 100000.0,
+  "Tp": 1.3e-06,
+  "T_sys": 300,
+  "NF_dB": 0.0,
+  "antena": {
+    "G_dBi": 6,
+    "bw_az_deg": 14,
+    "bw_el_deg": 50,
+    "apunte": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tx_helice": {
+    "NumVoltas": 2,
+    "RaioMaior": 165.53,
+    "RaioMenor": 137.4,
+    "AltMaior": 131.45,
+    "AltMenor": 93.58,
+    "Vt": 113.5,
+    "PRF": 400,
+    "NorthOffset": 0
+  },
+  "n_pulsos": 1600,
+  "suelo": {
+    "nombre": "S1 referencia",
+    "eps_r": [
+      3.99,
+      0.4
+    ]
+  },
+  "suelos": {
+    "S0": {
+      "nombre": "S0 sin perdidas (validacion)",
+      "eps_r": [
+        4.0,
+        0.0
+      ]
+    },
+    "S1": {
+      "nombre": "S1 referencia",
+      "eps_r": [
+        3.99,
+        0.4
+      ]
+    },
+    "S2": {
+      "nombre": "S2 franco-arenoso humedo",
+      "eps_r": [
+        6.5,
+        0.9
+      ]
+    },
+    "S3": {
+      "nombre": "S3 franco humedo",
+      "eps_r": [
+        12.0,
+        2.5
+      ]
+    }
+  },
+  "rugosidad": {
+    "sigma_h": 0.02,
+    "corr_len": 0.2,
+    "patch_half": 12.0,
+    "facet": 0.15,
+    "taper": 0.15
+  },
+  "pol": "TM",
+  "roll_deg": 0.0,
+  "blanco": [
+    0.0,
+    0.0,
+    -2.0
+  ],
+  "rejilla_psf": {
+    "hx": 1.0,
+    "dx": 0.025,
+    "z_lo": -3.0,
+    "z_hi": 2.0,
+    "dz": 0.1
+  },
+  "cortes": {
+    "h": 2.5,
+    "dx": 0.005,
+    "z_lo": -4.5,
+    "z_hi": 2.0,
+    "dz": 0.01
+  },
+  "upsample": 32,
+  "semilla": 20261016,
+  "ventana_espectral": "hann",
+  "ventana_rango_m": [
+    -30.0,
+    60.0
+  ],
+  "dphi_list": [
+    0,
+    15,
+    30,
+    45,
+    60,
+    75,
+    90,
+    105,
+    120,
+    135,
+    140,
+    150,
+    165,
+    180
+  ],
+  "pols": [
+    "TM",
+    "TE"
+  ],
+  "realizaciones": 3,
+  "n_orient_so3": 24,
+  "objetos": {
+    "esfera": {
+      "tipo": "esfera",
+      "dim": 0.5
+    },
+    "cubo": {
+      "tipo": "cubo",
+      "dim": 1.0
+    }
+  },
+  "rejilla_scr": {
+    "hx": 1.0,
+    "dx": 0.05,
+    "z_lo": -1.5,
+    "z_hi": 2.5,
+    "dz": 0.1
+  }
+}

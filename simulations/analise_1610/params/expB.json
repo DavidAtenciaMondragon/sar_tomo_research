@@ -1,0 +1,7 @@
+{
+  "_descripcion": "Exp. B - Barrido de la separacion Tx-Rx (Orientacoes §5.3): z_Rx = z_Tx, mismo radio, dphi constante 0:15:180. Para cada dphi: imagen mono, bi, fusion (2N) y fusion con el mismo presupuesto de muestras (N). Blanco en el eje y blanco descentrado.",
+  "dphi_list": [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180],
+  "blancos": {"centro": [0.0, 0.0, -2.0], "descentrado": [6.0, 4.0, -2.0]},
+  "kspace_dphi": [0, 45, 90, 135, 180],
+  "imagenes_dphi": [45, 90, 135, 180]
+}

@@ -1,0 +1,196 @@
+% ══════════════════════════════════════════════════════════════════════════
+\chapter{Experimento D: biblioteca de blancos}
+\label{cap:resD}
+
+\paragraph{Hipótesis.} Las mejoras de lóbulos y contraste del Exp.~B (punto
+isótropo) se mantienen para blancos extensos con RCS anisótropa.
+
+\paragraph{Método.} PEC por PO biestática, centro en $(0,0,-2)$\,m, suelo S1,
+orientación nominal (P0: esfera $r=0.5$\,m, cubo 1\,m, caja $1\times0.5\times0.3$\,m,
+cilindro vertical $r=0.3$, $L=1$\,m; P1: tubo horizontal $r=0.15$, $L=2$\,m,
+tubo inclinado 30° sobre la horizontal y 30° de acimut, cilindro inclinado 45°;
+P2: escena con cubo, tubo y esfera). Rejilla de imagen $3\times3\times4$\,m. CSV:
+\texttt{expD\_objetos.csv}, \texttt{expD\_escenaP2.csv},
+\texttt{expD2\_rejilla\_densa.csv}. Para objetos extensos las ``métricas de PSF'' se
+evalúan sobre la respuesta del objeto (pico, lóbulo, contraste) y se añade la
+fracción de energía dentro de la región del objeto (caja envolvente $+0.3$\,m).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{D_mip_objetos.pdf}
+\caption{Proyección de máxima intensidad (en $y$) de cada blanco: mono, bi y
+fusión para $\Delta\phi=90^{\circ}$ y 135°. Escala común por blanco (pico mono $=0$\,dB, 30\,dB).}
+\label{fig:D_mip}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{D_fusion_vs_mono.pdf}
+\caption{Métricas de la fusión con el mismo presupuesto (N) respecto de la
+imagen monoestática, por blanco y por $\Delta\phi$.}
+\label{fig:D_fus}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Tabla comparativa mono vs.\ bi vs.\ fusión para los casos P0/P1 en
+orientación nominal (diferencias fusión(N) $-$ mono, dB salvo energía en puntos
+porcentuales). ``Bi pico'': pico del canal bi respecto del mono.}
+\label{tab:P0}
+\begin{tabular}{@{}lr|r|rrrrrr@{}}
+\toprule
+Blanco & $\Delta\phi$ & Bi pico & $\Delta V$ & $\Delta$PSLR & $\Delta$ISLR & $\Delta$Contr. & $\Delta$SNR & $\Delta E$ \\
+\midrule
+punto & 90 & $+0.2$ & $+1.1$ & $\mathbf{-2.0}$ & $\mathbf{-4.0}$ & $\mathbf{+2.6}$ & $+0.1$ & $+4.1$ \\
+ & 135 & $+0.3$ & $+2.4$ & $-2.4$ & $-2.7$ & $-0.4$ & $+0.1$ & $+0.8$ \\
+esfera & 90 & $-14.9$ & $+0.2$ & $+0.7$ & $-1.5$ & $+1.3$ & $-4.8$ & $-0.2$ \\
+ & 135 & $-3.5$ & $+0.9$ & $+2.6$ & $+3.0$ & $-4.3$ & $-5.8$ & $-8.5$ \\
+cubo & 90 & $-19.3$ & $+0.1$ & $+0.3$ & $+0.9$ & $-0.8$ & $-6.7$ & $+1.0$ \\
+ & 135 & $+12.6$ & $+11.7$ & $+3.1$ & $+2.5$ & $-4.8$ & $+5.1$ & $-6.3$ \\
+caja & 90 & $-10.5$ & $+1.2$ & $+0.5$ & $-0.5$ & $-0.7$ & $-6.3$ & $+1.5$ \\
+ & 135 & $+17.4$ & $+8.5$ & $-2.8$ & $-7.6$ & $-1.1$ & $+11.7$ & $-8.2$ \\
+cilindro vertical & 90 & $-16.9$ & $+0.1$ & $-1.0$ & $+0.2$ & $-0.5$ & $-6.3$ & $+0.4$ \\
+ & 135 & $+16.7$ & $+5.7$ & $-2.0$ & $-3.8$ & $-3.3$ & $+11.9$ & $-11.7$ \\
+tubo horizontal & 90 & $-19.6$ & $+0.2$ & $0.0$ & $-0.8$ & $+0.6$ & $-5.4$ & $+2.1$ \\
+ & 135 & $+6.2$ & $+4.6$ & $-0.2$ & $-8.3$ & $+0.7$ & $+1.7$ & $-4.5$ \\
+tubo inclinado & 90 & $-19.9$ & $+0.1$ & $+0.2$ & $-0.2$ & $+0.1$ & $-5.8$ & $+0.8$ \\
+ & 135 & $-5.7$ & $+3.7$ & $+0.4$ & $+1.0$ & $-3.2$ & $-6.8$ & $-4.2$ \\
+cilindro inclinado & 90 & $-16.9$ & $+0.2$ & $-0.1$ & $-0.9$ & $+0.7$ & $-5.1$ & $+1.3$ \\
+ & 135 & $-4.2$ & $+3.1$ & $+3.2$ & $+0.6$ & $-3.3$ & $-5.7$ & $-5.1$ \\
+\midrule
+todos & 180 & \multicolumn{7}{l}{fusión siempre peor: $\Delta V=+6$ a $+28$\,dB, $\Delta$contraste $-8$ a $-17$\,dB} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Resultados e interpretación.}
+\begin{enumerate}[itemsep=3pt]
+  \item \textbf{La ganancia de lóbulos del Exp.~B es propia del dispersor
+  isótropo.} Sólo el punto (y, parcialmente, la esfera a 90°) reproduce la
+  mejora de PSLR/ISLR/contraste. En los objetos con caras planas, la respuesta
+  está dominada por las reflexiones especulares de las caras, que ya fijan
+  el ``PSLR'' de la imagen mono en $-0.5$ a $-4.7$\,dB y no dependen del
+  relleno del dominio $k$.
+  \item \textbf{Desbalance de canales.} A 90° el eco bi de los objetos es
+  $10$--$20$\,dB más débil que el mono, incluso en la esfera. La causa es un desajuste
+  de polarización del Rx TM (Sección~\ref{sec:D3}). La fusión de igual peso
+  resulta prácticamente la imagen mono con $5$--$7$\,dB menos de SNR (con el
+  mismo presupuesto N): \emph{la fusión de igual peso diluye la señal}.
+  \item A 135° y 180° ocurre lo contrario con cubo, caja, cilindro vertical y
+  tubo horizontal: la bisectriz casi vertical mantiene la especular de la cara
+  superior (efecto ya visto el 28/09) y el canal bi domina ($+6$ a $+30$\,dB);
+  la fusión hereda entonces el lóbulo ancho del canal bi ($\Delta V$ hasta
+  $+12$\,dB a 135° y $+28$\,dB a 180°). Más eco no es mejor imagen
+  (§11: ``Não assumir que maior RCS biestática implica melhor resolução'').
+  \item \textbf{Escena P2 (enmascaramiento).} En mono la esfera domina y el tubo
+  queda 18.1\,dB por debajo, bajo los lóbulos de los otros objetos
+  (relación objeto--lóbulo mínima $-17.5$\,dB). Con la fusión a 135° el rango
+  dinámico entre objetos se reduce de 18.1 a 7.9\,dB y el peor objeto mejora
+  10.1\,dB respecto de los lóbulos ($-7.4$\,dB): la diversidad de aspecto del
+  canal bi reduce el enmascaramiento (Fig.~\ref{fig:D_P2}). Es el beneficio de
+  complementariedad más claro observado con objetos reales. A 90° la fusión no
+  cambia nada ($-17.7$\,dB).
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{D_escenaP2.pdf}
+\caption{Escena P2 (cubo, tubo inclinado en acimut y esfera de distinta RCS):
+MIP en $z$, misma escala.}
+\label{fig:D_P2}
+\end{figure}
+
+\section{Separabilidad de blancos próximos}
+\label{sec:D2}
+Con blancos separados 1\,m, todos los canales salvo Ref1 los resuelven todos. Por eso la
+separabilidad se midió con blancos más próximos en un plano horizontal: 16 puntos en
+$z=-2$\,m (S0) con separación $s=0.15$--$0.30$\,m ($\delta_x^{mono}=0.157$\,m), fases
+aleatorias fijas por punto y 3 realizaciones (\texttt{exp\_D2\_rejilla\_densa.py}).
+
+\begin{table}[H]
+\centering\small
+\caption{Fracción de blancos resueltos (caída $\ge3$\,dB hacia cada vecino),
+media de 3 realizaciones (\texttt{expD2\_separabilidad\_resumen.csv}).}
+\label{tab:D2}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Canal & $s=0.15$\,m & 0.20\,m & 0.25\,m & 0.30\,m \\
+\midrule
+Mono & 8\,\% & 8\,\% & 29\,\% & \textbf{73\,\%} \\
+Mono+bi 45° & 6\,\% & 2\,\% & 25\,\% & 63\,\% \\
+Mono+bi 90° & 6\,\% & 0\,\% & 10\,\% & 27\,\% \\
+Mono+bi 120° & 2\,\% & 2\,\% & 10\,\% & 13\,\% \\
+Mono+bi 135° & 2\,\% & 0\,\% & 13\,\% & 15\,\% \\
+Bi 90° aislado & 0\,\% & 0\,\% & 4\,\% & 17\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{D2_separabilidad.pdf}
+\caption{Separabilidad horizontal vs.\ separación e imágenes con $s=0.20$\,m.}
+\label{fig:D2}
+\end{figure}
+
+\textbf{Resultado negativo:} la separación de blancos próximos la gobierna el
+ancho del lóbulo principal, y la fusión lo ensancha. La imagen mono separa
+mejor que cualquier fusión; la fusión a 90°--135° resuelve entre 2.7 y 5.6
+veces menos blancos a $s=0.30$\,m. La menor sidelobe de la fusión no compensa
+el ensanchamiento cuando los blancos están a $\approx2\delta_x$.
+
+
+\section{Rx con polarización alineada}
+\label{sec:D3}
+
+Con un Rx TM co-polar, el pico del canal bi de los objetos a $\Delta\phi=90^{\circ}$ cae
+10--20\,dB respecto de la mono (Tabla~\ref{tab:P0}); el Monte Carlo del Exp.~E confirma
+$\approx20$\,dB en potencia media para cualquier orientación. La causa es geométrica: dentro del suelo
+los rayos forman $\approx23^{\circ}$ con la vertical, de modo que el vector TM es casi horizontal y
+apunta radialmente hacia cada UAV; a $\Delta\phi=90^{\circ}$ el TM del Rx es casi ortogonal al
+campo que dispersan las caras del objeto (acoplamiento $\propto\cos\Delta\phi$). El punto
+isótropo escalar no ve este efecto. Se evaluó entonces un Rx \emph{alineado}: el Tx
+transmite TM y el Rx, de doble polarización, combina sus canales para recibir la
+componente del campo del Tx transversal a la dirección de recepción (en mono coincide
+con TM--TM); la transmitancia de subida pondera TM y TE según esa proyección
+(\texttt{exp\_D3\_rx\_alineado.py}, \texttt{expD3\_comparacion\_TM\_vs\_alineado.csv}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{D3_rx_alineado.pdf}
+\caption{Pico del canal bi respecto del mono con Rx TM co-polar y con Rx alineado (orientación nominal).}
+\label{fig:D3}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Rx TM frente a Rx alineado a $\Delta\phi=90^{\circ}$ (fusión con el mismo presupuesto N, diferencias respecto de mono).}
+\label{tab:D3}
+\begin{tabular}{@{}lrr|rr|rr@{}}
+\toprule
+ & \multicolumn{2}{c|}{Pico bi [dB]} & \multicolumn{2}{c|}{$\Delta$SNR fus [dB]} & \multicolumn{2}{c}{$\Delta$contraste fus [dB]} \\
+Blanco & TM & alin. & TM & alin. & TM & alin. \\
+\midrule
+esfera & $-14.9$ & $-1.9$ & $-4.8$ & $-1.5$ & $+1.3$ & $+2.0$ \\
+cubo & $-19.3$ & $+8.4$ & $-6.7$ & $+0.2$ & $-0.8$ & $-3.7$ \\
+caja & $-10.5$ & $+9.3$ & $-6.3$ & $+3.6$ & $-0.7$ & $-0.5$ \\
+cilindro vertical & $-16.9$ & $+9.8$ & $-6.3$ & $+0.5$ & $-0.5$ & $-5.5$ \\
+tubo horizontal & $-19.6$ & $+1.8$ & $-5.4$ & $+0.7$ & $+0.6$ & $+2.3$ \\
+tubo inclinado & $-19.9$ & $-2.7$ & $-5.8$ & $-1.2$ & $+0.1$ & $+3.0$ \\
+cilindro inclinado & $-16.9$ & $+0.5$ & $-5.1$ & $-0.1$ & $+0.7$ & $+2.1$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Con el Rx alineado el canal bi a 90° recupera entre 13 y 28\,dB y la fusión deja de diluir la
+SNR ($-1.5$ a $+3.6$\,dB frente a $-4.8$ a $-6.7$\,dB). El contraste de la fusión mejora
+2--3\,dB en la esfera, los tubos y el cilindro inclinado; en los objetos con una cara
+horizontal (cubo, caja, cilindro vertical) el especular biestático pasa a dominar y el
+contraste empeora. \textbf{Consecuencia de diseño:} el Rx remoto debe ser de doble polarización
+(o girar su antena con $\Delta\phi$); un Rx TM co-polar anula la complementariedad justo en la
+región de $\Delta\phi$ que el dominio $k$ recomienda.
+
+\conclexp{D}{Con objetos reales la fusión sólo ayuda cuando el canal bi llega con potencia
+comparable a la mono: reduce 10.1\,dB el enmascaramiento en la escena P2 a 135°, pero con un Rx
+TM co-polar a 90° el bi pierde 10--20\,dB por desajuste de polarización (un Rx alineado recupera
+13--28\,dB), y la mono separa mejor blancos próximos (73\,\% frente a 27\,\% a 0.30\,m).}
