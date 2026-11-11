@@ -1,0 +1,6 @@
+FIN exp5_asociacion 0
+FIN exp4_pulsos_perdidos 0
+FIN exp1_tolerancias 0
+FIN exp2_cadena_completa 0
+FIN exp6_navegacion 0
+FIN exp3_snr_oscilador 0

@@ -1,0 +1,28 @@
+exp5 TCXO S = 0: 26 s
+exp5 TCXO S = 1e-09: 52 s
+exp5 TCXO S = 1e-08: 80 s
+exp5 TCXO S = 1e-07: 110 s
+exp5 TCXO S = 1e-06: 139 s
+exp5 TCXO S = 5e-06: 167 s
+exp5 XO_BARATO S = 0: 194 s
+exp5 XO_BARATO S = 1e-09: 221 s
+exp5 XO_BARATO S = 1e-08: 248 s
+exp5 XO_BARATO S = 1e-07: 276 s
+exp5 XO_BARATO S = 1e-06: 302 s
+exp5 XO_BARATO S = 5e-06: 328 s
+
+P(asociacion correcta), TCXO (filas: stagger; columnas: J = [3 4 5 8 16 64 256])
+  S =    0e+00 s:   0.00  0.00  0.00  0.00  0.00  0.01  0.00
+  S =    1e-09 s:   0.00  0.00  0.01  0.15  0.89  1.00  1.00
+  S =    1e-08 s:   0.02  0.01  0.24  1.00  1.00  1.00  1.00
+  S =    1e-07 s:   0.04  0.13  0.97  1.00  1.00  1.00  1.00
+  S =    1e-06 s:   0.16  0.53  1.00  1.00  1.00  1.00  1.00
+  S =    5e-06 s:   0.46  0.88  1.00  1.00  1.00  1.00  1.00
+
+P(asociacion correcta), XO_BARATO (filas: stagger; columnas: J = [3 4 5 8 16 64 256])
+  S =    0e+00 s:   0.00  0.00  0.00  0.00  0.00  0.00  0.00
+  S =    1e-09 s:   0.00  0.00  0.00  0.01  0.00  0.00  0.02
+  S =    1e-08 s:   0.00  0.00  0.01  0.02  0.07  0.73  1.00
+  S =    1e-07 s:   0.00  0.01  0.04  0.80  1.00  1.00  1.00
+  S =    1e-06 s:   0.01  0.07  0.74  1.00  1.00  1.00  1.00
+  S =    5e-06 s:   0.02  0.21  0.98  1.00  1.00  1.00  1.00

@@ -1,0 +1,9 @@
+exp1: 95 imagenes en 737 s
+
+=== Tolerancias (blanco central / media de blancos) ===
+Imagen ideal: PSLR -7.8 dB, ISLR 7.8 dB
+(a) offset de tiempo para perdida de 1.0 dB: 7.86 ns (desplazamiento max. 0.593 m)
+(b) error de frecuencia (perdida 1.0 dB o despl. 0.05 m): 1.01e-11 (= 0.00427 Hz en fc)
+(c) QPE: perdida de 1.0 dB con 5.60 rad; desplazamiento 0.05 m con 0.61 rad
+(d) sigma_phi para perdida de 1.0 dB: 0.471 rad
+(e) sigma_t para perdida de 1.0 dB: 176 ps

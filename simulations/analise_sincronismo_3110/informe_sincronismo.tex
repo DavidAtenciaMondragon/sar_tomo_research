@@ -1,0 +1,762 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noshorthands,es-nodecimaldot,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=*}
+
+\graphicspath{{resultados/figs/}}
+\newcommand{\fig}[1]{Fig.~\ref{#1}}
+\newcommand{\ok}{\textcolor{green!50!black}{\textbf{sí}}}
+\newcommand{\no}{\textcolor{red!70!black}{\textbf{no}}}
+% Resultado pendiente: recuadro gris en lugar de la figura o del valor
+\newcommand{\pend}{\textcolor{gray}{\textit{pendiente}}}
+\newcommand{\figpend}[2]{%
+  \IfFileExists{resultados/figs/#1.pdf}{\includegraphics[width=#2]{#1.pdf}}{%
+    \fbox{\parbox[c][4cm][c]{\dimexpr#2-2\fboxsep-2\fboxrule}{\centering\color{gray}\large Simulación en curso:\\ figura \texttt{\detokenize{#1}} pendiente}}}}
+
+\title{Sincronismo BiSAR por camino directo sin referencia externa\\[2pt]
+\large Vuelo circular de los dos radares: análisis de viabilidad y validación por simulación}
+\author{David Atencia}
+\date{31 de octubre de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+Dos drones vuelan el mismo círculo de 50~m de radio a 100~m de altura, a la
+misma velocidad y separados 90$^\circ$ en azimut. El Radar~1 transmite y
+recibe (monostático); el Radar~2 es un receptor pasivo sin GPS, PPS ni reloj
+común que graba de forma discontinua el camino directo y los ecos. Se
+estudia si el camino directo basta para sincronizarlo con la precisión que
+exige el Backprojection (BP) bistático sobre la vuelta completa, y se valida
+con una simulación MATLAB de extremo a extremo. \textbf{Resultado:} sí es
+viable si se usa la \emph{fase portadora} del camino directo en cada ventana
+grabada (estrategia E3). Con E3 la imagen es indistinguible de la de un
+reloj perfecto (pérdida $<0.02$~dB, desplazamiento $<1$~mm, $\rho=1.000$),
+con cualquier oscilador (de OCXO a un cristal barato) y con cualquier patrón
+de escucha, incluso grabando solo el 1\,\% de las PRT. El sincronismo solo
+de tiempo pierde $\approx3$~dB, y un modelo de reloj solo funciona con OCXO.
+Requisitos: SNR del directo $\gtrsim20$~dB y por encima de los ecos;
+\emph{stagger} de emisión $\ge1~\mu$s registrado en el log del Tx (la
+distancia Tx--Rx2 es constante, así que la geometría no ayuda a identificar
+los pulsos; no hace falta pulso de inicio); al menos 8 ventanas con directo;
+navegación de cada dron con error $\lesssim3$~cm, que es menos exigente que
+lo que pide el monostático.
+
+\smallskip\noindent
+Las estrategias comparadas se llaman E0 a E3 (explicación sencilla en la
+sección~\ref{sec:alg}): E0 pone el reloj en hora una sola vez, E1 predice
+su desviación con un modelo, E2 mide en cada pulso el instante de llegada
+del directo y E3 mide en cada pulso el instante y la fase del directo.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{inf_conclusiones.pdf}
+\caption{Resumen gráfico de los resultados.
+(a)~Error de fase residual frente a la SNR del directo: teoría (CRB, líneas)
+y simulación (marcadores). La banda verde es la región en la que la imagen
+pierde menos de 1~dB ($\sigma_\phi<0.47$~rad). E3 entra en ella desde
+20~dB (por debajo de 15~dB el directo no se distingue de los ecos) y E2
+solo por encima de $\sim$35~dB.
+(b)~Pérdida de pico según el oscilador del Rx2: E3 no pierde nada con
+ninguno, E2 pierde $\approx3$~dB con todos y E1 solo funciona con OCXO.
+(c)~Probabilidad de asociar bien los pulsos según el \emph{stagger} $S$ y el
+número de ventanas $J$ (TCXO): con PRF fija es imposible.
+(d)~Patrones de escucha: pérdida de pico debida al sincronismo (barras) y
+cambio de PSLR por muestreo de la apertura (línea negra). E3 no pierde nada
+en ningún patrón; E2 pierde $\approx3$~dB en todos.
+(e)~Error al interpolar la fase en huecos sin camino directo (simulado y
+teoría de puente browniano).
+(f)~Pérdida de pico frente al error de navegación de ambos drones: E3
+tolera $\approx3$~cm, más que el monostático.}
+\label{fig:conclusiones}
+\end{figure}
+\newpage
+
+%=====================================================================
+\section{Escenario simulado}
+\label{sec:escenario}
+
+Los dos drones vuelan el \emph{mismo} círculo (centro en el origen, radio
+$R=50$~m, altura $h=100$~m) a 10~m/s, con el Radar~2 adelantado 90$^\circ$
+en azimut (\fig{fig:escenario}a,b). Como giran con la misma velocidad
+angular, la distancia entre ellos es constante:
+$R_d=2R\sin(45^\circ)=70.7$~m. El Rx2 escucha una vuelta completa (31.4~s,
+12\,566 PRT) y la escena tiene cinco reflectores puntuales en el suelo,
+dentro de la proyección del círculo.
+
+Con una apertura circular completa el soporte espectral sobre el suelo es un
+anillo (\fig{fig:escenario}c) y la respuesta al impulso es de tipo $J_0$
+(\fig{fig:escenario}d): lóbulo principal de 0.30~m a $-3$~dB, primer nulo a
+0.43~m y anillos que decaen despacio (PSLR $-7.8$~dB). Esto es intrínseco a
+la geometría circular, no al sincronismo. Por eso las métricas de imagen se
+comparan siempre con la imagen formada con el reloj ideal.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{inf_escenario.pdf}
+\caption{Geometría de la simulación. (a)~Vista 3D: círculo de vuelo común,
+posición de los radares en $t_0$ (Tx círculo azul, Rx2 triángulo naranja),
+camino directo (discontinuo) y camino bistático al blanco central (verde).
+(b)~Planta con las curvas de igual exceso de camino bistático $R_b-R_d$ en
+$t_0$ y las posiciones en $t_0+T/8$ y $t_0+T/4$ (atenuadas). La línea
+Tx--Rx2 gira con los drones pero conserva su longitud. (c)~Soporte espectral
+del blanco central a lo largo de la vuelta: un anillo de radio
+$k_r=5.63$~rad/m. (d)~Respuesta al impulso BiSAR con reloj ideal.}
+\label{fig:escenario}
+\end{figure}
+
+\begin{table}[H]
+\centering\footnotesize
+\caption{Parámetros de la simulación.}
+\label{tab:param}
+\begin{tabular}{@{}ll@{\qquad}ll@{}}
+\toprule
+Portadora $f_c$ & 425~MHz ($\lambda=0.705$~m) & Vuelo & círculo común, $R=50$~m, $h=100$~m \\
+Ancho de banda $B$ & 50~MHz & Velocidad & 10~m/s (ambos), 31.4~s por vuelta \\
+Duración $T_p$ & 1.3~$\mu$s & Separación & Rx2 adelantado 90$^\circ$, $R_d=70.7$~m \\
+PRF & 400~Hz, stagger $\pm5~\mu$s & Escucha & 12\,566 PRT (una vuelta) \\
+Muestreo & 100~MHz complejo & SNR directo / eco & 30 / 20~dB por pulso \\
+Oscilador por defecto & TCXO (1~ppm) & Offset inicial $\delta_0$ & 5--20~s (arbitrario) \\
+Resolución & 0.30~m ($-3$~dB), nulo 0.43~m & PSLR / ISLR ideal & $-7.8$ / $+7.8$~dB (IRF $J_0$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La \fig{fig:senal} muestra lo que graba el Rx2. Cada ventana contiene el
+camino directo, siempre el primero en llegar y unos 10~dB más fuerte que los
+ecos, que llegan entre 140 y 190~m de exceso de camino. Ese pico es la
+referencia de tiempo y de fase de toda la ventana. El Rx2 no sabe qué pulso
+está escuchando: solo tiene marcas de su propio reloj, que en una vuelta
+deriva unos 20~$\mu$s con un TCXO y además está mezclado con el
+\emph{stagger} de la emisión (\fig{fig:senal}d, puntos azules). Tras
+asociar las ventanas con el log del Tx, la deriva aparece limpia (línea
+naranja).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{inf_senal.pdf}
+\caption{Señal en el Rx2. (a)~Patrones de escucha discontinua simulados (cada
+columna es una PRT; en color, las PRT grabadas). (b)~Salida del filtro
+adaptado de una ventana: directo a 30~dB y ecos de los cinco blancos a 20~dB.
+(c)~Dato comprimido de las 12\,566 ventanas, alineado con el directo y con
+el directo cancelado: las pistas de los ecos oscilan con la vuelta.
+(d)~Llegadas del directo medidas con el reloj local, quitando la PRT
+nominal: el \emph{stagger} ($\pm5~\mu$s) oculta la deriva. Tras la
+asociación queda el error de reloj $\delta(t)$ (TCXO,
+$\varepsilon=0.64$~ppm, 20~$\mu$s en la vuelta).}
+\label{fig:senal}
+\end{figure}
+
+%=====================================================================
+\section{Modelo de reloj y parámetros a estimar}
+\label{sec:modelo}
+
+El reloj del Radar~1 es la referencia $t$. El Rx2 lleva un tiempo local
+\begin{equation}
+t_2=t+\delta(t),\qquad
+\delta(t)=\delta_0+\varepsilon t+\tfrac12\gamma t^2+w(t)+j_k ,
+\end{equation}
+con offset inicial $\delta_0$, error de frecuencia $\varepsilon$, deriva
+$\gamma$, ruido del oscilador $w(t)$ (paseo aleatorio,
+$\operatorname{Var}[w(t+\tau)-w(t)]=\sigma_y^2(1\,\mathrm{s})\,\tau$) y jitter
+$j_k$ por ventana. Si el LO y el reloj de muestreo salen del mismo oscilador,
+la fase de demodulación es $\varphi_2=2\pi f_c\,\delta(t)+\phi_0$. El offset
+de tiempo, el de frecuencia ($\Delta f=\varepsilon f_c$), la deriva y el
+offset de fase son un único proceso $\delta(t)$, visto desde la envolvente y
+desde la portadora.
+
+Para cada pulso usado, el BP necesita la hora local $t_n+\tau_b+\delta$ y la
+fase $2\pi f_c\delta+\phi_0$. Hay que estimar el índice de pulso de cada
+ventana (asociación), $\delta_0,\varepsilon,\gamma$ y, sobre todo, la parte
+aleatoria $w$ en cada ventana, que es la que fija la coherencia de fase. Con
+31~s de apertura esa parte aleatoria pesa más que en una apertura corta
+(\fig{fig:reloj}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{inf_reloj.pdf}
+\caption{Por qué no basta un modelo de reloj a lo largo de una vuelta.
+Arriba: error de reloj $\delta(t)-\delta_0$ para las cuatro clases de
+oscilador (de 0.9 a 940~$\mu$s en 31~s). Abajo: error de fase que queda tras
+ajustar perfectamente $\delta_0+\varepsilon t+\gamma t^2/2$ (lo mejor que
+puede hacer E1); la banda verde es la tolerancia de 0.47~rad. Solo el OCXO
+queda dentro (0.03~rad). El TCXO ya la cruza (0.34~rad rms, picos de
+0.8~rad), y XO y XO barato quedan muy fuera.}
+\label{fig:reloj}
+\end{figure}
+
+%=====================================================================
+\section{Observabilidad}
+\label{sec:obs}
+
+En cada ventana $j$ el directo da el retardo y la fase
+\begin{equation}
+\hat a_j=t_{n_j}+\tau_d(n_j)+\delta(t_j)+\nu_j,\qquad
+\hat\varphi_j=-2\pi f_c[\tau_d(n_j)+\delta(t_j)]-\phi_0+\eta_j .
+\end{equation}
+De ahí salen cinco condiciones:
+\begin{enumerate}
+\item \textbf{Distancia Tx--Rx2 conocida.} $\tau_d$ y $\delta$ aparecen
+  sumados: un error en la distancia entre drones no se distingue de un error
+  de reloj. Para la fase debe conocerse con error $\ll\lambda$, a partir de
+  la navegación de ambos drones.
+\item \textbf{Índice de pulso.} Desplazar la hipótesis $k$ pulsos cambia las
+  llegadas en $k\,\mathrm{PRT}+(s_{n+k}-s_n)+[\tau_d(n+k)-\tau_d(n)]$. En el
+  vuelo circular común $\tau_d$ es \emph{constante}, así que la geometría no
+  aporta ninguna firma: con PRF uniforme $k$ es inobservable. El
+  \emph{stagger} pseudoaleatorio $s_n$ registrado por el Tx es
+  imprescindible.
+\item \textbf{Modelo de reloj.} $\varepsilon$ necesita al menos 2 ventanas
+  separadas y $\gamma$ al menos 3;
+  $\sigma_\varepsilon\approx\sigma_t\sqrt{12/J}/T_{obs}$.
+\item \textbf{Fase por ventana.} $2\pi f_c\delta(t_j)+\phi_0$ es observable
+  módulo $2\pi$ en cada ventana con directo, que es justo lo que necesita el
+  BP. No hace falta desenrollar la fase entre ventanas.
+\item \textbf{Aproximaciones.} $\varepsilon f_cT_p\ll1$ y
+  $\varepsilon T_{\text{ventana}}\ll1/B$, ciertas incluso con 20~ppm. El
+  Doppler del directo es nulo, porque la distancia Tx--Rx2 no cambia.
+\end{enumerate}
+
+%=====================================================================
+\section{Precisión necesaria para un BiSAR enfocado}
+\label{sec:tol}
+
+Se inyectan errores controlados en la base de tiempos y se mide la imagen
+(\fig{fig:tol}). En apertura circular completa la \emph{posición} del
+blanco la fija la fase a lo largo de la vuelta, no la envolvente. Por eso
+las leyes cambian respecto a una apertura rectilínea:
+\begin{itemize}
+\item un offset de tiempo constante \textbf{no desplaza} la imagen: solo
+  hace muestrear el pulso comprimido fuera de su pico, con una tolerancia
+  amplia (7.9~ns);
+\item un error de fase de baja frecuencia (frecuencia residual o deriva)
+  se reparte en una componente sinusoidal con el azimut, que el BP convierte
+  en \emph{desplazamiento}, y un residuo que \emph{desenfoca}. Se predicen
+  ambos ajustando el error de fase con
+  $c_0+k\,\nabla R_b(\theta)\cdot\Delta\mathbf p$ a lo largo de la vuelta
+  (líneas discontinuas de la \fig{fig:tol}b).
+\end{itemize}
+Como $f_c/B=8.5$ y el pico lo fija la fase, \textbf{el requisito que domina
+es el de fase}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{exp1_tolerancias.pdf}
+\caption{Tolerancias (exp1). (a)~Offset de tiempo: solo pérdida de
+envolvente, sin desplazamiento. (b)~Frecuencia residual: pérdida (eje
+izquierdo) y desplazamiento (eje derecho) simulados frente a la teoría de
+primer orden. (c)~Deriva cuadrática: la pérdida es pequeña (1~dB con
+5.6~rad), pero desplaza el pico 0.05~m ya con 0.61~rad; lo que limita es el
+desplazamiento. (d)~Ruido de fase
+blanco: $e^{-\sigma^2/2}$. (e)~Jitter de tiempo: equivale a una fase
+$2\pi f_c\sigma_t$. Líneas rojas: criterio de $-1$~dB.}
+\label{fig:tol}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Tolerancias para 425~MHz/50~MHz en vuelo circular (criterio:
+desplazamiento $\le0.05$~m, $\approx0.1$ de la resolución, o pérdida
+$\le1$~dB).}
+\label{tab:tol}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Error & Efecto & Tolerancia \\
+\midrule
+Offset de tiempo constante & pérdida de envolvente (sin desplazamiento) & 7.9~ns \\
+Frecuencia residual $\Delta\varepsilon$ & desplazamiento + desenfoque & $1.0\cdot10^{-11}$ (0.004~Hz) \\
+Fase cuadrática (borde) & desplazamiento (+ desenfoque) & 0.61~rad (desplazamiento) \\
+Fase blanca & pérdida de pico & 0.47~rad rms \\
+Jitter de tiempo & ídem vía $2\pi f_c\sigma_t$ & \textbf{176~ps rms} \\
+Índice de pulso erróneo & imagen destruida & debe ser 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La envolvente es muy fácil de cumplir, pero la fase exige \textbf{176~ps
+de coherencia pulso a pulso} y una frecuencia residual de $10^{-11}$, cinco
+veces más estricta que con una apertura rectilínea de 6~s, porque la vuelta
+dura 31~s. Un TCXO libre (1~ppm) está $10^5$ veces por encima.
+
+%=====================================================================
+\section{Cómo explotar el camino directo}
+\label{sec:alg}
+
+\begin{enumerate}
+\item \textbf{Adquisición:} la primera ventana graba una PRT completa y se
+  detecta el \emph{primer} pico que supera 13~dB, que es el directo.
+\item \textbf{Puertas de seguimiento:} cada ventana se centra en la última
+  llegada medida del directo más $m\,\mathrm{PRT}$. El margen cubre el
+  stagger y la deriva máxima del reloj durante el hueco desde esa medida
+  ($\pm13~\mu$s con escucha continua).
+\item \textbf{Estimación ML del directo} (Newton sobre el filtro adaptado
+  interpolado). Alcanza las cotas de Cramér--Rao
+  \begin{equation}
+  \sigma_t=\frac{1}{2\pi\beta\sqrt{2\,\mathrm{SNR}}},\qquad
+  \sigma_\phi=\frac{1}{\sqrt{2\,\mathrm{SNR}}},\qquad \beta=12.7~\text{MHz}.
+  \end{equation}
+\item \textbf{Asociación:} para cada hipótesis $k$ se ajusta por mínimos
+  cuadrados un modelo de reloj sobre las llegadas predichas con el log y se
+  elige la de menor residuo.
+\item \textbf{Base de tiempos y fase por ventana:}
+  $\hat\delta_j=\hat a_j-t_{n_j}-\tau_d(n_j)$ y
+  $\hat\psi_j=-[\arg\hat r_j+2\pi f_c\tau_d(n_j)]$.
+\item \textbf{Cancelación del directo y BP} sobre la vuelta completa (sin
+  ponderación en azimut, porque la apertura circular cerrada no tiene bordes):
+  $I(\mathbf g)=\sum_j\mathrm{RC}_j(t_{n_j}+\tau_b+\hat\delta_j)\,e^{j(2\pi f_c\tau_b+\hat\psi_j)}$.
+\end{enumerate}
+
+\begin{table}[H]
+\centering\small
+\caption{Estrategias comparadas (ninguna usa verdad terreno).}
+\label{tab:estr}
+\begin{tabular}{@{}llll@{}}
+\toprule
+ & Retardo & Fase & Error de fase esperado \\
+\midrule
+E0 & 1.ª ventana, constante & constante & $2\pi f_c\varepsilon t$ (falla) \\
+E1 & modelo $\delta_0+\varepsilon t+\gamma t^2/2$ & $2\pi f_c\hat\delta(t)$ & ruido de oscilador no modelado \\
+E2 & medido en cada ventana & $2\pi f_c\hat\delta_j$ & $(f_c/\beta)/\sqrt{2\,\mathrm{SNR}}$ \\
+E3 & medido en cada ventana & \textbf{fase portadora medida} & $1/\sqrt{2\,\mathrm{SNR}}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+E3 aplica el principio del canal de referencia del radar pasivo. Es mejor
+que E2 en un factor $(f_c/\beta)^2=1124$, es decir, \textbf{30.5~dB de SNR}.
+
+\subsection*{Las cuatro estrategias en palabras simples}
+
+El Rx2 tiene un reloj que no coincide con el del Tx: empezó en otro
+momento, va un poco más rápido o más lento y además tiembla de forma
+aleatoria. Para formar la imagen hay que saber, en cada pulso, \emph{cuánto
+se ha desviado ese reloj}. La única pista disponible es el camino directo:
+el pulso que llega del Tx al Rx2 sin rebotar en el suelo, cuya distancia sí
+conocemos. Las cuatro estrategias son cuatro formas cada vez más cuidadosas
+de usar esa pista.
+
+\begin{description}[leftmargin=1.2em, style=nextline]
+\item[E0 --- ``poner el reloj en hora una vez'' (offset)]
+  Se mide el desfase con el primer pulso directo y se supone que ya no
+  cambia. Es como poner en hora un reloj de pulsera barato al salir de casa y
+  fiarse de él todo el día: al poco tiempo va adelantado o atrasado. En 31~s
+  el reloj del Rx2 se desvía microsegundos, y la imagen \textbf{no se forma}.
+  Sirve como referencia de lo que pasa si no se sincroniza.
+
+\item[E1 --- ``aprender cómo se desvía el reloj'' (modelo)]
+  Se usan todos los pulsos directos para ajustar una curva suave del error
+  del reloj: un desfase inicial, más un adelanto constante (el reloj va
+  rápido o lento), más una deriva lenta. Es como saber que un reloj se
+  adelanta 2~s al día y corregirlo con esa regla. Funciona si el reloj es
+  muy estable (OCXO). Con relojes peores falla, porque además de la parte
+  predecible el reloj \emph{tiembla} de forma aleatoria y la curva suave no
+  puede seguir esos temblores.
+
+\item[E2 --- ``mirar la hora en cada pulso'' (solo tiempo)]
+  En cada ventana grabada se mide de nuevo \emph{cuándo} llega el pulso
+  directo y se corrige el reloj con esa medida. Ya no se predice nada: se
+  mide siempre, así que sigue también los temblores. El problema es la
+  precisión de la medida. El instante de llegada se mide con un error de
+  unos 300~ps, y para enfocar a 425~MHz hace falta mejor que 176~ps. Es como
+  mirar la hora en un reloj que solo marca minutos cuando necesitas
+  segundos: la imagen se forma, pero pierde unos 3~dB de brillo.
+
+\item[E3 --- ``mirar la hora y el segundero en cada pulso'' (tiempo + fase)]
+  Además de cuándo llega el pulso directo, se mide su \emph{fase}: en qué
+  punto de su oscilación llega la onda portadora de 425~MHz, que vibra cada
+  2.35~ns. Esa medida es unas 30 veces más fina que la del instante de
+  llegada (equivale a $\sim$10~ps frente a 300~ps), porque se mira la onda en sí y no solo
+  la forma del pulso. Y como el pulso directo y los ecos de la escena llegan
+  a la misma ventana, a través del mismo receptor y del mismo reloj, la fase
+  del directo sirve directamente de referencia para los ecos: cualquier
+  error del reloj en esa ventana afecta igual a los dos y se cancela. Es la
+  técnica del canal de referencia de los radares pasivos. Con E3 la imagen
+  es \textbf{igual a la de un reloj perfecto}.
+\end{description}
+
+En resumen: E0 corrige una vez, E1 predice, E2 mide el instante en cada
+pulso y E3 mide el instante y la fase en cada pulso. Solo E3 es lo bastante
+precisa para cualquier oscilador; E1 solo sirve con osciladores muy
+estables.
+
+%=====================================================================
+\section{Demostración de extremo a extremo}
+\label{sec:e2e}
+
+Una realización completa con TCXO ($\varepsilon=0.64$~ppm), un offset
+inicial arbitrario, escucha aleatoria del 50\,\% de las PRT (6251 de
+12\,566) y SNR del directo de 30~dB. La asociación encuentra el pulso
+correcto con un margen de $2\cdot10^3$ entre la mejor hipótesis y la segunda.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{exp2_reloj_asociacion.pdf}
+\caption{Sincronismo en la realización de demostración. Arriba: error de
+reloj verdadero y error de la base de tiempos estimada. Abajo izquierda:
+error de fase por ventana: E2 sale de la banda de tolerancia, E1 deriva
+lentamente con el paseo aleatorio del oscilador y E3 es casi nulo. Abajo
+derecha: función de coste de la asociación, con un único mínimo.}
+\label{fig:e2e}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{exp2_imagenes.pdf}
+\caption{Imágenes BP de la escena (escala común, 35~dB). E0 no forma imagen.
+E1, E2 y E3 enfocan los cinco blancos con la IRF anular de la apertura
+circular. E2 pierde 2.8~dB de pico, que en la escena se ve como un fondo más
+alto. Abajo: imagen monostática y fusión coherente mono~+~E3. La diferencia
+de fase entre los picos mono y bi es de 0$^\circ$: E3 ancla también la fase
+absoluta.}
+\label{fig:imgs}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{inf_cortes.pdf}
+\caption{Cortes de la respuesta del blanco central. E3 (morado) se superpone
+exactamente al reloj ideal (negro discontinuo). E2 baja 3~dB todo el corte.
+E1 apenas pierde pico, pero cambia ligeramente los anillos. E0 queda por
+debajo de $-45$~dB y no aparece.}
+\label{fig:cortes}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Métricas de la demostración, comparadas con la imagen de reloj
+ideal (PSLR e ISLR medidos en un parche de $\pm3$~m; la IRF $J_0$ tiene
+anillos altos incluso con reloj ideal).}
+\label{tab:e2e}
+\begin{tabular}{@{}lrrrrrrrc@{}}
+\toprule
+ & $\sigma_t$ (ps) & $\sigma_\phi$ (rad) & despl. (m) & pérdida (dB) & PSLR & ISLR & $\rho$ & ¿Enfoca? \\
+\midrule
+E0 & $1.2\cdot10^7$ & 1.81 & 2.67 & $-63.0$ & $-0.1$ & 12.8 & 0.19 & \no \\
+E1 & 79 & 0.21 & 0.017 & $-0.20$ & $-8.8$ & 3.4 & 0.982 & \ok \\
+E2 & 298 & 0.80 & 0.005 & $-2.76$ & $-8.5$ & 6.0 & 0.997 & \no \\
+E3 & 298 & \textbf{0.024} & 0.000 & $\mathbf{-0.00}$ & $-7.7$ & 7.8 & 1.000 & \ok \\
+Ideal & 0 & 0 & 0 & 0 & $-7.7$ & 7.8 & 1 & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%=====================================================================
+\section{Precisión alcanzada: SNR del directo y oscilador}
+\label{sec:snr}
+
+Monte Carlo de la cadena completa sobre la vuelta (4 realizaciones por
+caso, escucha continua). Primero se barre la SNR del directo con TCXO
+(\fig{fig:snr}) y después se cambia el oscilador a SNR$_d$~=~30~dB
+(\fig{fig:osc}). La asociación fue correcta en todas las realizaciones.
+
+\begin{figure}[H]
+\centering
+\figpend{exp3_snr}{\textwidth}
+\caption{Barrido de SNR del directo (TCXO). Izquierda: el error de retardo
+alcanza la CRB desde 20~dB, pero solo baja de la tolerancia de 176~ps por
+encima de $\sim$35~dB. Centro: el error de fase de E3 sigue la CRB de fase,
+$\sim$30~dB por debajo del de E2. Derecha: pérdida de pico de la imagen. E3
+cumple desde 15~dB ($-0.9$~dB) y es prácticamente perfecta desde 20~dB; E2
+necesita $\ge40$~dB. Por debajo de 15~dB el detector toma un eco por el
+directo y todo falla.}
+\label{fig:snr}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Barrido de SNR del directo (TCXO, medianas de 4 realizaciones).
+$\sigma_t$: error del retardo medido; $\sigma_\phi$: error de la corrección
+de fase. Última columna: fracción de realizaciones que cumplen todos los
+criterios.}
+\label{tab:snr}
+\begin{tabular}{@{}rrrrrrrrc@{}}
+\toprule
+SNR$_d$ (dB) & $\sigma_t$ (ps) & CRB$_t$ (ps) & $\sigma_\phi$ E2 & $\sigma_\phi$ E3 & pérd. E1 & pérd. E2 & pérd. E3 & cumple E1/E2/E3 \\
+\midrule
+10 & $5\cdot10^5$ & 3001 & 1.81 & 1.47 & $-47.9$ & $-42.6$ & $-29.4$ & 0 / 0 / 0 \\
+15 & $2\cdot10^5$ & 1688 & 1.80 & 0.65 & $-29.7$ & $-32.5$ & $-0.92$ & 0 / 0 / \textbf{1} \\
+20 & 955 & 949 & 1.77 & 0.076 & $-0.30$ & $-28.3$ & $-0.04$ & 0.75 / 0 / \textbf{1} \\
+30 & 301 & 300 & 0.80 & 0.024 & $-0.39$ & $-2.82$ & $-0.00$ & 1 / 0 / \textbf{1} \\
+40 & 95 & 95 & 0.25 & 0.008 & $-0.42$ & $-0.29$ & $-0.00$ & 0.5 / 1 / \textbf{1} \\
+50 & 30 & 30 & 0.08 & 0.002 & $-0.53$ & $-0.03$ & $-0.00$ & 0.5 / 1 / \textbf{1} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\figpend{exp3_oscilador}{0.8\textwidth}
+\caption{Clase de oscilador a SNR$_d$~=~30~dB. Izquierda: error de fase.
+E3 da 0.024~rad con los cuatro osciladores: lo fija la SNR, no el reloj.
+E2 da 0.8~rad con todos: lo fija la precisión del retardo. E1 empeora con
+el ruido del oscilador. Derecha: pérdida de pico. E1 cumple con OCXO
+($-0.01$~dB), está en el límite con TCXO ($-0.45$~dB, cumple en la mitad
+de las realizaciones) y falla con XO ($-11$~dB) y XO barato ($-29$~dB).}
+\label{fig:osc}
+\end{figure}
+
+Lectura de los resultados:
+\begin{itemize}
+\item El estimador del directo \textbf{alcanza la cota teórica} desde 20~dB,
+  en tiempo y en fase.
+\item \textbf{Por debajo de 15~dB lo que falla es la detección, no la
+  estimación}: los ecos (20~dB por pulso en esta escena) superan al directo
+  y el detector toma un eco por el directo. En el diseño real el directo
+  tiene que ser claramente más fuerte que los ecos, lo habitual con línea de
+  vista entre drones a 70~m.
+\item \textbf{E3 es independiente del oscilador}; E1 solo es fiable con OCXO.
+  Con TCXO, E1 pierde poco pico pero falla a veces por lóbulos, porque el
+  error de fase del paseo aleatorio acumulado en 31~s es de baja frecuencia.
+\end{itemize}
+
+%=====================================================================
+\section{Pulsos perdidos (escucha discontinua)}
+\label{sec:huecos}
+
+Hay que separar tres efectos. (i)~\textbf{Sobre el sincronismo E3, ninguno}:
+cada ventana grabada se referencia con su propio directo. (ii)~Sobre la
+imagen hay un efecto de muestreo de la apertura, que no es un problema de
+sincronismo. Con PRF de 400~Hz la vuelta está muy sobremuestreada en azimut
+($\Delta\theta=5\cdot10^{-4}$~rad por PRT), y los anillos espurios de un
+patrón periódico 1/$G$ aparecen a $\sim2\pi/(k_r\,G\,\Delta\theta)$ del
+blanco (17~m con $G=128$): fuera del parche de medida, pero visibles en la
+escena completa. (iii)~Si una ventana no contiene el directo, su fase hay
+que interpolarla, y el error crece como un puente browniano:
+\begin{equation}
+\sigma_\phi(T_g)\approx\sqrt{(2\pi f_c\sigma_y)^2T_g/6+\sigma_w^2},\qquad
+T_{g,\max}\approx 6\left(\frac{0.47}{2\pi f_c\sigma_y}\right)^2 .
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{exp4_pulsos_perdidos.pdf}
+\caption{Pulsos perdidos (TCXO, 30~dB, 3 realizaciones). Izquierda: pérdida
+de pico frente a la fracción escuchada. E3 queda en 0~dB (peor caso
+$-0.02$~dB), E1 en $-0.3$~dB y E2 en $\approx-3$~dB, su límite de SNR.
+Centro: los lóbulos dentro del parche apenas cambian por el muestreo
+periódico ($<0.5$~dB); con escucha muy escasa y aleatoria (1\,\%) o en
+ráfagas cortas el PSLR sube 2--3~dB, por muestreo y no por sincronismo. Derecha: error de fase interpolado en huecos sin directo,
+frente a la teoría. Hueco máximo: OCXO/TCXO $>1.3$~s (límite del ensayo),
+XO 0.16~s, XO barato menos de 2 PRT.}
+\label{fig:huecos}
+\end{figure}
+
+%=====================================================================
+\section{Asociación de pulsos}
+\label{sec:asoc}
+
+\subsection*{Qué es el stagger, con un ejemplo}
+
+El \emph{stagger} es un pequeño retardo, distinto en cada pulso, que el Tx
+añade a su instante de emisión y apunta en su log. Con PRF de 400~Hz los
+pulsos deberían salir cada 2.5~ms exactos; con stagger de $\pm5~\mu$s salen,
+por ejemplo, en $0+1.3~\mu$s, $2.5~\text{ms}-3.7~\mu$s,
+$5.0~\text{ms}+0.4~\mu$s, $7.5~\text{ms}+4.1~\mu$s\ldots{} Sin stagger
+todos los pulsos son iguales y equiespaciados, y el Rx2 no puede saber si
+escuchó los pulsos 0, 1, 2 o los 517, 518, 519. Con stagger, las
+separaciones entre llegadas que mide el Rx2 (por ejemplo $+4.1$, $+3.7$,
+$-6.3~\mu$s respecto a 2.5~ms) forman una huella que solo coincide con un
+tramo del log. Esa huella identifica los pulsos y, de paso, el desfase
+inicial del reloj: \textbf{no hace falta un pulso de inicio}. Son $\pm5~\mu$s
+sobre 2.5~ms (0.2\,\%), y el BP usa el instante real de cada emisión, así
+que no afecta a la imagen.
+
+\subsection*{Resultados}
+
+Modelo ligero (sin formar señales): llegadas del directo con el reloj
+completo del Rx2 (offset, frecuencia, deriva y paseo aleatorio) y un error de
+medida igual a la CRB a 30~dB (300~ps), con $J$ ventanas repartidas al azar
+en la vuelta. Para cada hipótesis de pulso la asociación ajusta un modelo de
+reloj \emph{cuadrático} (desfase + frecuencia + deriva). Con 31~s de vuelo
+el ajuste lineal de la versión anterior no bastaba: la deriva no modelada
+del reloj actuaba como ruido y con XO barato solo acertaba el 73\,\% de las
+veces con stagger de 5~$\mu$s y 5 ventanas (98\,\% con el cuadrático).
+
+\begin{figure}[H]
+\centering
+\figpend{exp5_asociacion}{0.85\textwidth}
+\caption{Probabilidad de asociación correcta frente al número de ventanas
+para varios \emph{stagger} (200 ensayos por punto), con TCXO y con XO
+barato. Sin stagger es imposible con cualquier número de ventanas.}
+\label{fig:asoc}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Probabilidad de asociación correcta (TCXO / XO barato) según el
+stagger $S$ y el número de ventanas $J$.}
+\label{tab:asoc}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Stagger $S$ & $J=3$ & $J=4$ & $J=5$ & $J=8$ & $J=16$ \\
+\midrule
+0 (PRF fija) & 0 / 0 & 0 / 0 & 0 / 0 & 0 / 0 & 0 / 0 \\
+100~ns & 0.04 / 0 & 0.13 / 0.01 & 0.97 / 0.04 & 1 / 0.80 & 1 / 1 \\
+1~$\mu$s & 0.16 / 0.01 & 0.53 / 0.07 & 1 / 0.74 & 1 / 1 & 1 / 1 \\
+5~$\mu$s & 0.46 / 0.02 & 0.88 / 0.21 & 1 / 0.98 & 1 / 1 & 1 / 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Con $S\ge1~\mu$s y al menos \textbf{8 ventanas} con directo, la asociación
+es correcta en el 100\,\% de los casos con cualquier oscilador. En la
+práctica el Rx2 graba cientos o miles de ventanas por vuelta, así que el
+margen es enorme; el requisito real es que el Tx emita con stagger y lo
+registre.
+
+%=====================================================================
+\section{Error de navegación de los drones}
+\label{sec:nav}
+
+Los dos drones vuelan con un error de navegación aleatorio (AR(1),
+$\tau_c=1$~s), independiente en cada uno y de la misma $\sigma$ por eje. Se
+compara cada imagen con la misma adquisición sin error de navegación
+(\fig{fig:nav}).
+
+El camino directo mide reloj y distancia Tx--Rx2 a la vez, así que E3
+toma la parte del error de navegación proyectada sobre la línea Tx--Rx2 como
+si fuera error de reloj y la ``corrige'' en todos los ecos de esa ventana.
+En la geometría rectilínea anterior (solo el Tx con error) esto compensaba
+parte del error. Aquí ocurre lo contrario: la línea Tx--Rx2 es horizontal,
+los ecos llegan casi en vertical, y el error que se resta no es el que
+afecta a los ecos. Por eso E3 tolera algo \emph{menos} que el bistático con
+reloj perfecto.
+
+\begin{figure}[H]
+\centering
+\figpend{exp6_navegacion}{0.8\textwidth}
+\caption{Pérdida de pico (izquierda) y coherencia con la imagen sin error
+(derecha) frente al error de navegación de cada dron (3 realizaciones).
+Error tolerable para perder 1~dB: $\approx3.3$~cm con E3, $\approx4$~cm
+con reloj ideal y $\approx2.8$~cm en el monostático. E2 parte de su pérdida
+propia de 2.8~dB.}
+\label{fig:nav}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Pérdida de pico (dB, peor blanco) frente al error de navegación de
+cada dron, comparada con la misma adquisición sin error.}
+\label{tab:nav}
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+$\sigma_{nav}$ por eje & Bi E2 & \textbf{Bi E3} & Bi reloj ideal & Mono \\
+\midrule
+1~cm & $-2.89$ & $-0.09$ & $-0.07$ & $-0.14$ \\
+2~cm & $-3.21$ & $-0.35$ & $-0.27$ & $-0.58$ \\
+5~cm & $-4.95$ & $\mathbf{-2.08}$ & $-1.49$ & $-2.99$ \\
+10~cm & $-9.99$ & $-7.11$ & $-5.67$ & $-9.43$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+En la práctica la navegación no es un obstáculo adicional para el
+sincronismo. Con E3 se toleran unos 3~cm por dron, algo más que lo que ya
+exige el monostático (2.8~cm). El requisito de navegación lo sigue fijando
+el monostático, no la sincronización.
+
+%=====================================================================
+\section{Conclusiones de viabilidad}
+\label{sec:concl}
+
+\begin{enumerate}
+\item \textbf{Es viable con la vuelta completa.} Usando solo el camino
+  directo, la estrategia E3 produce imágenes BiSAR indistinguibles de las
+  del reloj ideal (pérdida $<0.02$~dB, desplazamiento $<1$~mm, $\rho=1.000$;
+  \fig{fig:imgs}, \fig{fig:cortes}) con arranque y offset arbitrarios y con
+  cualquier patrón de escucha, hasta el 1\,\% de las PRT
+  (\fig{fig:huecos}).
+\item \textbf{El sincronismo solo de tiempo no basta.} El directo da
+  $\sim$300~ps a 30~dB y la tolerancia es de 176~ps: E2 pierde
+  $\approx3$~dB. La fase portadora es $(f_c/\beta)^2\approx30$~dB más
+  precisa.
+\item \textbf{Condiciones de SNR:} el directo debe llegar con
+  SNR~$\gtrsim20$~dB por pulso y claramente por encima de los ecos. E3
+  alcanza la cota teórica desde 20~dB; por debajo de 15~dB falla la
+  detección (\fig{fig:snr}).
+\item \textbf{El modelo de reloj (E1) solo sirve con OCXO.} En 31~s el ruido
+  del oscilador acumula demasiada fase: con TCXO E1 está en el límite
+  ($-0.45$~dB, cumple la mitad de las veces) y con XO o XO barato falla por
+  completo. E3 da el mismo resultado con los cuatro osciladores
+  (\fig{fig:osc}).
+\item \textbf{La geometría circular no ayuda a la asociación, pero el stagger
+  sí.} La distancia Tx--Rx2 es constante: sin \emph{stagger} el índice de
+  pulso es inobservable. Con stagger $\ge1~\mu$s registrado en el log del Tx
+  y al menos 8 ventanas con directo, la asociación es correcta siempre, con
+  cualquier oscilador. No hace falta pulso de inicio (\fig{fig:asoc}).
+\item \textbf{La envolvente es irrelevante:} un offset de tiempo de hasta
+  7.9~ns cuesta menos de 1~dB y no desplaza la imagen. Lo que manda es la
+  coherencia de fase: 176~ps rms pulso a pulso y $10^{-11}$ de frecuencia
+  residual.
+\item \textbf{Navegación:} con error en los dos drones, E3 tolera unos 3~cm
+  por eje y dron para perder 1~dB, algo menos que el bistático con reloj
+  perfecto (4~cm) pero más que el monostático (2.8~cm). El requisito de
+  navegación lo sigue fijando el monostático (\fig{fig:nav}).
+\end{enumerate}
+
+%=====================================================================
+\section{Métricas para demostrar el sincronismo experimentalmente}
+\label{sec:exp}
+
+En un ensayo real no se dispone de un reloj ideal con el que comparar.
+\begin{itemize}
+\item \textbf{Sincronismo, sin verdad terreno:} margen de asociación ($\gg10$);
+  residuo del retardo del directo tras el modelo frente a la CRB a la SNR
+  medida; validación cruzada (ajustar con las ventanas impares y predecir las
+  pares); desviación de Allan de $\hat\delta(t)$ frente a la hoja de datos;
+  consistencia de $\hat\varepsilon$ entre vueltas; dispersión residual de la
+  fase del directo. En vuelo circular, además, la distancia Tx--Rx2 medida
+  por el directo debe ser constante.
+\item \textbf{Imagen, con reflectores triédricos de posición conocida:} error
+  de posición de los picos ($<0.05$~m); forma anular de la IRF frente a la
+  teórica de la geometría; coherencia entre semivueltas; el autofocus no
+  debería mejorar la imagen; diferencia de fase mono--bi en los picos y
+  ganancia de la fusión coherente; repetibilidad entre vueltas.
+\item \textbf{Criterios usados aquí} (peor blanco, frente al reloj ideal):
+  pérdida $\le1$~dB, desplazamiento $\le0.05$~m, $\Delta$PSLR y
+  $\Delta$ISLR $\le3$~dB, $\rho\ge0.95$.
+\end{itemize}
+
+%=====================================================================
+\section{Limitaciones del modelo}
+\label{sec:lim}
+
+\begin{itemize}
+\item Blancos puntuales isótropos, sin diagramas de antena ni clutter. En
+  vuelo circular real la antena del Rx2 tendría que ver a la vez al Tx y a la
+  escena.
+\item Sin multicamino en el directo. Con ambos drones a 100~m, el rebote en
+  el suelo del directo tiene 141~m de exceso de camino: se separa bien del
+  directo ($\gg c/B$), pero cae dentro de la zona de los ecos de la escena.
+\item Sin saturación ni cuantización del ADC (directo fuerte y ecos débiles).
+\item La navegación del Rx2 se registra con su propio reloj y se lleva al
+  tiempo del Tx con la base de tiempos sincronizada; con $\delta$ conocido a
+  ns, el error de posición resultante es despreciable.
+\item Oscilador con FM blanca y deriva. El ruido flicker empeoraría E1, pero
+  no afecta a E3.
+\end{itemize}
+
+\vspace{1em}
+\noindent\small\sloppy Reproducción: \texttt{run\_all.m} (experimentos) y
+\texttt{fig\_informe.m} (figuras adicionales de este informe) en
+\texttt{simulations/analise\_sincronismo\_3110/}. Los datos de cada figura
+están en los CSV de \texttt{resultados/}; los resultados de la geometría
+rectilínea anterior se conservan en \texttt{resultados/antiguo\_lineal/}.
+
+\end{document}

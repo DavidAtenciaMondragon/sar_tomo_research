@@ -1,0 +1,12 @@
+exp6 realizacion 1/3: 895 s
+exp6 realizacion 2/3: 1587 s
+exp6 realizacion 3/3: 2158 s
+
+Perdida de pico (peor blanco, dB) frente a navegacion perfecta (lambda = 0.71 m)
+ sigma(m)       E2       E3  reloj id.     mono
+    0.000    -2.81    -0.00       0.00     0.00
+    0.005    -2.83    -0.03      -0.02    -0.04
+    0.010    -2.89    -0.09      -0.07    -0.14
+    0.020    -3.21    -0.35      -0.27    -0.58
+    0.050    -4.95    -2.08      -1.49    -2.99
+    0.100    -9.99    -7.11      -5.67    -9.43

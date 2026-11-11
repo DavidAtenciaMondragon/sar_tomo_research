@@ -1,0 +1,2 @@
+max|R+T-1| (pilha com camadas sem perdas e substrato com perdas) = 5.551e-16
+max||r|-|r_Fresnel|| (interface única) = 3.886e-16

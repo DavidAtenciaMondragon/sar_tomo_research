@@ -25,7 +25,7 @@
 \sisetup{output-decimal-marker={,}}
 
 \usepackage{graphicx}
-\graphicspath{{figures/}{figures/relatorio_1610/}{figures/relatorio_2809/}}
+\graphicspath{{figures/}{figures/relatorio_1610/}{figures/relatorio_2809/}{figures/multicamada/}}
 
 \usepackage{float}
 \usepackage{caption}
@@ -42,8 +42,6 @@
 \onehalfspacing
 \setlength{\emergencystretch}{3em}
 
-\usepackage{tcolorbox}
-\tcbuselibrary{theorems,skins,breakable}
 
 \usepackage[unicode,colorlinks=true,
   linkcolor=blue!60!black,
@@ -59,15 +57,6 @@
 \fancyhead[L]{\small\nouppercase{\leftmark}}
 \fancyhead[R]{\small\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
-
-%% ─── Cores das tabelas comparativas ─────────────────────────────────────────
-\definecolor{melhor}{HTML}{CDEFD9}
-\definecolor{regular}{HTML}{FFF1C2}
-\definecolor{pior}{HTML}{F8D3D0}
-
-%% ─── Caixa de síntese ao final de cada estudo ───────────────────────────────
-\newtcolorbox{sintese}[1][]{enhanced,breakable,colback=green!4,
-  colframe=green!45!black,fonttitle=\bfseries\small,title={Síntese},#1}
 
 %% ─── Teoremas adicionais ─────────────────────────────────────────────────────
 \theoremstyle{remark}
@@ -272,7 +261,6 @@ angle; rough-surface scattering; unmanned aerial vehicles.
 Acrônimo & Descrição \\
 \midrule
 \endhead
-ABCD   & Matriz de parâmetros de transmissão (transferência) \\
 AIEM, IEM & \textit{(Advanced) Integral Equation Model} \\
 BP     & \textit{Backprojection} (retroprojeção) \\
 GNSS   & \textit{Global Navigation Satellite System} \\
@@ -318,8 +306,8 @@ $R_{\text{TM}},\ T_{\text{TM}}$           & Reflectância e transmitância TM (p
 $\theta_B,\ \theta_{pB}$                  & Ângulos de Brewster e de pseudo-Brewster            & rad       \\
 $\mathcal{L}$                             & Caminho óptico                                      & m         \\
 $p$                                       & Invariante de Snell (parâmetro de raio)             & --        \\
-$\mathbf{M}_i,\ Z_i$                      & Matriz ABCD e impedância TM normalizada da camada $i$ & --      \\
-$\Gamma_{\text{TM}},\ \tau_{\text{TM}}$   & Coeficientes globais de reflexão e transmissão      & --        \\
+$\mathbf{M}_i,\ Y_i$                      & Matriz característica e admitância normalizada da camada $i$ & --      \\
+$\Gamma,\ t$                               & Coeficientes de reflexão e transmissão da pilha     & --        \\
 $\rho,\ z$                                & Raio horizontal e altura da plataforma              & m         \\
 $\psi$                                    & Ângulo de incidência no ar visto do alvo            & rad       \\
 $\theta$                                  & Ângulo de refração no solo                          & rad       \\
@@ -385,10 +373,10 @@ centimétrico tornaram viáveis sistemas multiestáticos coerentes de baixo
 custo~\citar{grathwohl2023}, \citar{kanz2025}, o que coloca em primeiro plano a
 pergunta de \emph{como} posicionar as plataformas.
 
-\section{A Evolução da Pergunta de Pesquisa}
+\section{Formulação do Problema}
 \label{sec:intro_evolucao}
 
-Esta tese começou com uma hipótese eletromagnética simples. Em polarização TM
+A hipótese inicial desta pesquisa era de natureza eletromagnética. Em polarização TM
 existe um ângulo de incidência --- o ângulo de Brewster $\theta_B$ --- no qual
 a reflexão numa interface dielétrica sem perdas se anula e toda a energia é
 transmitida~\citar{bornwolf1999}. Se o receptor fosse posicionado, a cada
@@ -457,41 +445,162 @@ com permissividade complexa, e a extensão a $N$ camadas é tratada no
 Capítulo~\ref{cap:multicamadas}. A superfície tem rugosidade moderada e
 contribui com uma componente especular coerente e uma componente difusa.
 
+\section{Hipóteses e Escopo}
+\label{sec:intro_hipoteses}
+
+A reformulação da pergunta de pesquisa fixa um conjunto de princípios que
+delimitam o escopo da tese:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+  \item o transceptor fornece sempre a imagem monoestática de referência, e
+  toda melhoria é medida em relação a ela;
+  \item a posição do receptor remoto não é escolhida pela potência média
+  recebida;
+  \item o ângulo de Brewster não é tratado como mecanismo de aumento do eco do
+  alvo; o pseudo-Brewster interessa apenas como mecanismo de supressão do
+  retorno da superfície;
+  \item o canal biestático só se justifica se demonstrar diversidade
+  geométrica, redução de clutter ou redundância útil;
+  \item o modo de imageamento e o modo de detecção limitada por clutter são
+  produtos distintos, avaliados por métricas distintas;
+  \item nenhuma melhoria é aceita sem normalização a orçamento constante de
+  amostras, repetibilidade e incerteza declarada.
+\end{enumerate}
+
+Dentro desses princípios, a tese é organizada em torno de três hipóteses
+(Tabela~\ref{tab:intro_hipoteses}). Atividades que não alterem a evidência a
+favor ou contra H1, H2 ou H3 ficam fora do escopo.
+
+\begin{table}[H]
+\centering\small
+\caption{Hipóteses da tese e respectivos testes decisivos.}
+\label{tab:intro_hipoteses}
+\begin{tabular}{@{}L{2.3cm}L{6.4cm}L{5.6cm}@{}}
+\toprule
+Hipótese & Afirmação & Teste decisivo \\
+\midrule
+\textbf{H1} \newline Imageamento
+ & A geometria biestática complementar, fundida coerentemente ao canal
+   monoestático, reduz os lóbulos secundários e melhora o contraste e o
+   condicionamento da imagem, embora não melhore a resolução a $-3\dB$.
+ & Comparar o monoestático, uma separação fixa próxima de $105^\circ$ e a
+   separação varrida de $60^\circ$ a $150^\circ$, com calibração e orçamento
+   constante de amostras. \\[2pt]
+\textbf{H2} \newline Clutter
+ & Uma geometria TM com separação próxima de $135^\circ$--$140^\circ$ reduz o
+   retorno difuso do solo e eleva a relação alvo--clutter do canal biestático.
+ & Modelo de espalhamento de ordem superior, alvos reais, superfície
+   caracterizada e repetições. \\[2pt]
+\textbf{H3} \newline Coerência
+ & O benefício da fusão depende da estimação e da compensação do retardo, da
+   fase, da posição e da resposta relativa das cadeias de recepção.
+ & Bancada, sinal direto, refletor de referência, resposta $H(f,t)$,
+   posicionamento GNSS-RTK/IMU e degradação controlada. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Cada afirmação da tese exige um tipo de evidência e obedece a uma regra de
+conclusão definida de antemão (Tabela~\ref{tab:intro_evidencia}). A regra vale
+nos dois sentidos: um efeito que permaneça abaixo da incerteza após repetição
+controlada é relatado como resultado negativo, e não como tendência.
+
+\begin{table}[H]
+\centering\small
+\caption{Matriz mínima de evidência.}
+\label{tab:intro_evidencia}
+\begin{tabular}{@{}L{2.9cm}L{3.6cm}L{3.6cm}L{4.2cm}@{}}
+\toprule
+Afirmação & Evidência numérica & Evidência real & Regra de conclusão \\
+\midrule
+Limite de resolução (H1)
+ & Derivação fechada e simulação independente
+ & Verificação de consistência
+ & Não se afirma ganho de resolução. \\[2pt]
+Lóbulos e contraste (H1)
+ & Simulação com alvos anisotrópicos e clutter
+ & Obrigatória, com passadas pareadas
+ & Resultado principal de H1. \\[2pt]
+Polarização (H1)
+ & Monte Carlo de orientação com RCS anisotrópica
+ & Obrigatória se houver receptor de dupla polarização
+ & Conclusão limitada à configuração testada. \\[2pt]
+Nulo VV e SCR (H2)
+ & Modelo de ordem superior e estatística sobre realizações
+ & Obrigatória
+ & Se não se confirmar, apresenta-se como cota otimista de primeira ordem. \\[2pt]
+Sincronização (H3)
+ & Modelo de erro e injeção de erros conhecidos
+ & Bancada, voo e traços de fase
+ & Publica-se o orçamento de erro e o procedimento de calibração. \\[2pt]
+Trajetória (H1)
+ & Otimização robusta
+ & Comparação em voo
+ & A trajetória é dita \emph{selecionada sob restrições}, não ótima. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A questão da potência recebida (Capítulo~\ref{cap:potencia}) foi encerrada em
+simulação e não é retestada experimentalmente, pois o seu resultado não altera
+nenhuma das três hipóteses.
+
 \section{Objetivos}
 \label{sec:intro_objetivos}
 
-O \textbf{objetivo geral} desta tese é estabelecer, com rigor analítico e por
-simulação eletromagnética coerente, as condições geométricas,
-eletromagnéticas e de sincronização em que um canal biestático simultâneo
-melhora a imagem tomográfica monoestática de alvos enterrados, e derivar dessas
-condições critérios de projeto da trajetória do receptor.
+O \textbf{objetivo geral} desta tese é estabelecer, analiticamente, por
+simulação eletromagnética coerente e por validação experimental com VANTs, as
+condições geométricas, eletromagnéticas e de sincronização em que um canal
+biestático simultâneo acrescenta informação à imagem tomográfica monoestática
+de alvos enterrados, e derivar dessas condições critérios de projeto da
+trajetória do receptor.
 
-Os \textbf{objetivos específicos} são:
+Os \textbf{objetivos específicos}, com a hipótese a que cada um serve e o
+critério que o torna verificável, são:
 
 \begin{enumerate}[label=\textbf{O\arabic*.},leftmargin=*]
-  \item Derivar expressões fechadas da resolução tridimensional de um SAR com
-  refração na interface para geometrias Tx--Rx arbitrárias e alvos dentro ou
-  fora do eixo da trajetória, e estabelecer os limites em que o canal
-  biestático pode resolver melhor que o monoestático.
-  \item Reavaliar quantitativamente o critério de potência recebida e o papel
-  do ângulo de Brewster no posicionamento do receptor, considerando o enlace
-  completo, a geometria real e a orientação desconhecida do alvo.
-  \item Construir um modelo de simulação coerente que gere, para o mesmo pulso,
-  os canais monoestático e biestático com refração, solo com perdas,
-  superfície rugosa e alvos anisotrópicos, e definir uma fusão normalizada que
-  separe o ganho geométrico do ganho por número de amostras.
-  \item Caracterizar como a separação Tx--Rx altera o suporte no espaço de
-  números de onda, a PSF e as métricas de imagem, e identificar as separações
-  de maior complementaridade.
-  \item Avaliar a robustez da melhoria à anisotropia e à orientação do alvo e
-  determinar a regra de polarização do receptor.
-  \item Avaliar se a operação próxima do pseudo-Brewster suprime o retorno da
-  superfície de forma robusta e qual é o seu custo em qualidade de imagem, e
-  identificar mecanismos geométricos alternativos de supressão de clutter.
-  \item Projetar a trajetória do receptor por uma função de custo baseada em
-  métricas de imagem, de clutter e de voo, e quantificar os requisitos de
-  sincronização e calibração entre canais.
-  \item Definir o protocolo de validação experimental com dados reais.
+  \item \emph{(H1)} Derivar expressões fechadas de $\delta_x$, $\delta_y$ e
+  $\delta_z$ para um SAR com refração na interface, com geometrias Tx--Rx
+  arbitrárias e alvos dentro ou fora do eixo da trajetória, que reproduzam a
+  resolução medida na imagem simulada com erro inferior a $2\,\%$, e
+  estabelecer o limite superior do ganho de resolução de qualquer geometria
+  biestática sobre a monoestática.
+  \item \emph{(escopo)} Decidir quantitativamente se a potência recebida e o
+  ângulo de Brewster podem guiar o posicionamento do receptor, comparando a
+  variação da potência média entre posições do receptor com a sua dispersão
+  devida à orientação desconhecida do alvo, com o enlace completo e a
+  geometria real.
+  \item \emph{(H1--H3)} Construir um modelo de simulação coerente que gere,
+  para o mesmo pulso, os canais monoestático e biestático com refração, solo com
+  perdas, superfície rugosa e alvos anisotrópicos, validado contra soluções de
+  referência independentes, e definir uma fusão normalizada que separe o ganho
+  geométrico do ganho por número de amostras.
+  \item \emph{(H1)} Determinar, em função da separação azimutal
+  $\Delta\phi\in[0^\circ,180^\circ]$, o suporte no espaço de números de onda, a
+  PSF e as métricas de imagem (ISLR, PSLR, contraste e condicionamento), e
+  identificar a faixa de separações em que a fusão a orçamento constante supera
+  o monoestático nessas métricas.
+  \item \emph{(H1)} Quantificar, por Monte Carlo sobre a orientação de alvos
+  anisotrópicos, a fração de casos em que a melhoria de contraste se mantém, a
+  perda de acoplamento de um receptor co-polar e a recuperação obtida por um
+  receptor de dupla polarização, e estabelecer daí a regra de polarização do
+  receptor.
+  \item \emph{(H2)} Quantificar a supressão do retorno da superfície obtida
+  perto do pseudo-Brewster e o seu custo em qualidade de imagem, localizar em
+  forma fechada o mínimo biestático do espalhamento difuso e medir, com
+  estatística sobre realizações de superfície, o ganho de relação alvo--clutter
+  do canal biestático nesse mínimo em relação ao monoestático.
+  \item \emph{(H1, H3)} Selecionar, sob restrições de voo, a trajetória do
+  receptor por uma função de custo baseada em métricas de imagem e de clutter,
+  verificando a robustez com alvos anisotrópicos, clutter e aberturas parciais,
+  e estabelecer o orçamento de erro de sincronização e calibração (fase
+  residual, deriva de relógio, deriva de posição e resposta relativa das cadeias)
+  que preserva o ganho da fusão.
+  \item \emph{(H1--H3)} Projetar, executar e analisar a validação experimental
+  das hipóteses: aquisições pareadas e repetidas (no mínimo três, cinco para os
+  resultados centrais) do monoestático e das geometrias biestáticas de
+  imageamento e de clutter, com calibração por sinal direto e refletor de
+  referência, incerteza entre repetições e confronto entre medida e simulação
+  informada pelos parâmetros medidos.
 \end{enumerate}
 
 \section{Contribuições}
@@ -507,7 +616,9 @@ As contribuições originais deste trabalho são:
   imagem com erro máximo de $1,6\,\%$ em 34 geometrias. Prova-se que um
   receptor à mesma altura do transmissor nunca melhora $\delta_{xy}$ nem
   $\delta_z$ e que o ganho vertical máximo de qualquer geometria biestática
-  está limitado a $4,6\,\%$ pela refração.
+  está limitado a $4,6\,\%$ pela refração. Num solo estratificado, a resolução
+  horizontal independe das camadas e a vertical depende apenas do índice da
+  camada que contém o alvo (Capítulo~\ref{cap:multicamadas}).
 
   \item \textbf{Refutação documentada do critério de Brewster para o
   posicionamento do receptor} (Capítulo~\ref{cap:potencia}). Mostra-se, por
@@ -550,8 +661,8 @@ eletromagnéticos e geométricos: coeficientes de Fresnel em meios com perdas,
 ângulos de Brewster e de pseudo-Brewster, traçado de raios pelo princípio de
 Fermat, geometria helicoidal, modelo de sinal e retroprojeção com refração. O
 \textbf{Capítulo~\ref{cap:resolucao}} deriva a resolução tridimensional em
-forma fechada e a valida. O \textbf{Capítulo~\ref{cap:multicamadas}} estende o
-modelo de transmissão a meios estratificados pelo formalismo ABCD. O
+forma fechada e a valida. O \textbf{Capítulo~\ref{cap:multicamadas}} estende a
+propagação, a focalização e a resolução a solos estratificados. O
 \textbf{Capítulo~\ref{cap:potencia}} formula a hipótese original de
 otimização por potência e documenta sua refutação. O
 \textbf{Capítulo~\ref{cap:modelo}} descreve o modelo de simulação coerente, a
@@ -559,10 +670,11 @@ fusão normalizada e as métricas. Os \textbf{Capítulos~\ref{cap:geometria}
 a~\ref{cap:trajetoria}} apresentam os resultados: complementaridade
 geométrica, alvos reais e polarização, supressão do retorno de superfície e
 projeto da trajetória com requisitos de sincronização. O
-\textbf{Capítulo~\ref{cap:dados_reais}} estabelece o protocolo e reserva o
-espaço para a avaliação com dados reais. O
-\textbf{Capítulo~\ref{cap:conclusoes}} responde às perguntas de pesquisa,
-lista os resultados negativos e aponta as perspectivas. Os apêndices reúnem
+\textbf{Capítulo~\ref{cap:dados_reais}} apresenta o projeto, a execução e a
+análise da validação experimental das hipóteses H1 a H3. O
+\textbf{Capítulo~\ref{cap:conclusoes}} sintetiza os resultados à luz das
+hipóteses, reúne as contribuições, os resultados negativos e as limitações e aponta
+as perspectivas. Os apêndices reúnem
 derivações matemáticas e os parâmetros das simulações.
 
 \section{Publicações}
@@ -649,13 +761,13 @@ perpendicular ao plano de incidência e o campo elétrico pertence a ele; na
 polarização TE (transverso-elétrica, ``horizontal''), ocorre o inverso. A
 continuidade das componentes tangenciais de $\vect E$ e $\vect H$ em $z=0$
 impõe que a fase ao longo de $x$ seja a mesma para as ondas incidente, refletida
-e transmitida, donde $\theta_r=\theta_i$ e a \textbf{lei de Snell}
+e transmitida, donde $\theta_r=\theta_i$ e a \emph{lei de Snell}
 \begin{equation}
   \boxed{n_1\sin\theta_i = n_2\sin\theta_t}.
   \label{eq:snell}
 \end{equation}
 As mesmas condições, aplicadas às amplitudes, fornecem os
-\textbf{coeficientes de Fresnel}:
+\emph{coeficientes de Fresnel}:
 \begin{align}
   r_{\text{TM}} &= \frac{n_2\cos\theta_i - n_1\cos\theta_t}{n_2\cos\theta_i + n_1\cos\theta_t}, &
   t_{\text{TM}} &= \frac{2n_1\cos\theta_i}{n_2\cos\theta_i + n_1\cos\theta_t}, \label{eq:r_TM}\\
@@ -1154,7 +1266,7 @@ $Q(\psi)=\sqrt{n^2-\sin^2\psi}$:
 \end{align}
 onde se usou que, para $q$ linear no tempo, $12\sigma_q^2=\Delta q^2$ com
 $\Delta q=2[Q(\psi_1)-Q(\psi_2)]$. A expressão~\eqref{eq:dz_eixo} não contém
-$\Delta\phi$: \textbf{a resolução vertical é invariante à separação azimutal}
+$\Delta\phi$: a resolução vertical é invariante à separação azimutal
 quando as duas plataformas voam à mesma altura e no mesmo raio.
 
 \paragraph{Aplicação numérica.} Para a hélice de referência vista de um alvo
@@ -1345,240 +1457,423 @@ poucos por cento pela refração. O valor do receptor remoto deve ser buscado na
 forma do suporte no espaço de números de onda, e não na sua extensão máxima.
 
 %%═══════════════════════════════════════════════════════════════════════════════
-\chapter{Transmissão em Meios Estratificados com $N$ Camadas}
+\chapter{Propagação e Imageamento em Solos Estratificados}
 \label{cap:multicamadas}
 %%═══════════════════════════════════════════════════════════════════════════════
 
 \section{Introdução e Estado da Arte}
 \label{sec:multi_arte}
 
-O formalismo de matrizes de transferência (ABCD) para propagação de ondas
-planas através de pilhas de camadas dielétricas é uma ferramenta clássica,
-sistematizada por Pozar~\citar{pozar2011} no contexto de redes de duas portas e
-derivável diretamente das condições de contorno de Maxwell conforme Born e
-Wolf~\citar{bornwolf1999}. Na literatura de GPR, Daniels~\citar{daniels2004}
-descreve o tratamento padrão de meios estratificados, e Ishimaru~\citar{ishimaru1991}
-fornece o arcabouço de propagação em meios aleatórios estratificados. Banda et
-al.~\citar{banda2016} aplicam tomografia SAR polarimétrica em banda P a gelo
-estratificado, mostrando a relevância de modelos multicamada em sensoriamento
-tomográfico.
+Os Capítulos~\ref{cap:fundamentos} e~\ref{cap:resolucao} supõem um solo
+homogêneo. Solos reais são estratificados: camadas de umidade, compactação ou
+composição distintas alteram o índice de refração com a profundidade, e o radar
+de penetração no solo trata rotineiramente esse caso~\citar{daniels2004}. A
+propagação de ondas planas através de pilhas de camadas planas é descrita pelo
+formalismo de matrizes características, derivado das condições de contorno de
+Maxwell~\citar{bornwolf1999} e equivalente ao de redes de duas
+portas~\citar{pozar2011}; Ishimaru~\citar{ishimaru1991} fornece o arcabouço para
+meios estratificados aleatórios, e Banda et al.~\citar{banda2016} mostram a
+relevância de modelos multicamada na tomografia SAR polarimétrica de meios
+estratificados.
 
-Este capítulo aplica o formalismo ao caso de incidência oblíqua variável,
-determinada dinamicamente pela geometria helicoidal, com impedâncias de entrada
-e de saída assimétricas e a última camada tratada como semi-infinita. Seu papel
-na tese é duplo: fornecer o traçado de raios e a transmitância para cenários
-estratificados, e mostrar que, num meio estratificado, o máximo de transmissão
-deixa de coincidir com o ângulo de Brewster da primeira interface --- mais um
-argumento contra o uso do ângulo de Brewster como critério geométrico de
-projeto.
+Para esta tese, a questão não é a transmissão em si, mas se a estratificação
+altera as conclusões obtidas com o solo homogêneo. Este capítulo responde a
+essa questão em três planos:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+  \item a \emph{geometria}: como a estratificação altera o retardo, a
+  focalização e o vetor de número de onda e, portanto, a resolução dos canais
+  monoestático e biestático;
+  \item o \emph{modelo de focalização}: que erro se comete ao processar um solo
+  estratificado com um modelo homogêneo, e se esse erro afeta de modo distinto
+  os dois canais da fusão;
+  \item a \emph{amplitude e a fase} da transmissão através da pilha, em TM e em
+  TE, e sua variação ao longo da abertura.
+\end{enumerate}
+O capítulo estende o modelo de propagação a $N$ camadas, deriva a resolução no
+meio estratificado e verifica as conclusões por simulação coerente com a
+geometria de referência da tese.
 
-\section{Geometria do Modelo de $N$ Camadas}
+\section{Geometria do Raio em $N$ Camadas}
 \label{sec:multi_geom}
 
-Considera-se uma pilha de camadas horizontais; a $i$-ésima tem índice de
-refração $n_i$ e espessura $d_i$, e o meio de incidência (ar) tem $n_0=1$. O
-alvo encontra-se na camada $L$, à profundidade total
-$z_P = -\!\sum_{i=1}^{L-1}d_i - \Delta z_L$, onde $\Delta z_L$ é a profundidade
-dentro da camada $L$. A camada $L$ é tratada como \textbf{semi-infinita}: toda
-a energia transmitida propaga-se em direção ao alvo sem reflexão de retorno
-por uma face inferior, o que representa a situação física de um alvo imerso
-num estrato espesso.
+Considera-se uma pilha de camadas planas e horizontais sob o ar ($n_0=1$). A
+camada $i$ tem índice de refração complexo $n_i$ e espessura $d_i$; a última, que
+contém o alvo, é tratada como semi-infinita e tem índice $n_L$. Como no
+Capítulo~\ref{cap:fundamentos}, a geometria do raio é determinada pela parte real
+dos índices, e a parte imaginária entra como atenuação ao longo de cada trecho;
+no restante desta seção, $n_i$ designa a parte real.
 
-\section{O Invariante de Snell Generalizado}
+\subsection{O Invariante de Snell Generalizado}
 \label{sec:snell_inv}
 
-Em meios estratificados com interfaces horizontais, a componente horizontal do
-vetor de onda é conservada em cada interface:
+Em interfaces horizontais, a componente horizontal do vetor de onda é conservada:
 \begin{equation}
-  p = n_0\sin\theta_0 = n_1\sin\theta_1 = \cdots = n_L\sin\theta_L .
+  p = \sin\psi = n_1\sin\theta_1 = \cdots = n_L\sin\theta_L ,
   \label{eq:snell_inv}
 \end{equation}
-O escalar $p$ é o \emph{parâmetro de raio}. O deslocamento horizontal acumulado
-pelo raio até o alvo, a partir do ponto de entrada no solo, é
+em que $\psi$ é a incidência no ar e $p$ o \emph{parâmetro de raio}. Para uma
+plataforma à altura $h$ e um alvo à distância horizontal $D$, com $h_i$ a
+espessura atravessada na camada $i$ (igual a $d_i$ nas camadas superiores e à
+profundidade residual na camada do alvo), o deslocamento horizontal acumulado é
 \begin{equation}
-  x(p) = \sum_{i=1}^{L-1} \frac{p\,d_i}{\sqrt{n_i^2-p^2}}
-         + \frac{p\,\Delta z_L}{\sqrt{n_L^2-p^2}} .
+  x(p) = \frac{h\,p}{\sqrt{1-p^2}} + \sum_{i=1}^{L} \frac{h_i\,p}{\sqrt{n_i^2-p^2}} .
   \label{eq:horiz_p}
 \end{equation}
 
 \begin{proposicao}
 \label{prop:unicidade_p}
-A função $x(p)$ é estritamente crescente em $p \in [0, \min_i n_i)$, o que
-garante a existência e unicidade de $p^*$ tal que $x(p^*) = x_{\text{alvo}}$:
-\begin{equation}
-  \frac{\dd x}{\dd p} = \sum_{i=1}^{L-1} \frac{n_i^2\,d_i}{(n_i^2-p^2)^{3/2}}
-                        + \frac{n_L^2\,\Delta z_L}{(n_L^2-p^2)^{3/2}} > 0 .
-\end{equation}
+A função $x(p)$ é estritamente crescente em $p\in[0,\min(1,\min_i n_i))$, de modo
+que existe um único $p^\ast$ com $x(p^\ast)=D$.
 \end{proposicao}
 
-O parâmetro $p^*$ é determinado por bisseção sobre $x(p)-x_{\text{alvo}}=0$,
-incluindo o trecho no ar, com convergência em
-$\lceil\log_2((p_{\max}-p_{\min})/\varepsilon)\rceil$ iterações.
+\begin{proof}
+\[
+  \frac{\dd x}{\dd p} = \frac{h}{(1-p^2)^{3/2}}
+  + \sum_{i=1}^{L} \frac{n_i^2\,h_i}{(n_i^2-p^2)^{3/2}} > 0 .
+\]
+\end{proof}
 
-\section{Formalismo de Matrizes de Transferência ABCD}
+O parâmetro $p^\ast$ é obtido por bisseção, que converge em
+$\lceil\log_2(p_{\max}/\epsilon)\rceil$ iterações para a tolerância $\epsilon$.
+O retardo de ida é o caminho óptico dividido por $c$,
+\begin{equation}
+  \tau = \frac1c\Big(\frac{h}{\cos\psi}+\sum_{i=1}^{L}\frac{n_i\,h_i}{\cos\theta_i}\Big),
+  \qquad \cos\theta_i=\frac{\sqrt{n_i^2-p^{\ast2}}}{n_i},
+  \label{eq:tau_multi}
+\end{equation}
+e substitui o retardo de duas camadas da Seção~\ref{sec:fermat} tanto na geração
+dos ecos~\eqref{eq:eco} quanto na retroprojeção~\eqref{eq:bp}. A
+Proposição~\ref{prop:unicidade_p} reduz-se à unicidade do ponto de refração
+estabelecida pelo princípio de Fermat no caso de uma camada.
+
+\section{Vetor de Número de Onda e Resolução no Meio Estratificado}
+\label{sec:multi_resol}
+
+A resolução depende da variação do retardo com um deslocamento $\Delta\vect r$
+do alvo, e não do retardo em si. A proposição seguinte mostra que essa variação
+só depende da camada que contém o alvo.
+
+\begin{proposicao}[Vetor de número de onda no meio estratificado]
+\label{prop:k_multi}
+Seja o alvo na camada $L$, de índice $n_L$. Para um deslocamento $\Delta\vect r$
+contido nessa camada, a fase do eco retroprojetado, linearizada, é
+$\vect K\cdot\Delta\vect r$ com
+\begin{equation}
+  \vect K = \frac{2\pi f}{c}\,n_L\big(\hat{\vect u}_{T}+\hat{\vect u}_{R}\big),
+  \label{eq:k_multi}
+\end{equation}
+em que $\hat{\vect u}_i$ é o versor do raio na camada $L$. Em consequência:
+\begin{enumerate}[label=(\alph*)]
+  \item a componente horizontal, $\vect K_h=k_0[\sin\psi_T\hat{\vect e}(\phi'_T)+
+  \sin\psi_R\hat{\vect e}(\phi'_R)]$, não depende das camadas, e a resolução
+  horizontal~\eqref{eq:delta_xy} vale sem alteração;
+  \item a componente vertical depende apenas de $n_L$, e a resolução
+  vertical~\eqref{eq:delta_z} vale com
+  \begin{equation}
+    q=\sqrt{n_L^2-\sin^2\psi_T}+\sqrt{n_L^2-\sin^2\psi_R},
+    \label{eq:q_multi}
+  \end{equation}
+  em que as incidências no ar $\psi_T$ e $\psi_R$ são as do traçado em camadas.
+\end{enumerate}
+\end{proposicao}
+
+\begin{proof}
+Pelo princípio de Fermat, o caminho óptico é estacionário em relação a
+deslocamentos dos pontos de refração em todas as interfaces; a variação de
+primeira ordem do caminho óptico de ida, quando o extremo se desloca de
+$\Delta\vect r$ dentro da camada $L$, é $n_L\hat{\vect u}\cdot\Delta\vect r$, a
+mesma de um meio homogêneo de índice $n_L$. Somando os trechos de ida e de volta e
+multiplicando por $2\pi f/c$, obtém-se~\eqref{eq:k_multi}. A componente
+horizontal de $n_L\hat{\vect u}_i$ é $n_L\sin\theta_{L,i}=p_i=\sin\psi_i$
+por~\eqref{eq:snell_inv}, o que prova (a); a componente vertical é
+$n_L\cos\theta_{L,i}=\sqrt{n_L^2-\sin^2\psi_i}$, o que prova (b).
+\end{proof}
+
+\begin{corolario}
+\label{cor:multi_mono_bi}
+Com transmissor e receptor à mesma altura e no mesmo raio, as relações do
+Corolário~\ref{cor:mesma_altura} permanecem válidas em qualquer pilha:
+$\delta_{xy}^{\text{bi}}=\delta_{xy}^{\text{mono}}/|\cos(\Delta\phi/2)|$ e
+$\delta_z^{\text{bi}}=\delta_z^{\text{mono}}$.
+\end{corolario}
+
+As camadas superiores influem na resolução apenas de forma indireta, porque
+deslocam ligeiramente as incidências no ar $\psi_i$ que levam o raio ao alvo; na
+geometria de referência, esse deslocamento é inferior a $0,05^\circ$
+(Tabela~\ref{tab:mc_resol}).
+
+\section{Focalização com um Modelo Homogêneo}
+\label{sec:multi_foco}
+
+Na prática, a estratificação raramente é conhecida em detalhe, e a imagem é
+formada com um modelo de solo simplificado. Seja $n_m$ o índice de um modelo
+homogêneo usado na retroprojeção. Na geometria desta tese, os raios no solo são
+quase verticais ($\theta\approx16^\circ$ a $26^\circ$ nos solos considerados) e variam pouco ao longo da
+abertura; o erro de retardo do modelo é, por isso, aproximadamente o mesmo em
+todos os pulsos e se manifesta como um deslocamento e uma escala da imagem em
+profundidade, e não como desfocalização. Em primeira ordem nos ângulos de
+refração, a profundidade aparente do alvo e a razão entre a largura vertical
+obtida com o modelo e a correta são
+\begin{equation}
+  z_{\text{ap}}\simeq\frac{1}{n_m}\sum_{i=1}^{L}n_i\,h_i ,
+  \qquad
+  \frac{\delta_z^{(m)}}{\delta_z}\simeq\frac{n_L}{n_m} .
+  \label{eq:modelo_homog}
+\end{equation}
+O \emph{índice equivalente} $n_{\text{eq}}=\sum_i n_ih_i/\sum_ih_i$ reproduz o
+retardo vertical até o alvo e anula o deslocamento nessa profundidade, mas
+mantém a escala $n_L/n_{\text{eq}}$. Como o transmissor e o receptor estão à
+mesma altura, os dois canais sofrem o mesmo deslocamento e a mesma escala, e o
+erro do modelo não desalinha as imagens que a fusão combina.
+
+\section{Transmissão através da Pilha}
 \label{sec:abcd}
 
-A propagação TM em cada camada é descrita pela equação de Helmholtz
+\subsection{Formalismo da Matriz Característica}
+
+A amplitude transmitida através da pilha é obtida pelo formalismo da matriz
+característica~\citar{bornwolf1999}, válido para as duas polarizações e para
+índices complexos. Com $p=\sin\psi$ e $\cos\theta_i=\sqrt{n_i^2-p^2}/n_i$, define-se
+a admitância normalizada de cada meio,
 \begin{equation}
-  \frac{\dd^2 H_y}{\dd z^2} + k_{z,i}^2\,H_y = 0, \qquad
-  k_{z,i} = \frac{\omega}{c}\sqrt{n_i^2-p^2} .
-  \label{eq:helmholtz_layer}
+  Y_i^{\text{TE}}=n_i\cos\theta_i,\qquad
+  Y_i^{\text{TM}}=\frac{\cos\theta_i}{n_i},
+  \label{eq:admitancia}
 \end{equation}
-As condições de contorno TM (continuidade de $H_y$ e de
-$(1/n_i^2)\,\partial_z H_y$) nas faces da camada $i$ são encapsuladas pela
-\textbf{matriz de transferência}
+e a matriz característica da camada $i$, de espessura $d_i$,
 \begin{equation}
   \mathbf{M}_i = \begin{pmatrix}
-    \cos(k_{z,i}\,d_i) & \jj\,Z_i\,\sin(k_{z,i}\,d_i) \\[4pt]
-    \dfrac{\jj}{Z_i}\,\sin(k_{z,i}\,d_i) & \cos(k_{z,i}\,d_i)
-  \end{pmatrix}, \qquad
-  Z_i = \frac{n_i}{\cos\theta_i} = \frac{n_i^2}{\sqrt{n_i^2-p^2}},
+    \cos\beta_i & \dfrac{\jj}{Y_i}\sin\beta_i \\[6pt]
+    \jj\,Y_i\sin\beta_i & \cos\beta_i
+  \end{pmatrix},
+  \qquad \beta_i=k_0\,n_i\cos\theta_i\,d_i ,
   \label{eq:ABCD_matrix}
 \end{equation}
-derivada no Apêndice~\ref{app:abcd_deriv}. Para meios sem perdas,
-$\det\mathbf{M}_i = 1$. A matriz total das $L-1$ camadas finitas é
+na convenção $e^{\jj\omega t}$, derivada no Apêndice~\ref{app:abcd_deriv}; em
+meios com perdas, $n_i\cos\theta_i$ toma o ramo de parte imaginária negativa, que
+garante o decaimento da onda. Como
+$\det\mathbf M_i=\cos^2\beta_i+\sin^2\beta_i=1$ para qualquer $\beta_i$ complexo, a
+matriz total $\mathbf M=\mathbf M_1\cdots\mathbf M_{L-1}=[m_{jk}]$ das camadas
+finitas também tem determinante unitário, com ou sem perdas. Sendo $Y_0$ e $Y_L$
+as admitâncias do ar e da camada do alvo, os coeficientes de reflexão e de
+transmissão de campo são
 \begin{equation}
-  \begin{pmatrix} A & B \\ C & D \end{pmatrix}
-  = \mathbf{M}_1 \cdot \mathbf{M}_2 \cdots \mathbf{M}_{L-1},
-  \qquad AD - BC = 1 .
-  \label{eq:ABCD_total}
-\end{equation}
-
-\section{Coeficientes Globais e Transmitância}
-\label{sec:gamma_global}
-
-As impedâncias normalizadas de entrada e de saída são
-\begin{equation}
-  Z_{\text{in}} = \frac{1}{\sqrt{1-p^2}}, \qquad
-  Z_{\text{out}} = \frac{n_L^2}{\sqrt{n_L^2-p^2}},
-  \label{eq:Zin_Zout}
-\end{equation}
-em geral distintas. O coeficiente de reflexão global, visto do ar, e o
-coeficiente de transmissão são
-\begin{equation}
-  \boxed{\Gamma_{\text{TM}} = \frac{A Z_{\text{out}} + B
-  - Z_{\text{in}}(C Z_{\text{out}} + D)}{%
-  A Z_{\text{out}} + B + Z_{\text{in}}(C Z_{\text{out}} + D)}},
+  \Gamma=\frac{(m_{11}+m_{12}Y_L)Y_0-(m_{21}+m_{22}Y_L)}{(m_{11}+m_{12}Y_L)Y_0+(m_{21}+m_{22}Y_L)},
   \qquad
-  \tau_{\text{TM}} = \frac{2\,Z_{\text{out}}}{A\,Z_{\text{out}} + B
-  + C\,Z_{\text{in}}\,Z_{\text{out}} + D\,Z_{\text{in}}},
+  t=\frac{2Y_0}{(m_{11}+m_{12}Y_L)Y_0+(m_{21}+m_{22}Y_L)},
   \label{eq:Gamma_TM}
 \end{equation}
-e a transmitância de potência é
+e a transmitância de potência para a camada do alvo é
 \begin{equation}
-  \boxed{T_{\text{TM}} = |\tau_{\text{TM}}|^2 \cdot \frac{Z_{\text{in}}}{Z_{\text{out}}}
-  = 1 - |\Gamma_{\text{TM}}|^2},
+  T=\frac{\mathrm{Re}\,Y_L}{Y_0}\,|t|^2 .
   \label{eq:T_TM_multi}
 \end{equation}
-onde o fator $Z_{\text{in}}/Z_{\text{out}}$ corrige a diferença entre os
-semiespaços de entrada e de saída na contabilização do fluxo de
-potência~\citar{bornwolf1999}. Os dois coeficientes
-de~\eqref{eq:Gamma_TM} têm o mesmo denominador, e a igualdade
-de~\eqref{eq:T_TM_multi} é verificada numericamente com erro inferior a
-$10^{-15}$ em todos os cenários da Seção~\ref{sec:multi_sim}.
+Com camadas finitas sem perdas, o fluxo conserva-se e $|\Gamma|^2+T=1$.
 
 \begin{lema}
 \label{lema:reducao_fresnel}
-Para $L=1$ (alvo na primeira camada), $\Gamma_{\text{TM}}$ reduz-se ao
-coeficiente de Fresnel TM~\eqref{eq:r_TM}.
+Sem camadas finitas ($\mathbf M=\mathbf I$), $\Gamma$ reduz-se aos coeficientes
+de Fresnel~\eqref{eq:r_TM}--\eqref{eq:r_TE}.
 \end{lema}
 
 \begin{proof}
-$L=1 \Rightarrow [A,B;C,D]=[1,0;0,1]$, e
-\[
-  \Gamma = \frac{Z_{\text{out}} - Z_{\text{in}}}{Z_{\text{out}} + Z_{\text{in}}}
-  = \frac{n_2/\cos\theta_t - 1/\cos\theta_i}{n_2/\cos\theta_t + 1/\cos\theta_i}
-  = \frac{n_2\cos\theta_i - \cos\theta_t}{n_2\cos\theta_i + \cos\theta_t}
-  = r_{\text{TM}},
-\]
-usando $p = \sin\theta_i = n_2\sin\theta_t$, de modo que
-$\sqrt{n_2^2-p^2} = n_2\cos\theta_t$ e $\sqrt{1-p^2} = \cos\theta_i$.
+Com $\mathbf M=\mathbf I$, $\Gamma=(Y_0-Y_L)/(Y_0+Y_L)$. Em TE,
+$Y_0=\cos\psi$ e $Y_L=n_L\cos\theta_L$, o que dá $r_{\text{TE}}$. Em TM,
+$Y_0=\cos\psi$ e $Y_L=\cos\theta_L/n_L$; multiplicando numerador e denominador
+por $n_L$, obtém-se $(n_L\cos\psi-\cos\theta_L)/(n_L\cos\psi+\cos\theta_L)=r_{\text{TM}}$.
 \end{proof}
 
-\section{Ângulo de Transmissão Ótimo para a Pilha}
-\label{sec:theta_opt}
+\subsection{Separação entre Interface, Propagação e Absorção}
 
-Para uma interface única, o máximo de $T_{\text{TM}}$ ocorre em
-$\theta_B=\arctan(n_2/n_1)$. Para uma pilha, as reflexões múltiplas internas
-criam interferências que deslocam o máximo, que passa a ser determinado
-numericamente:
-\begin{equation}
-  \theta_{\text{opt}} = \arg\max_{\theta_0 \in [0,\pi/2)} T_{\text{TM}}(f,\theta_0;\{n_i,d_i\}) .
-  \label{eq:theta_opt}
-\end{equation}
+Três efeitos estão contidos em $t$ e precisam ser separados para não serem
+contados duas vezes no modelo de sinal~\eqref{eq:eco}. (i) A fase de propagação
+vertical $\sum_i\mathrm{Re}\,\beta_i$ já está contida no
+retardo~\eqref{eq:tau_multi} do raio; o que resta, descontada essa fase de
+$\arg t$, é a \emph{fase excedente}, devida às interfaces e às reflexões múltiplas
+internas. (ii) A absorção nas camadas finitas já está contida na atenuação ao
+longo do percurso, $\exp(-\sum_i\alpha_i\ell_i)$; por isso, a transmitância das
+interfaces é calculada com as camadas finitas sem perdas, e apenas o meio do alvo
+conserva sua permissividade complexa. (iii) O que permanece, $T$ e a fase
+excedente, é o fator de interface que multiplica o eco em cada travessia.
 
-\begin{observacao}[Inacessibilidade do ângulo de Brewster interno]
-Para $n_0=1$, $n_1=\sqrt{2}$, $n_2=2$, o ângulo de Brewster da interface
-$n_1$--$n_2$, medido na primeira camada, é
-$\theta_B^{(12)} = \arctan(\sqrt{2}) \approx 54,7^\circ$. O ângulo
-correspondente no ar exigiria $\sin\theta_0 = \sqrt{2}\sin 54,7^\circ = 1,15>1$:
-o ângulo de Brewster da interface interna é inacessível a partir do ar, e o
-máximo de transmitância da pilha resulta de interferência entre as
-reflexões internas, sem correspondência com nenhum ângulo de Brewster
-clássico.
-\end{observacao}
+O máximo de $T$ de uma pilha não coincide, em geral, com o ângulo de Brewster da
+primeira interface: as reflexões internas o deslocam, e o ângulo de Brewster de
+uma interface interna pode nem ser acessível a partir do ar (para $n_1=\sqrt2$ e
+$n_2=2$, exigiria $\sin\psi=1,15$). Como a potência recebida não é critério de
+projeto nesta tese (Capítulo~\ref{cap:potencia}), o interesse de $T$ aqui é outro:
+saber se a transmissão varia o bastante ao longo da abertura, ou de modo
+distinto nos dois canais, para alterar a imagem ou a fusão.
 
-\section{Resultados de Simulação}
+\section{Verificação Numérica}
 \label{sec:multi_sim}
 
-A transmitância~\eqref{eq:T_TM_multi} foi calculada a $425\,$MHz para quatro
-pilhas (Fig.~\ref{fig:ms_transmitancia}, Tabela~\ref{tab:ms_transmitancia}):
-(a) interface única com $n=2$; (b) camada de $n_1=1,5$ com espessura de um quarto
-do comprimento de onda no meio sobre um substrato de $n_2=2,5$; (c) a mesma
-camada com meia onda; e (d) um perfil de três estratos de índices crescentes
-($1,4$; $2,0$; $2,8$), com espessuras de $0,10$ e $0,30\,$m.
+\subsection{Cenários e Método}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.82\textwidth]{ms_fig01_transmitancia_abcd.pdf}
-\caption{Transmitância TM de quatro pilhas a $425\,$MHz em função da
-incidência no ar. Os pontos marcam o máximo de cada curva; a linha pontilhada
-marca o ângulo de Brewster da interface única ($63,4^\circ$).}
-\label{fig:ms_transmitancia}
-\end{figure}
+Usou-se a hélice de referência (Seção~\ref{sec:fund_sar_bist}), $425\,$MHz, banda de
+$50\,$MHz em 64 frequências, 1600 pulsos e um alvo pontual a $2\,$m de profundidade
+no eixo, com o receptor na mesma hélice a $\Delta\phi=90^\circ$. Compararam-se
+quatro solos:
+\begin{itemize}
+  \item H0: homogêneo, $\varepsilon_r=3,99-\jj0,40$ (o solo S1 de referência);
+  \item M1: camada seca de $1\,$m ($\varepsilon_r=3-\jj0,3$) sobre o solo S1;
+  \item M2: camada úmida de $0,5\,$m ($\varepsilon_r=6,5-\jj0,9$) sobre o solo S1;
+  \item M3: $1\,$m de solo S1 sobre um substrato úmido ($\varepsilon_r=6,5-\jj0,9$),
+  que contém o alvo.
+\end{itemize}
+Em M1 e M2 o alvo está numa camada de mesmo índice que em H0; em M3, numa camada
+de índice maior ($n_L=2,55$). A PSF foi calculada por retroprojeção sem ruído,
+somando coerentemente, em pulsos e frequências, o eco com retardo
+exato~\eqref{eq:tau_multi} compensado pelo retardo do modelo de focalização, em
+cortes vertical (passo de $5\,$mm) e horizontal (passo de $2\,$mm) pelo pico. Três
+modelos de focalização foram comparados: o modelo estratificado correto, o modelo
+homogêneo com o índice equivalente $n_{\text{eq}}$ e o modelo homogêneo com o
+índice da camada superficial. O formalismo de transmissão foi verificado contra
+os coeficientes de Fresnel ($|\Gamma|$ idêntico até $4\times10^{-16}$) e pela
+conservação $|\Gamma|^2+T=1$ numa pilha de duas camadas sem perdas sobre um
+substrato com perdas (erro máximo de $6\times10^{-16}$).
+
+\subsection{Resolução}
 
 \begin{table}[H]
-\centering
-\caption{Ângulo de máxima transmitância das pilhas da
-Fig.~\ref{fig:ms_transmitancia}.}
-\label{tab:ms_transmitancia}
-\begin{tabular}{@{}lccc@{}}
+\centering\small
+\caption{Larguras a $-3\dB$ medidas na imagem e previstas pela forma fechada com
+$n\to n_L$ (Proposição~\ref{prop:k_multi}), com o modelo de focalização correto.
+$\psi_T$: faixa de incidência do transmissor no ar.}
+\label{tab:mc_resol}
+\begin{tabular}{@{}lccrrrrrr@{}}
 \toprule
-Pilha & $\theta_{\text{opt}}$ & $T_{\text{TM}}(\theta_{\text{opt}})$ & $T_{\text{TM}}(0^\circ)$ \\
+ & & & \multicolumn{3}{c}{Monoestático} & \multicolumn{3}{c}{Biestático $90^\circ$} \\
+\cmidrule(lr){4-6}\cmidrule(l){7-9}
+Solo & $n_L$ & $\psi_T$ [°] & $\delta_x$ [m] & $\delta_{xy}^{\,\mathrm{fech}}$ [m] & $\delta_z$ [m] & $\delta_x$ [m] & $\delta_{xy}^{\,\mathrm{fech}}$ [m] & $\delta_z$ [m] \\
 \midrule
-(a) interface única, $n=2$                 & $63,4^\circ$ & $1,000$ & $0,889$ \\
-(b) camada de quarto de onda               & $0^\circ$    & $0,997$ & $0,997$ \\
-(c) camada de meia onda                    & $61,7^\circ$ & $0,971$ & $0,816$ \\
-(d) três estratos de índice crescente      & $58,4^\circ$ & $1,000$ & $0,934$ \\
+H0 & 2,00 & 46,11--60,37 & 0,158 & 0,158 & 1,377 & 0,221 & 0,224 & 1,377 \\
+M1 & 2,00 & 46,09--60,36 & 0,158 & 0,158 & 1,377 & 0,221 & 0,224 & 1,377 \\
+M2 & 2,00 & 46,12--60,38 & 0,158 & 0,158 & 1,378 & 0,221 & 0,224 & 1,378 \\
+M3 & 2,55 & 46,13--60,39 & 0,158 & 0,158 & 1,068 & 0,221 & 0,224 & 1,068 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Três observações decorrem dos resultados. Primeiro, a camada de quarto de onda,
-cujo índice é próximo da média geométrica dos meios adjacentes, funciona como
-transformador de impedância: a transmitância é máxima na incidência
-\emph{normal} e praticamente plana até $50^\circ$, de modo que o ângulo de
-Brewster perde qualquer significado. Segundo, a camada de meia onda é
-transparente na incidência normal, mas não oblíqua: o máximo, de $0,971$,
-desloca-se para $61,7^\circ$ e não alcança a unidade. Terceiro, um perfil de
-índice crescente suaviza o contraste de impedância e desloca o máximo para
-incidências menores ($58,4^\circ$). Em todos os casos a variação de
-$T_{\text{TM}}$ entre a incidência de projeto da hélice ($46$ a $60^\circ$) e o
-máximo é inferior a $0,5\dB$ por travessia.
+A Tabela~\ref{tab:mc_resol} confirma a Proposição~\ref{prop:k_multi}. A resolução
+horizontal é a mesma nos quatro solos, em ambos os canais, e segue a forma fechada
+com erro inferior a $1,2\,\%$. A resolução vertical é idêntica em H0, M1 e M2, cujo
+alvo está numa camada de mesmo índice, apesar de as camadas superiores terem
+índices $13\,\%$ menor (M1) e $28\,\%$ maior (M2); em M3 ela melhora $22\,\%$, como
+prevê~\eqref{eq:q_multi} com $n_L=2,55$ ($1,082\,$m previstos, contra $1,390\,$m em
+H0). A forma fechada vertical excede a medida em cerca de $1\,\%$ em todos os
+solos. Os canais monoestático e biestático têm a mesma $\delta_z$ em todos os
+casos, como estabelece o Corolário~\ref{cor:multi_mono_bi}.
+
+\subsection{Erro do Modelo de Focalização}
+
+\begin{table}[H]
+\centering\small
+\caption{Efeito do modelo de focalização homogêneo sobre a imagem: deslocamento do
+pico em profundidade ($\Delta z<0$: mais profundo), razão entre a largura vertical
+obtida e a correta e perda de pico. Valores idênticos, a menos de $0,02\dB$, nos
+canais monoestático, biestático e na fusão. Entre parênteses,
+a previsão de~\eqref{eq:modelo_homog}.}
+\label{tab:mc_foco}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Solo & Modelo & $n_m$ & $\Delta z$ [m] & $\delta_z^{(m)}/\delta_z$ & Perda de pico [dB] \\
+\midrule
+M1 & equivalente & 1,865 & $0,00$ & $1,071$ ($1,071$) & $<0,001$ \\
+   & camada superficial & 1,732 & $-0,14$ ($-0,15$) & $1,148$ ($1,153$) & $0,07$ \\
+\midrule
+M2 & equivalente & 2,136 & $0,00$ & $0,934$ ($0,935$) & $<0,001$ \\
+   & camada superficial & 2,550 & $+0,34$ ($+0,33$) & $0,775$ ($0,783$) & $0,20$ \\
+\midrule
+M3 & equivalente & 2,274 & $0,00$ & $1,128$ ($1,121$) & $<0,001$ \\
+   & camada superficial & 1,998 & $-0,28$ ($-0,28$) & $1,288$ ($1,276$) & $0,14$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{mc_psf_cortes.pdf}
+\caption{Cortes vertical (acima) e horizontal (abaixo) da PSF nos solos M1, M2 e
+M3, para o canal monoestático e a fusão a $90^\circ$, com o modelo de focalização
+correto (contínuo), o modelo homogêneo equivalente (tracejado) e o modelo com o
+índice da camada superficial (pontilhado). Cada curva está normalizada pelo pico
+do modelo correto no mesmo canal.}
+\label{fig:mc_psf}
+\end{figure}
+
+A Tabela~\ref{tab:mc_foco} e a Fig.~\ref{fig:mc_psf} confirmam a
+expressão~\eqref{eq:modelo_homog}: com qualquer dos modelos homogêneos, a perda
+de pico é inferior a $0,2\dB$ e a resolução horizontal não muda; o erro do modelo
+é um deslocamento e uma escala em profundidade, previstos com erro de até
+$0,02\,$m e de cerca de $1\,\%$. O modelo equivalente localiza o alvo corretamente, mas
+estica ou comprime o eixo vertical de $7$ a $13\,\%$; o modelo da camada
+superficial desloca o alvo de $0,14$ a $0,34\,$m, o que corresponde a $10$ a
+$26\,\%$ da largura vertical. Em todos os casos o deslocamento é o mesmo nos dois
+canais, e a fusão conserva a forma que tem com o modelo correto.
+
+\subsection{Transmissão ao Longo da Abertura}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{mc_transmitancia.pdf}
+\caption{Transmitância de ida do ar para a camada do alvo, em TM e TE, para os
+quatro solos, com as camadas finitas sem perdas (a absorção é contada no
+percurso). Faixa cinza: incidências da hélice de referência.}
+\label{fig:mc_transmitancia}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Fator de interface de ida e volta ao longo da abertura: transmitância
+média, sua excursão e a excursão da fase excedente (Seção~\ref{sec:abcd}).}
+\label{tab:mc_transm}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+ & \multicolumn{3}{c}{TM} & \multicolumn{3}{c}{TE} \\
+\cmidrule(lr){2-4}\cmidrule(l){5-7}
+Solo & $\bar T^2$ [dB] & Excursão [dB] & Fase [°] & $\bar T^2$ [dB] & Excursão [dB] & Fase [°] \\
+\midrule
+H0 & $-0,17$ & $0,32$ & $0,1$ & $-2,65$ & $1,36$ & $0,7$ \\
+M1 & $-0,02$ & $0,03$ & $0,5$ & $-1,45$ & $1,53$ & $6,1$ \\
+M2 & $-0,92$ & $0,96$ & $0,6$ & $-5,30$ & $1,61$ & $4,2$ \\
+M3 & $-0,27$ & $0,13$ & $1,8$ & $-3,07$ & $2,81$ & $1,5$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Na faixa de incidências da hélice, a transmissão TM de ida e volta varia menos de
+$1\dB$ em amplitude e menos de $2^\circ$ em fase excedente ao longo da abertura, em
+todos os solos (Tabela~\ref{tab:mc_transm}). Em TE, a perda de ida e volta é de
+$1,5$ a $5,3\dB$ e varia até $2,8\dB$ e $6^\circ$, porque a transmitância TE decresce
+monotonamente com a incidência e a faixa da hélice está na sua parte mais inclinada. Essas excursões são pequenas frente às tolerâncias de
+fase da fusão (cerca de $30^\circ$, Capítulo~\ref{cap:trajetoria}), e, com transmissor
+e receptor à mesma altura, as duas travessias ocorrem nas mesmas incidências nos
+dois canais. A camada úmida superficial (M2) custa cerca de $1\dB$ em TM e $5\dB$ em
+TE, além da absorção no seu percurso.
 
 \section{Conclusões do Capítulo}
 \label{sec:multi_concl}
 
-O formalismo ABCD com última camada semi-infinita é uma generalização
-consistente do caso de Fresnel (Lema~\ref{lema:reducao_fresnel}), e a
-Proposição~\ref{prop:unicidade_p} assegura a unicidade do parâmetro de raio no
-traçado através de $N$ camadas. Os resultados mostram que, em meios
-estratificados, o ângulo de máxima transmissão depende da espessura elétrica
-das camadas e da frequência, e pode estar a dezenas de graus do ângulo de
-Brewster da primeira interface. Como a transmitância varia apenas frações de
-decibel na faixa de incidências de interesse, ela não é um critério
-discriminante para a geometria de aquisição --- conclusão que o
-Capítulo~\ref{cap:potencia} estende ao enlace completo.
+A estratificação do solo não altera as conclusões geométricas da tese. A
+resolução horizontal independe das camadas, e a vertical depende apenas do índice
+da camada que contém o alvo (Proposição~\ref{prop:k_multi}); as expressões fechadas
+do Capítulo~\ref{cap:resolucao} valem com $n\to n_L$, e as relações entre os canais
+monoestático e biestático à mesma altura são preservadas. Processar um solo
+estratificado com um modelo homogêneo não desfocaliza a imagem na geometria de
+referência: produz um deslocamento e uma escala em profundidade, previsíveis
+em primeira ordem e comuns aos dois canais, de modo que a fusão coerente não é
+afetada. A transmissão através da pilha varia menos de $1\dB$ e de $2^\circ$ ao longo
+da abertura em TM e penaliza mais a componente TE, o que é relevante para o
+receptor alinhado de dupla polarização do Capítulo~\ref{cap:alvos}. O ângulo de
+máxima transmissão da pilha não tem relação fixa com o ângulo de Brewster e não é
+critério de projeto.
+
+Os resultados supõem interfaces planas e horizontais, um único alvo e camadas
+finitas de perdas moderadas. Duas questões permanecem abertas: o retorno das
+interfaces internas, que se soma ao clutter da superfície com a geometria
+especular discutida no Capítulo~\ref{cap:superficie}, e a localização absoluta em
+profundidade, que exige conhecer o perfil de índice ou estimá-lo a partir dos
+próprios dados.
 
 %%═══════════════════════════════════════════════════════════════════════════════
 \chapter{O Critério de Potência e o Ângulo de Brewster: uma Reavaliação}
@@ -1992,10 +2287,10 @@ Cada canal é reconstruído por~\eqref{eq:bp} com retardo refratado exato por
 voxel e pulso. Como cada imagem é a média coerente de suas amostras, definem-se
 duas fusões:
 \begin{itemize}
-  \item \textbf{fusão completa}, $I_{\text{fus}}=\tfrac12(I_{\text{mono}}+I_{\text{bi}})$,
+  \item a \emph{fusão completa}, $I_{\text{fus}}=\tfrac12(I_{\text{mono}}+I_{\text{bi}})$,
   com os dois canais completos ($2N$ amostras), que corresponde ao que o sistema
   efetivamente adquire;
-  \item \textbf{fusão a orçamento constante}, com o canal monoestático nos pulsos
+  \item a \emph{fusão a orçamento constante}, com o canal monoestático nos pulsos
   ímpares e o biestático nos pares, totalizando as mesmas $N$ amostras da imagem
   monoestática.
 \end{itemize}
@@ -2005,7 +2300,7 @@ isolados e para a fusão a orçamento constante, e $2M$ para a fusão completa.
 Desse modo, o ganho de $3\dB$ por duplicar o número de amostras aparece
 \emph{apenas} na SNR da fusão completa e é declarado como tal. Em todos os
 estudos, as duas fusões produziram imagens com correlação superior a
-$0,99999$: \textbf{toda variação de forma observada é geométrica}. Todas as
+$0,99999$; toda variação de forma observada é, portanto, geométrica. Todas as
 imagens são exibidas com a mesma referência (pico monoestático em $0\dB$) e a
 mesma faixa dinâmica ($30\dB$).
 
@@ -2089,12 +2384,12 @@ contra uma implementação independente.
 \section{Introdução}
 \label{sec:geo_intro}
 
-Este capítulo responde às três primeiras perguntas de pesquisa com o alvo
-pontual isotrópico, que isola a geometria de qualquer efeito de polarização ou
-de anisotropia: como a separação Tx--Rx altera o suporte no espaço de números
-de onda e a PSF; qual separação produz a melhor imagem biestática isolada; e
-qual separação faz o canal biestático acrescentar mais informação à imagem
-monoestática. Em todos os casos o receptor voa na mesma hélice do transmissor
+Este capítulo trata do objetivo O4 e da base geométrica da hipótese H1. Com
+o alvo pontual isotrópico, que isola a geometria de qualquer efeito de
+polarização ou de anisotropia, determina-se como a separação Tx--Rx altera o
+suporte no espaço de números de onda e a PSF, qual separação produz a melhor
+imagem biestática isolada e qual separação faz o canal biestático acrescentar
+mais informação à imagem monoestática. Em todos os casos o receptor voa na mesma hélice do transmissor
 ($\kappa=1$), desfasado de $\Delta\phi$, e o solo é o S1.
 
 \section{As Configurações de Referência}
@@ -2246,36 +2541,31 @@ torno do alvo. Os anéis são os lóbulos laterais da PSF do tipo $J_0$.}
 \label{fig:geo_imagens}
 \end{figure}
 
-\paragraph{Lei geométrica.} A resolução horizontal do canal biestático segue
+A resolução horizontal do canal biestático segue a lei
 $\delta_{xy}^{\text{mono}}/|\cos(\Delta\phi/2)|$ com erro inferior a $1\,\%$ até
-$150^\circ$; a vertical é a mesma em todos os casos ($1,386\,$m), porque a
-extensão em $k_z$ é idêntica (desvio padrão de $1,174\,$rad/m em todas as
-separações).
+$150^\circ$, e a vertical é a mesma em todas as separações ($1,386\,$m), porque a
+extensão em $k_z$ é idêntica (desvio padrão de $1,174\,$rad/m). Em consequência, a
+melhor imagem biestática isolada é a de menor separação viável: toda separação
+degrada o lóbulo principal do canal isolado, e não há ótimo intermediário. Com uma
+separação mínima de segurança de $15\,$m entre as plataformas
+($\Delta\phi\gtrsim6^\circ$), o canal biestático mais nítido é, na prática, um
+segundo canal monoestático e não acrescenta informação.
 
-\paragraph{Melhor imagem biestática isolada.} É a de menor separação viável.
-Toda separação degrada o lóbulo principal do canal isolado e não há ótimo
-intermediário. Com uma separação mínima de segurança de $15\,$m entre as
-plataformas ($\Delta\phi\gtrsim6^\circ$), o canal biestático mais nítido é,
-na prática, um segundo canal monoestático e não acrescenta informação.
-
-\paragraph{Maior complementaridade.} Ocorre para
-$\Delta\phi\approx90^\circ$--$120^\circ$. O anel interior do canal biestático
-preenche o disco do espaço de números de onda que o anel monoestático deixa
-vazio: a área ocupada no plano $(k_x,k_y)$ passa de $294$ para
-$475\,$rad$^2$/m$^2$ ($75^\circ$), e o posto efetivo da matriz de aquisição, de
+A maior complementaridade ocorre para $\Delta\phi\approx90^\circ$--$120^\circ$. O
+anel interior do canal biestático preenche o disco do espaço de números de onda que
+o anel monoestático deixa vazio: a área ocupada no plano $(k_x,k_y)$ passa de $294$
+para $475\,$rad$^2$/m$^2$ ($75^\circ$), e o posto efetivo da matriz de aquisição, de
 $28,4$ para $33,8$ ($105^\circ$). Na imagem fundida, o ISLR cai $5,3\dB$
 ($90^\circ$), o PSLR melhora $5,2\dB$ ($120^\circ$) e o contraste sobe $4,0\dB$
 ($90^\circ$).
 
-\paragraph{Custo.} O lóbulo principal horizontal alarga-se: $\delta_x$ aumenta
-$16\,\%$ a $90^\circ$ e $30\,\%$ a $120^\circ$, e o volume, $35$ e $58\,\%$. A fusão
-não melhora a resolução a $-3\dB$; melhora os lóbulos, o contraste e o
-condicionamento. A anisotropia 3D diminui ($8,9\to7,4$ a $90^\circ$) apenas porque
-o lóbulo horizontal se alarga.
-
-\paragraph{Invariância na cena.} Para o alvo descentrado em $(6;\,4;\,-2)\,$m, os
-resultados são os mesmos (diferenças inferiores a $0,3\dB$ no PSLR): com duas
-voltas completas, a PSF é praticamente invariante na cena.
+Esse ganho tem um custo no lóbulo principal horizontal, que se alarga: $\delta_x$
+aumenta $16\,\%$ a $90^\circ$ e $30\,\%$ a $120^\circ$, e o volume, $35$ e $58\,\%$. A
+fusão não melhora, portanto, a resolução a $-3\dB$; melhora os lóbulos, o contraste
+e o condicionamento. A anisotropia 3D diminui ($8,9\to7,4$ a $90^\circ$) apenas
+porque o lóbulo horizontal se alarga. Para o alvo descentrado em
+$(6;\,4;\,-2)\,$m, os resultados são os mesmos (diferenças inferiores a $0,3\dB$
+no PSLR): com duas voltas completas, a PSF é praticamente invariante na cena.
 
 \section{Interpretação: Preenchimento do Disco de Números de Onda}
 \label{sec:geo_interp}
@@ -2336,15 +2626,23 @@ qualquer fusão, e a fusão a $90^\circ$--$135^\circ$ resolve de $2,7$ a $5,6$ v
 menos alvos a $s=0,30\,$m. Os lóbulos laterais mais baixos da fusão não
 compensam o alargamento quando os alvos estão próximos.
 
-\begin{sintese}
-O canal biestático à mesma altura não melhora nenhuma resolução: a horizontal
-piora como $1/|\cos(\Delta\phi/2)|$ e a vertical não muda. Com
-$\Delta\phi\approx90^\circ$--$120^\circ$, porém, ele preenche o disco do espaço
-de números de onda, e a fusão reduz o ISLR em $5,3\dB$, melhora o PSLR em até
-$5,2\dB$ e eleva o contraste em $4\dB$, com um lóbulo principal $16$ a $30\,\%$
-mais largo. A configuração diametral piora a imagem monoestática, e a separação
-de alvos próximos é melhor no canal monoestático.
-\end{sintese}
+\section{Conclusões do Capítulo}
+\label{sec:geo_concl}
+
+Com o receptor à mesma altura e no mesmo raio do transmissor, o canal biestático
+não melhora nenhuma resolução: a horizontal piora como $1/|\cos(\Delta\phi/2)|$ e a
+vertical não muda, como prevê o Capítulo~\ref{cap:resolucao}. Sua contribuição está
+na forma do suporte. Com $\Delta\phi\approx90^\circ$--$120^\circ$, o anel biestático
+preenche o disco do espaço de números de onda, e a fusão a orçamento constante
+reduz o ISLR em $5,3\dB$, melhora o PSLR em até $5,2\dB$ e eleva o contraste em
+$4\dB$, com um lóbulo principal $16$ a $30\,\%$ mais largo. Esse é o fundamento
+geométrico da hipótese H1.
+
+Dois resultados negativos delimitam esse ganho: a configuração diametral piora a
+imagem monoestática, e a separação de alvos próximos, governada pelo lóbulo
+principal, é melhor no canal monoestático isolado. Todos os resultados deste
+capítulo foram obtidos com um espalhador isotrópico e escalar; o
+Capítulo~\ref{cap:alvos} examina se eles se mantêm com alvos reais.
 
 %%═══════════════════════════════════════════════════════════════════════════════
 \chapter{Alvos Reais: Anisotropia, Polarização e Orientação}
@@ -2412,15 +2710,15 @@ todos & 180 & \multicolumn{7}{l}{fusão sempre pior: $\Delta V=+6$ a $+28\dB$, $
 \end{tabular}
 \end{table}
 
-Três observações decorrem da Tabela~\ref{tab:alv_nominal}. \textbf{(i)} O ganho
+Três observações decorrem da Tabela~\ref{tab:alv_nominal}. Primeiro, o ganho
 de lóbulos é próprio do espalhador isotrópico: somente o ponto, e parcialmente
 a esfera a $90^\circ$, o reproduz. Nos objetos com faces planas, a resposta é
 dominada pelas reflexões especulares das faces, que já fixam o PSLR
 monoestático entre $-0,5$ e $-4,7\dB$ e não dependem do preenchimento do espaço
-de números de onda. \textbf{(ii)} A $90^\circ$, o eco biestático dos objetos é
+de números de onda. Segundo, a $90^\circ$ o eco biestático dos objetos é
 $10$ a $20\dB$ mais fraco que o monoestático, inclusive na esfera, e a fusão de
 pesos iguais resulta praticamente na imagem monoestática com $5$ a $7\dB$ menos de
-SNR: \emph{a fusão de pesos iguais dilui o sinal}. \textbf{(iii)} A $135^\circ$ e
+SNR: a fusão de pesos iguais dilui o sinal. Terceiro, a $135^\circ$ e
 $180^\circ$ ocorre o oposto com cubo, caixa, cilindro vertical e tubo horizontal:
 a bissetriz quase vertical mantém a especular da face superior, o canal
 biestático domina ($+6$ a $+17\dB$) e a fusão herda seu lóbulo largo ($\Delta V$
@@ -2504,8 +2802,8 @@ Com o receptor alinhado, o canal biestático a $90^\circ$ recupera de $13$ a
 $28\dB$, e a fusão deixa de diluir a SNR ($-1,5$ a $+3,6\dB$, contra $-4,8$ a
 $-6,7\dB$). O contraste da fusão melhora de $2$ a $3\dB$ na esfera, nos tubos e no
 cilindro inclinado; nos objetos com uma face horizontal, a especular biestática
-passa a dominar e o contraste piora. \textbf{Consequência de projeto: o receptor
-remoto deve ser de dupla polarização, ou girar sua antena com $\Delta\phi$.} Um
+passa a dominar e o contraste piora. Daí decorre uma regra de projeto: o receptor
+remoto deve ser de dupla polarização, ou girar sua antena com $\Delta\phi$, porque um
 receptor TM co-polar anula a complementaridade exatamente na faixa de
 separações que o espaço de números de onda recomenda.
 
@@ -2593,7 +2891,7 @@ melhoria.}
 \label{fig:alv_mc_al}
 \end{figure}
 
-\paragraph{Potência (controle).} Com orientação aleatória, a potência média do
+A potência serve de controle. Com orientação aleatória, a potência média do
 canal biestático a $180^\circ$ é a mesma do monoestático ($-2,9$ a $+0,9\dB$
 conforme o alvo), como no Capítulo~\ref{cap:potencia}. Com receptor co-polar,
 cai cerca de $20\dB$ a $90^\circ$ e de $2,4$ a $5,2\dB$ a $45^\circ$ e $135^\circ$,
@@ -2601,12 +2899,12 @@ aproximadamente como $\cos^2\Delta\phi$ --- o descasamento da
 Proposição~\ref{prop:descasamento}. Com o receptor alinhado, fica entre $0$ e
 $-1,6\dB$ do monoestático em todas as separações.
 
-\paragraph{Receptor co-polar.} A $45^\circ$--$90^\circ$, a fusão ganha um contraste
+Com o receptor co-polar, a $45^\circ$--$90^\circ$ a fusão ganha um contraste
 pequeno, porém sistemático ($+0,3$ a $+0,6\dB$, com melhoria em $78$ a $100\,\%$ das
 aquisições), e perde de $1,1$ a $5,7\dB$ de SNR. A $135^\circ$--$180^\circ$, piora o
 contraste (até $-7,9\dB$) e o volume.
 
-\paragraph{Receptor alinhado.} A $90^\circ$, o contraste melhora $1,8$ a $2,7\dB$
+Com o receptor alinhado, a $90^\circ$ o contraste melhora $1,8$ a $2,7\dB$
 com probabilidade de $90$ a $98\,\%$ nos quatro alvos; o PSLR melhora ligeiramente
 (mediana de $-0,05$ a $-0,39\dB$, $53$ a $70\,\%$), a perda de SNR cai para $0,9$ a
 $2,1\dB$ e a energia na região do objeto aumenta. O preço é um lóbulo $0,6$ a
@@ -2634,15 +2932,25 @@ canal biestático reduz o mascaramento entre objetos de RCS muito distintas; é 
 benefício de complementaridade mais nítido observado com alvos reais. A
 $90^\circ$, a fusão com receptor co-polar não altera a cena ($-17,7\dB$).
 
-\begin{sintese}
-Com alvos reais, a fusão só ajuda quando o canal biestático chega com potência
-comparável à do monoestático. Um receptor TM co-polar perde cerca de $20\dB$ a
-$90^\circ$ por descasamento geométrico de polarização; um receptor alinhado de
-dupla polarização recupera de $13$ a $28\dB$ e torna sistemática a melhoria de
-contraste com orientação aleatória ($+1,8$ a $+2,7\dB$ em $90$ a $98\,\%$ das
-orientações). A diversidade de aspecto reduz o mascaramento entre objetos em
-$10\dB$. A resolução e a localização não melhoram em nenhum caso.
-\end{sintese}
+\section{Conclusões do Capítulo}
+\label{sec:alv_concl}
+
+Com alvos reais, a fusão só melhora a imagem quando o canal biestático chega com
+potência comparável à do monoestático. O ganho de lóbulos observado com o
+espalhador isotrópico não se reproduz em objetos com faces planas, cuja resposta é
+dominada por reflexões especulares, e um receptor TM co-polar perde cerca de
+$20\dB$ a $90^\circ$ por descasamento geométrico de polarização
+(Proposição~\ref{prop:descasamento}). Com um receptor alinhado de dupla
+polarização, o canal biestático recupera de $13$ a $28\dB$, e a melhoria de
+contraste torna-se sistemática sob orientação aleatória ($+1,8$ a $+2,7\dB$ em $90$
+a $98\,\%$ das orientações a $90^\circ$). A diversidade de aspecto reduz ainda em
+cerca de $10\dB$ o mascaramento entre objetos de RCS muito distintas. Em nenhum caso
+a resolução ou a localização melhoram.
+
+Para a hipótese H1, esses resultados restringem a afirmação de ganho à configuração
+com receptor de dupla polarização; com receptor co-polar, o ganho de contraste é
+marginal. A regra de polarização só pode ser verificada experimentalmente se o
+sistema dispuser de um receptor de dupla polarização.
 
 %%═══════════════════════════════════════════════════════════════════════════════
 \chapter{Retorno da Superfície, Pseudo-Brewster e o Nulo Biestático}
@@ -2656,9 +2964,10 @@ O Capítulo~\ref{cap:potencia} concluiu que o ângulo de Brewster só pode ser �
 como mecanismo de redução do retorno da interface, e não de aumento do eco do
 alvo. Este capítulo testa essa possibilidade nas condições de um sistema real
 --- solo com perdas, rugosidade, erros de incidência e de atitude, banda
-finita --- e responde a duas perguntas: a operação próxima do pseudo-Brewster
-reduz o retorno da superfície de forma robusta? Qual é o custo, em qualidade de
-imagem, de impor essa restrição à trajetória? A métrica principal é a relação
+finita --- e investiga duas questões, correspondentes ao objetivo O6 e à
+hipótese H2: se a operação próxima do pseudo-Brewster reduz o retorno da superfície
+de forma robusta e qual é o custo, em qualidade de imagem, de impor essa restrição
+à trajetória. A métrica principal é a relação
 alvo--clutter (SCR); como a potência média do alvo não varia sistematicamente
 com a geometria, qualquer melhoria de SCR deve ser interpretada como redução do
 retorno da superfície.
@@ -2715,8 +3024,8 @@ $\Delta\phi$: expressão~\eqref{eq:theta_esp} e simulação.}
 A Fig.~\ref{fig:sup_geom}(d) traduz a expressão~\eqref{eq:theta_esp}: a
 reflexão especular não ocorre na incidência das plataformas, mas no ponto
 especular do par Tx--Rx. Só na configuração diametral as duas coincidem.
-\textbf{Escolher $\theta_c=\theta_{pB}$ coloca a especular no pseudo-Brewster
-apenas na configuração diametral}; nas demais, o que a incidência $\theta_c$
+Escolher $\theta_c=\theta_{pB}$ coloca a especular no pseudo-Brewster apenas na
+configuração diametral; nas demais, o que a incidência $\theta_c$
 controla é o retorno difuso.
 
 \section{Robustez da Reflectância}
@@ -2726,28 +3035,26 @@ controla é o retorno difuso.
 \centering\small
 \caption{Reflectância TM efetiva [dB] em $\theta_{pB}+\delta$. Rolamento nulo: média
 de $\pm\delta$ (simétrica a menos de $1\dB$); rolamento de $5^\circ$: pares
-$+\delta/-\delta$. Última coluna: incidência de $53,4^\circ$. Cores segundo a supressão
-em relação à incidência de $53,4^\circ$ no pior sinal de $\delta$:
-\colorbox{melhor}{$\ge10\dB$}, \colorbox{regular}{$5$--$10\dB$}, \colorbox{pior}{$<5\dB$}.}
+$+\delta/-\delta$. Última coluna: incidência de $53,4^\circ$.}
 \label{tab:sup_refl}
 \resizebox{\textwidth}{!}{\begin{tabular}{@{}lrrrrr|r@{}}
 \toprule
 Solo / rolamento & $\delta=0$ & $\pm0,5^{\circ}$ & $\pm1^{\circ}$ & $\pm2^{\circ}$ & $\pm5^{\circ}$ & $53,4^\circ$ \\
 \midrule
-S0, $0^\circ$ & \cellcolor{melhor}$-189,7$ & \cellcolor{melhor}$-41,7$ & \cellcolor{melhor}$-35,7$ & \cellcolor{melhor}$-29,7$ & \cellcolor{pior}$-21,7$ & $-17,5$ \\
-S0, $5^\circ$ & \cellcolor{melhor}$-46,8$ & \cellcolor{melhor}$-37,8$/$-49,1$ & \cellcolor{melhor}$-33,4$/$-38,9$ & \cellcolor{melhor}$-28,2$/$-31,5$ & \cellcolor{pior}$-20,3$/$-23,3$ & --- \\
-S1, $0^\circ$ & \cellcolor{melhor}$-34,5$ & \cellcolor{melhor}$-33,8$ & \cellcolor{melhor}$-32,1$ & \cellcolor{melhor}$-28,5$ & \cellcolor{pior}$-21,5$ & $-17,5$ \\
-S1, $5^\circ$ & \cellcolor{melhor}$-34,4$ & \cellcolor{melhor}$-32,9$/$-34,5$ & \cellcolor{melhor}$-31,0$/$-33,3$ & \cellcolor{regular}$-27,3$/$-29,8$ & \cellcolor{pior}$-20,1$/$-23,0$ & --- \\
-S2 ($\theta_{pB}=68,66^{\circ}$) & \cellcolor{melhor}$-30,7$ & & & & & $-12,6$ \\
-S3 ($\theta_{pB}=74,05^{\circ}$) & \cellcolor{melhor}$-26,5$ & & & & & $-8,7$ \\
+S0, $0^\circ$ & $-189,7$ & $-41,7$ & $-35,7$ & $-29,7$ & $-21,7$ & $-17,5$ \\
+S0, $5^\circ$ & $-46,8$ & $-37,8$/$-49,1$ & $-33,4$/$-38,9$ & $-28,2$/$-31,5$ & $-20,3$/$-23,3$ & --- \\
+S1, $0^\circ$ & $-34,5$ & $-33,8$ & $-32,1$ & $-28,5$ & $-21,5$ & $-17,5$ \\
+S1, $5^\circ$ & $-34,4$ & $-32,9$/$-34,5$ & $-31,0$/$-33,3$ & $-27,3$/$-29,8$ & $-20,1$/$-23,0$ & --- \\
+S2 ($\theta_{pB}=68,66^{\circ}$) & $-30,7$ & & & & & $-12,6$ \\
+S3 ($\theta_{pB}=74,05^{\circ}$) & $-26,5$ & & & & & $-8,7$ \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
-No solo sem perdas, o mínimo é um zero exato que \textbf{desaparece com
-$0,5^\circ$} de erro ($-190\to-42\dB$): é um mínimo estreito demais para
-justificar uma trajetória real. Com perdas, o mínimo é \textbf{raso, porém
-largo}: em S1, apenas $-34,5\dB$, perdendo $0,7$, $2,4$, $6,0$ e $13,0\dB$ com
+No solo sem perdas, o mínimo é um zero exato que desaparece com
+$0,5^\circ$ de erro ($-190\to-42\dB$): é um mínimo estreito demais para
+justificar uma trajetória real. Com perdas, o mínimo é raso, porém
+largo: em S1, apenas $-34,5\dB$, perdendo $0,7$, $2,4$, $6,0$ e $13,0\dB$ com
 erros de $0,5^\circ$, $1^\circ$, $2^\circ$ e $5^\circ$. Em relação à incidência de
 $53,4^\circ$, a supressão disponível é de $17\dB$. O mínimo torna-se mais raso com a
 umidade ($-30,7$ e $-26,5\dB$ em S2 e S3) e desloca-se para $68,7^\circ$ e $74,0^\circ$.
@@ -2825,36 +3132,36 @@ hélice de referência.}
 \begin{table}[H]
 \centering\small
 \caption{SCR na imagem [dB], no voxel do alvo pontual (S1, $s=2\,$cm, três
-realizações). \colorbox{melhor}{\textbf{verde}}: melhor canal da linha;
-\colorbox{pior}{vermelho}: SCR $<0$. $\leftarrow$: linha no pseudo-Brewster.}
+realizações). Em negrito, o melhor canal de cada linha; $\leftarrow$: linha no
+pseudo-Brewster.}
 \label{tab:sup_scr}
 \resizebox{\textwidth}{!}{\begin{tabular}{@{}llrrrrrr@{}}
 \toprule
 Pol. & Família, $\theta_c$ & Mono & Bi $90^\circ$ & Bi $135^\circ$ & Diametral & Mono+bi $90^\circ$ & Mono+bi $135^\circ$ \\
 \midrule
-TM & helicoidal, $35^\circ$ & \cellcolor{pior}$-0,5$ & 3,3 & 0,8 & \cellcolor{pior}$-59,6$ & 2,8 & \cellcolor{melhor}\textbf{5,8} \\
- & helicoidal, $45^\circ$ & \cellcolor{pior}$-0,2$ & 1,3 & \cellcolor{melhor}\textbf{13,0} & \cellcolor{pior}$-58,2$ & 4,4 & 5,6 \\
- & helicoidal, $53,4^\circ$ & 3,1 & 3,1 & \cellcolor{melhor}\textbf{9,8} & \cellcolor{pior}$-55,3$ & 4,3 & 9,5 \\
- & \textbf{helicoidal, $\theta_{pB}$} $\leftarrow$ & 8,0 & 6,0 & 7,4 & \cellcolor{pior}$-41,5$ & 9,4 & \cellcolor{melhor}\textbf{12,0} \\
- & helicoidal, $75^\circ$ & 14,8 & 11,6 & 12,4 & \cellcolor{pior}$-66,3$ & 15,6 & \cellcolor{melhor}\textbf{18,0} \\
+TM & helicoidal, $35^\circ$ & $-0,5$ & 3,3 & 0,8 & $-59,6$ & 2,8 & \textbf{5,8} \\
+ & helicoidal, $45^\circ$ & $-0,2$ & 1,3 & \textbf{13,0} & $-58,2$ & 4,4 & 5,6 \\
+ & helicoidal, $53,4^\circ$ & 3,1 & 3,1 & \textbf{9,8} & $-55,3$ & 4,3 & 9,5 \\
+ & \textbf{helicoidal, $\theta_{pB}$} $\leftarrow$ & 8,0 & 6,0 & 7,4 & $-41,5$ & 9,4 & \textbf{12,0} \\
+ & helicoidal, $75^\circ$ & 14,8 & 11,6 & 12,4 & $-66,3$ & 15,6 & \textbf{18,0} \\
 \cmidrule(l){2-8}
- & inc.\ constante, $35^\circ$ & \cellcolor{pior}$-4,7$ & \cellcolor{pior}$-1,6$ & \cellcolor{pior}$-13,4$ & \cellcolor{pior}$-61,2$ & \cellcolor{melhor}\textbf{$-0,2$} & \cellcolor{pior}$-8,3$ \\
- & inc.\ constante, $45^\circ$ & 0,5 & \cellcolor{pior}$-0,9$ & 3,4 & \cellcolor{pior}$-60,1$ & 1,6 & \cellcolor{melhor}\textbf{5,6} \\
- & inc.\ constante, $53,4^\circ$ & 0,2 & 3,0 & \cellcolor{melhor}\textbf{6,9} & \cellcolor{pior}$-57,3$ & 2,9 & 4,2 \\
- & \textbf{inc.\ constante, $\theta_{pB}$} $\leftarrow$ & 2,5 & 3,5 & 5,1 & \cellcolor{pior}$-41,5$ & \cellcolor{melhor}\textbf{7,8} & 7,3 \\
- & inc.\ constante, $75^\circ$ & 8,4 & 5,7 & 8,3 & \cellcolor{pior}$-66,0$ & \cellcolor{melhor}\textbf{12,6} & 12,1 \\
+ & inc.\ constante, $35^\circ$ & $-4,7$ & $-1,6$ & $-13,4$ & $-61,2$ & $\mathbf{-0,2}$ & $-8,3$ \\
+ & inc.\ constante, $45^\circ$ & 0,5 & $-0,9$ & 3,4 & $-60,1$ & 1,6 & \textbf{5,6} \\
+ & inc.\ constante, $53,4^\circ$ & 0,2 & 3,0 & \textbf{6,9} & $-57,3$ & 2,9 & 4,2 \\
+ & \textbf{inc.\ constante, $\theta_{pB}$} $\leftarrow$ & 2,5 & 3,5 & 5,1 & $-41,5$ & \textbf{7,8} & 7,3 \\
+ & inc.\ constante, $75^\circ$ & 8,4 & 5,7 & 8,3 & $-66,0$ & \textbf{12,6} & 12,1 \\
 \midrule
-TE & helicoidal, $35^\circ$ & 1,4 & \cellcolor{melhor}\textbf{14,4} & 1,5 & \cellcolor{pior}$-64,4$ & 6,7 & 4,2 \\
- & helicoidal, $45^\circ$ & 2,4 & \cellcolor{melhor}\textbf{18,6} & \cellcolor{pior}$-4,9$ & \cellcolor{pior}$-66,9$ & 8,8 & 0,7 \\
- & helicoidal, $53,4^\circ$ & 6,2 & \cellcolor{melhor}\textbf{23,8} & \cellcolor{pior}$-2,3$ & \cellcolor{pior}$-69,8$ & 11,6 & 4,6 \\
- & \textbf{helicoidal, $\theta_{pB}$} $\leftarrow$ & 11,5 & \cellcolor{melhor}\textbf{28,9} & \cellcolor{pior}$-1,3$ & \cellcolor{pior}$-74,4$ & 17,1 & 4,7 \\
- & helicoidal, $75^\circ$ & 18,5 & \cellcolor{melhor}\textbf{35,0} & 6,9 & \cellcolor{pior}$-81,3$ & 24,6 & 13,6 \\
+TE & helicoidal, $35^\circ$ & 1,4 & \textbf{14,4} & 1,5 & $-64,4$ & 6,7 & 4,2 \\
+ & helicoidal, $45^\circ$ & 2,4 & \textbf{18,6} & $-4,9$ & $-66,9$ & 8,8 & 0,7 \\
+ & helicoidal, $53,4^\circ$ & 6,2 & \textbf{23,8} & $-2,3$ & $-69,8$ & 11,6 & 4,6 \\
+ & \textbf{helicoidal, $\theta_{pB}$} $\leftarrow$ & 11,5 & \textbf{28,9} & $-1,3$ & $-74,4$ & 17,1 & 4,7 \\
+ & helicoidal, $75^\circ$ & 18,5 & \textbf{35,0} & 6,9 & $-81,3$ & 24,6 & 13,6 \\
 \cmidrule(l){2-8}
- & inc.\ constante, $35^\circ$ & \cellcolor{pior}$-2,6$ & \cellcolor{melhor}\textbf{11,7} & \cellcolor{pior}$-18,1$ & \cellcolor{pior}$-65,8$ & 3,6 & \cellcolor{pior}$-12,0$ \\
- & inc.\ constante, $45^\circ$ & 3,5 & \cellcolor{melhor}\textbf{18,5} & \cellcolor{pior}$-9,1$ & \cellcolor{pior}$-68,6$ & 9,0 & \cellcolor{pior}$-3,3$ \\
- & inc.\ constante, $53,4^\circ$ & 3,8 & \cellcolor{melhor}\textbf{24,6} & \cellcolor{pior}$-3,9$ & \cellcolor{pior}$-71,5$ & 9,5 & 0,2 \\
- & \textbf{inc.\ constante, $\theta_{pB}$} $\leftarrow$ & 6,7 & \cellcolor{melhor}\textbf{28,7} & \cellcolor{pior}$-1,9$ & \cellcolor{pior}$-75,5$ & 12,9 & 4,2 \\
- & inc.\ constante, $75^\circ$ & 13,1 & \cellcolor{melhor}\textbf{36,0} & 4,4 & \cellcolor{pior}$-81,6$ & 19,4 & 10,2 \\
+ & inc.\ constante, $35^\circ$ & $-2,6$ & \textbf{11,7} & $-18,1$ & $-65,8$ & 3,6 & $-12,0$ \\
+ & inc.\ constante, $45^\circ$ & 3,5 & \textbf{18,5} & $-9,1$ & $-68,6$ & 9,0 & $-3,3$ \\
+ & inc.\ constante, $53,4^\circ$ & 3,8 & \textbf{24,6} & $-3,9$ & $-71,5$ & 9,5 & 0,2 \\
+ & \textbf{inc.\ constante, $\theta_{pB}$} $\leftarrow$ & 6,7 & \textbf{28,7} & $-1,9$ & $-75,5$ & 12,9 & 4,2 \\
+ & inc.\ constante, $75^\circ$ & 13,1 & \textbf{36,0} & 4,4 & $-81,6$ & 19,4 & 10,2 \\
 \bottomrule
 \end{tabular}}
 \end{table}
@@ -2868,24 +3175,26 @@ pseudo-Brewster.}
 \label{fig:sup_scr}
 \end{figure}
 
-A Tabela~\ref{tab:sup_scr} sustenta quatro conclusões.
-\textbf{(i) O pseudo-Brewster só se manifesta na configuração diametral, que é
-inútil.} É a única coluna com pico em $\theta_{pB}$: em TM passa de $-55,3$ para
+A Tabela~\ref{tab:sup_scr} sustenta quatro conclusões. A primeira é que o
+pseudo-Brewster só se manifesta na configuração diametral, inútil para
+imageamento: é a única coluna com pico em $\theta_{pB}$: em TM passa de $-55,3$ para
 $-41,5\dB$, e em TE não há pico (controle). Ainda assim, fica mais de $40\dB$ abaixo
-de qualquer outro canal. \textbf{(ii) Nos demais canais, maior incidência é melhor,
-sem pico em $\theta_{pB}$.} O SCR cresce de forma quase monótona de $35^\circ$ a
+de qualquer outro canal. A segunda é que, nos demais canais, uma incidência maior
+é melhor, sem pico em $\theta_{pB}$: o SCR cresce de forma quase monótona de $35^\circ$ a
 $75^\circ$, igualmente em TM e TE (por exemplo, monoestático helicoidal:
 $3,1\to8,0\to14,8\dB$ em TM e $6,2\to11,5\to18,5\dB$ em TE, em $53,4^\circ$,
 $63,45^\circ$ e $75^\circ$), porque o retorno difuso decai com a incidência pelo
-espectro de rugosidade $W$, e não por Brewster. \textbf{(iii) A TE supera a TM}
-em $2$ a $5\dB$ no monoestático, ao contrário do que se esperaria se Brewster
-importasse: em retroespalhamento, o difuso VV é maior que o HH. \textbf{(iv) Com o
-alvo pontual}, o canal biestático TE a $90^\circ$ é o melhor em todas as linhas,
+espectro de rugosidade $W$, e não por Brewster. A terceira é que a TE supera a
+TM em $2$ a $5\dB$ no monoestático, ao contrário do que se esperaria se Brewster
+importasse: em retroespalhamento, o difuso VV é maior que o HH. A quarta é que, com
+o alvo pontual, o canal biestático TE a $90^\circ$ é o melhor em todas as linhas,
 pelo nulo HH; em TM, um canal a $135^\circ$ é o melhor em sete de dez linhas. A
 Seção~\ref{sec:sup_alvos_reais} mostra que apenas a segunda conclusão sobrevive
 com alvos reais.
 
-\paragraph{Hélice ou órbita de incidência constante.} A família helicoidal supera
+\subsection{Família de Trajetória e Sensibilidade}
+
+A família helicoidal supera
 a de incidência constante em 54 de 60 comparações de mesma incidência,
 polarização e canal, com $3,5\dB$ de SCR em média ($6,2\dB$ no canal biestático a
 $135^\circ$). O eco do alvo é idêntico nas duas famílias (diferença inferior a
@@ -2896,7 +3205,7 @@ vaza mais energia da superfície para o alvo. A órbita que impõe o
 pseudo-Brewster é, portanto, pior também em SCR, a métrica para a qual foi
 proposta.
 
-\paragraph{Robustez ao erro angular.} Em S1, na órbita de incidência constante,
+Quanto ao erro angular, em S1, na órbita de incidência constante,
 erros de até $\pm5^\circ$ alteram o SCR do monoestático, do biestático e da fusão em
 cerca de $\pm3\dB$, sem tendência e da ordem da dispersão entre realizações; só a
 configuração diametral cai ao afastar-se de $\theta_{pB}$ (até $15\dB$ com
@@ -2904,7 +3213,7 @@ $\pm5^\circ$). Fora da diametral, o SCR é robusto ao erro angular \emph{porque 
 depende de Brewster}. No solo sem perdas, a diametral alcança $61\dB$ em
 $\theta_{pB}$ exato e cai para $-12\dB$ com $\pm2^\circ$.
 
-\paragraph{Outros fatores.} O SCR do monoestático e dos biestáticos
+Quanto aos demais fatores, o SCR do monoestático e dos biestáticos
 intermediários cai cerca de $6\dB$ cada vez que $s$ dobra (o difuso escala com
 $s^2$); o da diametral quase não muda, pois é dominado pela especular. Nos solos
 úmidos (S2 e S3), o SCR é negativo em todas as geometrias ($-14$ a $-28\dB$ em S2 e
@@ -2918,18 +3227,18 @@ não a remedeia. Um rolamento de $0$ a $5^\circ$ não altera o SCR em S1
 \begin{table}[H]
 \centering\small
 \caption{Hélice de referência ($53,4^\circ$) frente à órbita restrita ao
-pseudo-Brewster, com janela de Hann. \colorbox{melhor}{Verde}: trajetória que
-vence cada métrica no canal. Menor é melhor, exceto contraste e SCR.}
+pseudo-Brewster, com janela de Hann. Em negrito, a trajetória que vence cada
+métrica no canal; menor é melhor, exceto contraste e SCR.}
 \label{tab:sup_custo}
 \resizebox{\textwidth}{!}{\begin{tabular}{@{}llrrrrrr@{}}
 \toprule
 Trajetória & Canal & $\delta_x$ [m] & $\delta_z$ [m] & $V_{-3}$ [l] & ISLR [dB] & Contraste [dB] & SCR [dB] \\
 \midrule
-hélice ($53,4^\circ$) & mono & 0,157 & \cellcolor{melhor}2,08 & 29,0 & \cellcolor{melhor}6,5 & \cellcolor{melhor}19,6 & \cellcolor{melhor}3,1 \\
-órbita em $\theta_{pB}$ & mono & \cellcolor{melhor}0,140 & 2,34 & \cellcolor{melhor}25,0 & 8,3 & 18,4 & 2,5 \\
+hélice ($53,4^\circ$) & mono & 0,157 & \textbf{2,08} & 29,0 & \textbf{6,5} & \textbf{19,6} & \textbf{3,1} \\
+órbita em $\theta_{pB}$ & mono & \textbf{0,140} & 2,34 & \textbf{25,0} & 8,3 & 18,4 & 2,5 \\
 \midrule
-hélice ($53,4^\circ$) & mono+bi $135^\circ$ & 0,213 & \cellcolor{melhor}2,08 & 52,0 & \cellcolor{melhor}2,4 & \cellcolor{melhor}20,4 & \cellcolor{melhor}9,5 \\
-órbita em $\theta_{pB}$ & mono+bi $135^\circ$ & \cellcolor{melhor}0,191 & 2,34 & \cellcolor{melhor}46,0 & 3,6 & 19,9 & 7,3 \\
+hélice ($53,4^\circ$) & mono+bi $135^\circ$ & 0,213 & \textbf{2,08} & 52,0 & \textbf{2,4} & \textbf{20,4} & \textbf{9,5} \\
+órbita em $\theta_{pB}$ & mono+bi $135^\circ$ & \textbf{0,191} & 2,34 & \textbf{46,0} & 3,6 & 19,9 & 7,3 \\
 \bottomrule
 \end{tabular}}
 \end{table}
@@ -2970,37 +3279,36 @@ nulo VV ($140^\circ$).}
 \begin{table}[H]
 \centering\small
 \caption{SCR no voxel do alvo [dB] com alvos reais. ``Superfície'': potência da
-superfície no voxel relativa ao monoestático. \colorbox{melhor}{Verde}: melhoria
-superior a $3\dB$ sobre o monoestático da mesma polarização;
-\colorbox{pior}{vermelho}: piora superior a $3\dB$.}
+superfície no voxel relativa ao monoestático. Em negrito, melhoria superior a
+$3\dB$ sobre o monoestático da mesma polarização.}
 \label{tab:sup_nulos_reais}
 \begin{tabular}{@{}llrrrrr@{}}
 \toprule
 Pol. & Canal & Superfície & Ponto & Esfera & Cubo nominal & Cubo $SO(3)$ \\
 \midrule
 TM & mono & $0,0$ & $0,7$ & $-0,9$ & $-9,5$ & $-12,0$ \\
- & bi $90^\circ$ & $-2,0$ & $2,6$ & \cellcolor{pior}$-13,3$ & \cellcolor{pior}$-25,3$ & \cellcolor{pior}$-27,9$ \\
- & bi $120^\circ$ & $-4,6$ & \cellcolor{melhor}$5,2$ & \cellcolor{pior}$-6,1$ & \cellcolor{pior}$-19,1$ & \cellcolor{melhor}$-6,2$ \\
- & bi $135^\circ$ & $-12,5$ & \cellcolor{melhor}$13,1$ & \cellcolor{melhor}$7,5$ & \cellcolor{melhor}$14,7$ & \cellcolor{melhor}$6,2$ \\
- & bi $140^\circ$ & $-13,6$ & \cellcolor{melhor}$14,2$ & \cellcolor{melhor}$\mathbf{9,8}$ & \cellcolor{melhor}$\mathbf{20,1}$ & \cellcolor{melhor}$\mathbf{8,3}$ \\
- & bi $150^\circ$ & $-1,2$ & $1,8$ & $-0,9$ & \cellcolor{melhor}$13,7$ & \cellcolor{melhor}$-2,7$ \\
- & mono+bi $140^\circ$ & $-5,7$ & \cellcolor{melhor}$6,4$ & $-0,9$ & \cellcolor{melhor}$4,7$ & \cellcolor{melhor}$-4,2$ \\
+ & bi $90^\circ$ & $-2,0$ & $2,6$ & $-13,3$ & $-25,3$ & $-27,9$ \\
+ & bi $120^\circ$ & $-4,6$ & $\mathbf{5,2}$ & $-6,1$ & $-19,1$ & $\mathbf{-6,2}$ \\
+ & bi $135^\circ$ & $-12,5$ & $\mathbf{13,1}$ & $\mathbf{7,5}$ & $\mathbf{14,7}$ & $\mathbf{6,2}$ \\
+ & bi $140^\circ$ & $-13,6$ & $\mathbf{14,2}$ & $\mathbf{9,8}$ & $\mathbf{20,1}$ & $\mathbf{8,3}$ \\
+ & bi $150^\circ$ & $-1,2$ & $1,8$ & $-0,9$ & $\mathbf{13,7}$ & $\mathbf{-2,7}$ \\
+ & mono+bi $140^\circ$ & $-5,7$ & $\mathbf{6,4}$ & $-0,9$ & $\mathbf{4,7}$ & $\mathbf{-4,2}$ \\
 \midrule
 TE & mono & $0,0$ & $3,9$ & $2,3$ & $-6,4$ & $-8,8$ \\
- & bi $90^\circ$ & $-17,8$ & \cellcolor{melhor}$\mathbf{21,7}$ & \cellcolor{pior}$-4,8$ & $-6,2$ & $-9,0$ \\
- & mono+bi $90^\circ$ & $-5,5$ & \cellcolor{melhor}$9,4$ & $2,2$ & $-7,4$ & $-9,3$ \\
+ & bi $90^\circ$ & $-17,8$ & $\mathbf{21,7}$ & $-4,8$ & $-6,2$ & $-9,0$ \\
+ & mono+bi $90^\circ$ & $-5,5$ & $\mathbf{9,4}$ & $2,2$ & $-7,4$ & $-9,3$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\paragraph{O nulo HH a $90^\circ$ é um artefato do espalhador escalar.} A
+O nulo HH a $90^\circ$ revela-se um artefato do espalhador escalar: a
 superfície cai $17,8\dB$, mas o eco da esfera cai $25\dB$ e o do cubo em
 orientação aleatória, $18\dB$. O SCR da esfera piora $7,1\dB$ em relação ao
 monoestático, e o do cubo não muda. É o mesmo mecanismo da
 Proposição~\ref{prop:descasamento}: a $90^\circ$, os vetores TE do transmissor e
 do receptor são ortogonais, o que desacopla tanto a superfície quanto o alvo.
 
-\paragraph{O nulo VV a $135^\circ$--$140^\circ$ sobrevive.} A superfície cai $12,5$ a
+O nulo VV a $135^\circ$--$140^\circ$, ao contrário, sobrevive: a superfície cai $12,5$ a
 $13,6\dB$, enquanto o eco dos alvos cai pouco (esfera, $-4,1$ e $-2,9\dB$) ou até
 sobe (cubo em orientação aleatória, $+5,8$ e $+6,7\dB$, pela especular de suas
 faces ao longo da bissetriz). O SCR do canal biestático isolado melhora, em
@@ -3008,57 +3316,49 @@ relação ao monoestático, de $8,4$ a $10,7\dB$ na esfera, de $24$ a $30\dB$ no
 nominal e de $18$ a $20\dB$ no cubo em orientação aleatória. O PSCR melhora menos,
 mas com o mesmo sinal: $+2,5$ a $+3,7\dB$ na esfera e $+12$ a $+14\dB$ no cubo.
 
-\paragraph{A janela é estreita.} A $120^\circ$ e a $150^\circ$, a esfera já não
+A janela angular do nulo é, porém, estreita: a $120^\circ$ e a $150^\circ$, a esfera já não
 melhora ($-6,1$ e $-0,9\dB$), e a partir de $150^\circ$ a especular do nadir domina o
 PSCR. O receptor deve manter-se a cerca de $\pm5^\circ$ de $140^\circ$, coerentemente
 com a largura de $4$ a $8^\circ$ do nulo VV.
 
-\paragraph{A fusão de pesos iguais desperdiça o canal limpo.} A imagem fundida é
+A fusão de pesos iguais desperdiça o canal com pouco clutter. A imagem fundida é
 a média das duas, e o clutter do monoestático a domina: sua superfície cai
 apenas $5,7\dB$, próximo do limite de $6\dB$ da média de dois canais. A $140^\circ$,
 a fusão deixa a esfera igual ao monoestático e fica $10$ a $15\dB$ abaixo do
 biestático isolado. Para explorar o nulo, deve-se usar o canal biestático isolado
 ou uma fusão ponderada pelo clutter de cada canal.
 
-\paragraph{O preço é a resolução.} A $135^\circ$, o canal biestático tem
+O preço do nulo é a resolução: a $135^\circ$, o canal biestático tem
 $\delta_x=0,41\,$m, contra $0,157\,$m no monoestático, com a mesma $\delta_z$. Trata-se
 de um modo de \emph{detecção} em cenários limitados por clutter, não de um modo de
 imageamento fino.
 
-\section{Síntese do Capítulo}
+\section{Conclusões do Capítulo}
 \label{sec:sup_sintese}
 
-\begin{table}[H]
-\centering\small
-\caption{Respostas diretas sobre a supressão do retorno da superfície (S1,
-$s=2\,$cm). \colorbox{melhor}{Verde}: opção recomendada.}
-\label{tab:sup_respostas}
-\begin{tabular}{@{}L{3.5cm}L{2.9cm}L{3.5cm}L{3.9cm}@{}}
-\toprule
-\textbf{Pergunta} & \textbf{Melhor opção} & \textbf{Margem} & \textbf{Razão} \\
-\midrule
-Restringir a trajetória ao pseudo-Brewster? & \cellcolor{melhor}Não & a órbita restrita perde $0,6$ a $2,2\dB$ de SCR & só suprime a especular, que só pesa na diametral \\
-Hélice ou incidência constante? & \cellcolor{melhor}Hélice & $+3,5\dB$ de SCR médio; vence 54/60 & melhor $\delta_z$ e ISLR \\
-Qual incidência? & \cellcolor{melhor}A maior viável & mono TM: $+11,7\dB$ de $53,4^\circ$ a $75^\circ$ & o difuso cai com $\theta$, igualmente em TM e TE \\
-Qual canal em TM? & \cellcolor{melhor}Bi isolado a $135^\circ$--$140^\circ$ & $8$ a $20\dB$ sobre o mono com alvos reais & nulo VV biestático \\
-TM ou TE? & \cellcolor{melhor}TM & TE a $90^\circ$ só vence com o ponto escalar & o desacoplamento anula também o alvo \\
-Fusão de pesos iguais? & \cellcolor{pior}Não para clutter & $10$ a $15\dB$ abaixo do bi isolado & o clutter do mono domina a média \\
-Configuração diametral? & \cellcolor{pior}Nunca & $-41$ a $-81\dB$ & a especular cai sobre o alvo \\
-\bottomrule
-\end{tabular}
-\end{table}
+O pseudo-Brewster não é um critério útil de trajetória. Num solo com perdas, ele é
+um mínimo raso da reflectância, que só atua sobre a reflexão especular; esta só
+alcança o receptor na configuração diametral, inútil para imageamento, e a órbita
+que impõe o pseudo-Brewster é pior que a hélice em SCR, em resolução vertical e em
+lóbulos. Fora da configuração diametral, o SCR não depende de Brewster e cresce com
+a incidência, igualmente em TM e em TE, porque o retorno difuso decai com o
+espectro de rugosidade. Em solos úmidos, nenhuma geometria compensa a atenuação de
+um alvo a $2\,$m de profundidade.
 
-\begin{sintese}
-O pseudo-Brewster não é um critério útil de trajetória: num solo com perdas é um
-mínimo raso, que só atua sobre a reflexão especular, e esta só alcança o
-receptor na configuração diametral, inútil para imageamento; a órbita que o
-impõe é pior que a hélice em SCR, resolução vertical e lóbulos. O que eleva o SCR
-é a geometria: maior incidência e, sobretudo, o receptor a $135^\circ$--$140^\circ$
-em TM usado como canal isolado, no nulo biestático VV de primeira ordem, que eleva
-de $8$ a $20\dB$ o SCR de alvos reais. O nulo HH a $90^\circ$ é um artefato do alvo
-escalar. Como o nulo VV é de primeira ordem, ele deve ser confirmado com modelos de
+O mecanismo de supressão que se mantém com alvos reais é geométrico: o nulo
+biestático VV de primeira ordem (Proposição~\ref{prop:nulo_vv}). Com o receptor a
+$135^\circ$--$140^\circ$ em polarização TM e o canal biestático usado isoladamente,
+ele eleva de $8$ a $20\dB$ o SCR de alvos reais, à custa de uma resolução horizontal
+$2,6$ vezes pior; a fusão de pesos iguais desperdiça esse ganho, porque o clutter do
+canal monoestático domina a média. O nulo HH a $90^\circ$, aparente com o espalhador
+escalar, é um artefato: o mesmo desacoplamento anula o eco do alvo. A configuração
+diametral deve ser evitada em qualquer modo de operação.
+
+Esses resultados sustentam a hipótese H2 em nível de simulação de primeira ordem. O
+nulo VV deriva do método das pequenas perturbações e foi avaliado com duas a três
+realizações de superfície; como os termos de ordem superior tendem a preenchê-lo, o
+ganho de SCR deve ser tratado como cota otimista até ser confirmado com modelos de
 espalhamento de ordem superior e com medidas.
-\end{sintese}
 
 %%═══════════════════════════════════════════════════════════════════════════════
 \chapter{Projeto da Trajetória do Receptor e Requisitos de Sincronização}
@@ -3072,8 +3372,8 @@ Os capítulos anteriores identificaram a região promissora
 ($\Delta\phi\approx90^\circ$--$120^\circ$ para imageamento,
 $\Delta\phi\approx140^\circ$ para supressão de clutter) por varredura direta, sem
 otimizador, como recomendam a boa prática e a própria natureza exploratória do
-problema. Este capítulo converte essa compreensão física num projeto de
-trajetória e quantifica as condições operacionais que o tornam viável:
+problema. Este capítulo, correspondente ao objetivo O7, converte essa
+compreensão física num projeto de trajetória e quantifica as condições operacionais que o tornam viável:
 tolerâncias de posição, de relógio e de fase entre os canais.
 
 \section{Espaço de Projeto e Função de Custo}
@@ -3134,7 +3434,7 @@ voo prioritário & 0,5 & 0,5 & 0,5 & 2 & $75^\circ$ & $0^\circ$ & 1,00 & 4,00 & 
 \end{tabular}}
 \end{table}
 
-\section{Trajetória Proposta}
+\section{Trajetória Selecionada}
 \label{sec:traj_proposta}
 
 Com três dos quatro conjuntos de pesos, a escolha é a mesma: receptor à mesma
@@ -3144,7 +3444,7 @@ domina escolhe-se uma separação constante de $75^\circ$. A escolha é estável
 
 \begin{table}[H]
 \centering\small
-\caption{Trajetória proposta frente ao monoestático, à melhor separação constante e
+\caption{Trajetória selecionada frente ao monoestático, à melhor separação constante e
 à região da configuração diametral (janela de Hann).}
 \label{tab:traj_final}
 \resizebox{\textwidth}{!}{\begin{tabular}{@{}lrrrrrrr@{}}
@@ -3154,7 +3454,7 @@ domina escolhe-se uma separação constante de $75^\circ$. A escolha é estável
 \midrule
 Monoestático & $-7,73$ & 6,71 & 29,4 & 0,158 & 2,08 & 19,5 & 6,9 \\
 Mono+bi, $\Delta\phi=105^{\circ}$ constante & $-10,40$ & 1,86 & 43,2 & 0,19 & 2,08 & 22,4 & 10,0 \\
-\textbf{Mono+bi proposta} ($60^{\circ}\to150^{\circ}$, $\kappa=0,85$) & $\mathbf{-10,10}$ & $\mathbf{-1,01}$ & 44,8 & 0,20 & 2,06 & \textbf{25,0} & 11,5 \\
+\textbf{Mono+bi selecionada} ($60^{\circ}\to150^{\circ}$, $\kappa=0,85$) & $\mathbf{-10,10}$ & $\mathbf{-1,01}$ & 44,8 & 0,20 & 2,06 & \textbf{25,0} & 11,5 \\
 Mono+bi, $\Delta\phi=165^{\circ}$ constante & $-5,2$ & 7,5 & 61,7 & 0,23 & 2,08 & 14,5 & $-32,8$ \\
 \bottomrule
 \end{tabular}}
@@ -3163,13 +3463,13 @@ Mono+bi, $\Delta\phi=165^{\circ}$ constante & $-5,2$ & 7,5 & 61,7 & 0,23 & 2,08 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{F_trayectoria_final.pdf}
-\caption{Trajetória proposta do receptor comparada com a configuração diametral e
+\caption{Trajetória selecionada do receptor comparada com a configuração diametral e
 com a monoestática; à direita, $\Delta\phi(t)$ com o transmissor a $10\,$m/s
 ($190\,$s de aquisição).}
 \label{fig:traj_final}
 \end{figure}
 
-Frente à imagem monoestática, a trajetória proposta reduz o ISLR em $7,7\dB$ e o
+Frente à imagem monoestática, a trajetória selecionada reduz o ISLR em $7,7\dB$ e o
 PSLR em $2,4\dB$ e eleva o contraste em $5,5\dB$, à custa de um lóbulo principal
 $52\,\%$ mais volumoso ($\delta_x$ de $0,158$ para $0,20\,$m). Frente à melhor
 separação constante ($105^\circ$), a varredura ganha $2,9\dB$ de ISLR: anéis de raios
@@ -3178,12 +3478,12 @@ custo de voo é baixo: velocidade máxima do receptor de $0,97$ vez a do
 transmissor, percurso relativo de $0,96$, aceleração máxima de $0,77\,$m/s$^2$ a
 $10\,$m/s e separação mínima de $128\,$m entre os VANTs.
 
-Dois resultados negativos acompanham o projeto. \textbf{O raio não acrescenta
-resolução vertical}: à mesma altura, $\kappa$ entre $0,85$ e $1,15$ altera $\delta_z$
+Dois resultados negativos acompanham o projeto. O primeiro é que o raio não
+acrescenta resolução vertical: à mesma altura, $\kappa$ entre $0,85$ e $1,15$ altera $\delta_z$
 em cerca de $1\,\%$, porque a extensão em $k_z$ é fixada pela banda, e não pela
 pequena diferença de elevação ($\pm3^\circ$), em acordo com a
-Proposição~\ref{prop:limite_z}. \textbf{O SCR não ordena as separações
-intermediárias}: o ganho de SCR da fusão fica entre $-0,5$ e $+5,6\dB$ para
+Proposição~\ref{prop:limite_z}. O segundo é que o SCR não ordena as separações
+intermediárias: o ganho de SCR da fusão fica entre $-0,5$ e $+5,6\dB$ para
 $\Delta\phi_0\le150^\circ$, da ordem da dispersão entre realizações ($\pm3\dB$); só a
 região $\Delta\phi_0\ge165^\circ$ é claramente ruim ($-33$ a $-40\dB$).
 
@@ -3195,20 +3495,20 @@ fase. Num sistema com plataformas separadas, a sincronização de relógio e de 
 é o principal desafio tecnológico do SAR biestático~\citar{krieger2006}, \citar{younis2006};
 sistemas UAV recentes resolvem-no com cadeias de sincronização bidirecionais ou
 com receptores digitais coerentes~\citar{liu2024}, \citar{kanz2025}. Avaliou-se a
-sensibilidade da trajetória proposta a cada fonte de erro do canal biestático,
+sensibilidade da trajetória selecionada a cada fonte de erro do canal biestático,
 sem calibração.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{F_robustez.pdf}
-\caption{Robustez da fusão com a trajetória proposta frente a erros do canal
+\caption{Robustez da fusão com a trajetória selecionada frente a erros do canal
 biestático não calibrado.}
 \label{fig:traj_robustez}
 \end{figure}
 
 \begin{table}[H]
 \centering\small
-\caption{Tolerâncias do canal biestático (fusão proposta; nominal: PSLR
+\caption{Tolerâncias do canal biestático (fusão com a trajetória selecionada; nominal: PSLR
 $-10,1\dB$, ISLR $-1,0\dB$; monoestático: $-7,7$ e $6,7\dB$).}
 \label{tab:traj_tolerancias}
 \begin{tabular}{@{}L{4.8cm}L{3.6cm}L{6.0cm}@{}}
@@ -3234,7 +3534,9 @@ $\tfrac12(|I_m|^2+|I_b|^2)$ (tracejado) e monoestático (azul).}
 \label{fig:traj_fase}
 \end{figure}
 
-\paragraph{Fase constante.} A fusão coerente exige conhecer uma fase constante
+\subsection{Fase Constante entre Canais}
+
+A fusão coerente exige conhecer uma fase constante
 $\varphi_0$ entre canais com erro inferior a cerca de $30^\circ$: a $60^\circ$ já se
 perdem $2,1\dB$ de ISLR, e a $150^\circ$ a fusão é pior que o monoestático. Um
 desvio de relógio constante $\Delta t$ produz exatamente uma fase
@@ -3246,7 +3548,9 @@ desempenho nominal. Estimar a fase sobre a imagem inteira falha (erro de
 cerca de $180^\circ$), porque os anéis de lóbulos em contrafase dominam a
 estimativa.
 
-\paragraph{Derivas.} As derivas de relógio e de posição não são calibráveis por
+\subsection{Derivas de Relógio e de Posição}
+
+As derivas de relógio e de posição não são calibráveis por
 uma constante. A deriva de relógio deve permanecer muito abaixo de $1\,$ns nos
 $190\,$s de aquisição, isto é, uma estabilidade relativa da ordem de
 $5\times10^{-12}$, compatível com osciladores disciplinados por GPS ou com um
@@ -3254,12 +3558,16 @@ enlace de sincronização bidirecional; a deriva de posição deve ficar abaixo 
 $5\,$cm rms, compatível com RTK. Os ruídos brancos de posição e de fase são bem
 tolerados, porque se promediam ao longo da abertura.
 
-\paragraph{Fusão incoerente.} Somar intensidades dispensa a fase, mas rende
+\subsection{Fusão Incoerente}
+
+Somar intensidades dispensa a fase, mas rende
 $2,0\dB$ menos de ISLR e $4,4\dB$ menos de contraste que a fusão coerente calibrada,
 com PSLR semelhante ($-10,7\dB$). É uma alternativa de reserva quando não houver
 calibração confiável, não um substituto.
 
-\paragraph{Modelo de erro realista.} A fase constante é o caso ideal. Um modelo
+\subsection{Modelo de Erro Completo}
+
+A fase constante é o caso ideal. Um modelo
 de erro mais completo entre os canais é
 \begin{equation}
   \varphi(f,t)=\varphi_0+2\pi f\,\Delta\tau(t)+H(f),
@@ -3295,14 +3603,26 @@ reavaliação com alvos anisotrópicos em orientação aleatória, com o recepto
 alinhado e sob clutter, usando a mediana do contraste como métrica de imagem, é
 um passo necessário identificado no Capítulo~\ref{cap:conclusoes}.
 
-\begin{sintese}
-A trajetória recomendada para imageamento --- mesma altura, raio $0,85\,\rho_{Tx}$ e
-separação varrida de $60^\circ$ a $150^\circ$ --- reduz o ISLR em $7,7\dB$ e eleva o
-contraste em $5,5\dB$ frente ao monoestático, com custo de voo quase nulo. A
-condição é a coerência: uma fase constante entre canais deve ser calibrada com erro
-inferior a $30^\circ$, e a deriva de relógio deve ficar muito abaixo de $1\,$ns na
-abertura.
-\end{sintese}
+\section{Conclusões do Capítulo}
+\label{sec:traj_concl}
+
+A trajetória selecionada sob as restrições de voo para o modo de imageamento ---
+receptor à mesma altura, raio $0,85\,\rho_{Tx}$ e separação varrida de $60^\circ$ a
+$150^\circ$ --- reduz o ISLR em $7,7\dB$ e eleva o contraste em $5,5\dB$ frente ao
+monoestático, com custo de voo quase nulo e sem ganho de resolução. A escolha é
+estável frente aos pesos da função de custo e é acompanhada da fronteira de Pareto,
+de modo que não depende de um único valor escalar. Para a detecção limitada por
+clutter, a geometria indicada é outra: separação fixa próxima de $140^\circ$ em TM,
+com o canal biestático isolado.
+
+O ganho do modo de imageamento depende da coerência entre os canais, o que
+fundamenta a hipótese H3: uma fase constante entre canais deve ser calibrada com
+erro inferior a $30^\circ$, a deriva de relógio deve permanecer muito abaixo de
+$1\,$ns na abertura e a deriva de posição, abaixo de $5\,$cm. Os resultados deste
+capítulo foram obtidos com o alvo pontual e com erros de sincronização
+idealizados; a reavaliação da trajetória com alvos anisotrópicos, clutter e
+aberturas parciais e o orçamento de erro completo~\eqref{eq:erro_fase} fazem parte
+do programa de validação.
 
 %%═══════════════════════════════════════════════════════════════════════════════
 \chapter{Avaliação com Dados Reais}
@@ -3321,36 +3641,56 @@ As conclusões desta tese foram obtidas por simulação eletromagnética coerent
 com modelos cujos limites estão listados na Seção~\ref{sec:concl_lim}: Óptica
 Física para os alvos, espalhamento de superfície de primeira ordem, solo homogêneo
 e sincronização idealizada ou perturbada de forma controlada. Este capítulo
-reserva o espaço para a avaliação dessas conclusões com dados reais e define o
-protocolo correspondente. A avaliação tem dois componentes complementares: o
+apresenta o projeto, a execução e a análise da validação experimental dessas
+conclusões. A avaliação tem dois componentes complementares: o
 processamento de dados medidos em voo e a \emph{simulação informada por dados
 reais}, em que o simulador do Capítulo~\ref{cap:modelo} é alimentado com as
 trajetórias, os parâmetros do solo e as respostas das cadeias de recepção
 efetivamente medidos, de modo que a diferença entre a imagem medida e a
 simulada isole os efeitos não modelados.
 
-As hipóteses a testar, derivadas dos resultados de simulação, são:
+As hipóteses testadas são as três da Tabela~\ref{tab:intro_hipoteses}. Em
+termos operacionais, cada uma tem um enunciado experimental e um critério de
+decisão fixados antes da campanha:
 
-\begin{enumerate}[label=\textbf{E\arabic*.},leftmargin=*]
-  \item \textbf{Invariância da potência.} A potência média recebida de alvos de
-  orientação não controlada não varia sistematicamente com a separação
-  azimutal (Capítulo~\ref{cap:potencia}).
-  \item \textbf{Ganho da fusão.} A fusão coerente calibrada com separação na faixa
-  de $60^\circ$ a $150^\circ$ reduz o ISLR e eleva o contraste da imagem monoestática,
-  sem melhorar a resolução a $-3\dB$ (Capítulos~\ref{cap:geometria}
-  e~\ref{cap:trajetoria}).
-  \item \textbf{Regra de polarização.} Um receptor de dupla polarização alinhado
-  recupera o descasamento co-polar a $\Delta\phi\approx90^\circ$
-  (Capítulo~\ref{cap:alvos}).
-  \item \textbf{Nulo biestático VV.} O retorno difuso da superfície em TM
-  apresenta um mínimo próximo de $\Delta\phi^\ast$ dado por~\eqref{eq:nulo_vv},
-  e o canal biestático nessa separação eleva a relação alvo--clutter
-  (Capítulo~\ref{cap:superficie}).
-  \item \textbf{Calibração de fase.} Uma fase constante entre canais, estimada
-  pelo sinal direto ou por um refletor de referência, é suficiente para
-  recuperar o ganho da fusão; as derivas residuais permanecem dentro das
-  tolerâncias da Tabela~\ref{tab:traj_tolerancias}.
-\end{enumerate}
+\begin{description}[leftmargin=0pt]
+  \item[H1 --- Imageamento.] A imagem fundida coerente e calibrada, a orçamento
+  constante de amostras, com o receptor numa separação fixa próxima de
+  $105^\circ$ ou na separação varrida de $60^\circ$ a $150^\circ$, apresenta ISLR
+  menor e contraste maior que a imagem monoestática, sem melhora da resolução a
+  $-3\dB$ (Capítulos~\ref{cap:geometria} e~\ref{cap:trajetoria}). Se houver
+  receptor de dupla polarização, testa-se também que, a
+  $\Delta\phi\approx90^\circ$, o receptor alinhado recupera o descasamento
+  co-polar (Capítulo~\ref{cap:alvos}). \emph{Critério:} a diferença pareada
+  fusão$-$monoestático em ISLR e em contraste tem o sinal previsto e um
+  intervalo de confiança de $95\,\%$ que exclui o zero, com no mínimo três
+  repetições; as larguras $\delta_{x,y,z}$ medidas são consistentes com as
+  expressões do Capítulo~\ref{cap:resolucao}.
+  \item[H2 --- Clutter.] Na região de clutter controlado, o retorno difuso da
+  superfície em TM, medido em função de $\Delta\phi$, apresenta um mínimo
+  próximo de $\Delta\phi^\ast$ dado por~\eqref{eq:nulo_vv}, na faixa de
+  $135^\circ$ a $140^\circ$ para o solo de ensaio, e o canal biestático nessa
+  separação eleva a SCR e a PSCR do alvo enterrado em relação ao monoestático
+  (Capítulo~\ref{cap:superficie}). \emph{Critério:} o mínimo e o ganho de SCR
+  excedem a dispersão entre repetições. Caso contrário, o resultado de
+  simulação passa a ser apresentado como cota otimista do modelo de primeira
+  ordem.
+  \item[H3 --- Coerência.] O ganho de H1 só existe quando o retardo, a fase, a
+  posição e a resposta relativa $H(f,t)$ das cadeias são estimados e
+  compensados dentro das tolerâncias da Tabela~\ref{tab:traj_tolerancias}: fase
+  residual inferior a $30^\circ$, deriva temporal muito inferior a $1\,$ns na
+  abertura e deriva de posição inferior a $5\,$cm.
+  \emph{Critério:} os termos de~\eqref{eq:erro_fase} medidos em bancada e em voo
+  permanecem dentro dessas tolerâncias, e a degradação controlada (remoção ou
+  perturbação conhecida da calibração) elimina o ganho de H1 na proporção
+  prevista pela Figura~\ref{fig:traj_fase}. Se a fase residual variar ao longo
+  da abertura além da tolerância, quantifica-se a decorrelação frente à previsão
+  teórica e avaliam-se o canal biestático isolado e a fusão incoerente.
+\end{description}
+
+A invariância da potência recebida (Capítulo~\ref{cap:potencia}) não integra o
+plano experimental: a questão foi encerrada em simulação e não altera nenhuma
+das três hipóteses.
 
 \section{Sistema de Aquisição}
 \label{sec:real_sistema}
@@ -3404,7 +3744,7 @@ O cenário de ensaio deve conter:
   topográfico da superfície.
   \item \textbf{Região de clutter controlado}: uma área sem alvos, com a mesma
   superfície, para medir o retorno da superfície em função de $\Delta\phi$ e
-  testar a hipótese E4.
+  testar a hipótese H2.
 \end{itemize}
 
 \section{Plano de Voo}
@@ -3419,11 +3759,11 @@ transceptor:
   \item canal monoestático isolado (referência permanente);
   \item receptor remoto em separações constantes de $45^\circ$, $90^\circ$,
   $120^\circ$, $140^\circ$ e $180^\circ$, para reproduzir a varredura do
-  Capítulo~\ref{cap:geometria} e testar E1 e E4;
-  \item receptor remoto na trajetória proposta do modo de imageamento
-  (Seção~\ref{sec:traj_proposta}), para testar E2;
+  Capítulo~\ref{cap:geometria} e testar H2;
+  \item receptor remoto na trajetória selecionada do modo de imageamento
+  (Seção~\ref{sec:traj_proposta}), para testar H1;
   \item a separação de $90^\circ$ com receptor co-polar e com receptor alinhado,
-  para testar E3.
+  para testar a regra de polarização de H1.
 \end{enumerate}
 Cada aquisição deve ser repetida ao menos três vezes, para estimar a dispersão
 entre voos e permitir testes estatísticos pareados entre configurações.
@@ -3466,11 +3806,13 @@ sistema.
 
 As métricas são as da Tabela~\ref{tab:metricas}, calculadas sobre as respostas
 dos alvos de posição conhecida, com a mesma referência e a mesma faixa dinâmica
-para todas as imagens. A contribuição desta tese estará demonstrada
-experimentalmente se a imagem fundida superar objetivamente a imagem monoestática
-em ISLR e contraste, de forma estatisticamente significativa entre repetições, com
-a fusão normalizada a orçamento constante, e se a melhoria desaparecer quando a
-fase entre canais não for calibrada.
+para todas as imagens. Os critérios de decisão de H1 a H3 são os da
+Seção~\ref{sec:real_objetivos}. A contribuição central da tese estará
+demonstrada experimentalmente se H1 for aceita com a fusão normalizada a
+orçamento constante e se, conforme H3, a melhoria desaparecer quando a fase
+entre canais não for calibrada. Cada resultado é reportado com a configuração,
+a métrica, a incerteza entre repetições e a conclusão quanto à hipótese,
+incluindo os resultados negativos.
 
 \section{Resultados}
 \label{sec:real_resultados}
@@ -3482,7 +3824,7 @@ fase entre canais não for calibrada.
 \section{Discussão}
 \label{sec:real_discussao}
 
-% TODO: Confrontar os resultados com as hipóteses E1--E5 e com a simulação
+% TODO: Confrontar os resultados com as hipóteses H1--H3 e com a simulação
 %       informada por dados reais.
 
 \textit{[Discussão a ser inserida após a campanha experimental.]}
@@ -3492,67 +3834,86 @@ fase entre canais não for calibrada.
 \label{cap:conclusoes}
 %%═══════════════════════════════════════════════════════════════════════════════
 
-\section{Respostas às Perguntas de Pesquisa}
+Esta tese investigou quando, onde e por que um canal biestático simultâneo
+acrescenta informação à imagem tomográfica monoestática de alvos enterrados, e como
+a trajetória do receptor deve ser escolhida para explorar essa informação. As
+conclusões deste capítulo foram obtidas analiticamente e por simulação
+eletromagnética coerente; sua validação com dados reais é o objeto do
+Capítulo~\ref{cap:dados_reais}.
+
+\section{Síntese dos Resultados}
 \label{sec:concl_respostas}
 
-\begin{longtable}{@{}L{4.4cm}L{10.4cm}@{}}
-\caption{Perguntas de pesquisa e respostas, com a evidência que as sustenta.}
-\label{tab:concl_respostas}\\
-\toprule
-\textbf{Pergunta} & \textbf{Resposta} \\
-\midrule
-\endfirsthead
-\toprule
-\textbf{Pergunta} & \textbf{Resposta} \\
-\midrule
-\endhead
-A potência recebida, ou o ângulo de Brewster, determinam a melhor posição do
-receptor? &
-\textbf{Não.} A transmitância de Brewster acrescenta cerca de $1\dB$ ao enlace e
-é dominada pela perda geométrica; a potência é invariante à separação azimutal
-para alvos centrados e, promediada sobre a orientação, é a mesma em qualquer
-geometria ($-0,37$ a $+0,21\dB$). Capítulo~\ref{cap:potencia}. \\
-Como a separação Tx--Rx altera o suporte em $k$ e a PSF? &
-À mesma altura e no mesmo raio, o canal biestático ocupa um anel horizontal de raio
-$|\cos(\Delta\phi/2)|$ vezes o monoestático, com a mesma extensão em $k_z$; a PSF
-alarga-se como $1/|\cos(\Delta\phi/2)|$ e a resolução vertical não muda. Na
-configuração diametral o anel colapsa e não há foco horizontal.
-Capítulos~\ref{cap:resolucao} e~\ref{cap:geometria}. \\
-Qual separação produz a melhor imagem biestática isolada? &
-A menor viável; não há ótimo intermediário, e o canal mais nítido é praticamente
-um segundo monoestático. Em SCR, porém, o canal isolado em TM a
-$135^\circ$--$140^\circ$ é o melhor com alvos reais. Capítulos~\ref{cap:geometria}
-e~\ref{cap:superficie}. \\
-Qual separação acrescenta mais informação à imagem monoestática? &
-$\Delta\phi\approx90^\circ$--$120^\circ$ constante (posto efetivo de $28,4$ para
-$33,8$; área ocupada em $(k_x,k_y)$ de $294$ para $475\,$rad$^2$/m$^2$) e, melhor
-ainda, uma separação varrida de $60^\circ$ a $150^\circ$. Capítulos~\ref{cap:geometria}
-e~\ref{cap:trajetoria}. \\
-A fusão coerente melhora resolução, volume, PSLR, ISLR, contraste ou
-localização? &
-\textbf{Melhora lóbulos e contraste, não a resolução.} Com o alvo pontual: ISLR até
-$-7,7\dB$, PSLR até $-5,2\dB$, contraste até $+5,5\dB$; a resolução horizontal
-piora de $16$ a $30\,\%$, o volume de $35$ a $58\,\%$, e a separabilidade de alvos
-próximos cai. A localização não muda. Todo o ganho é geométrico. \\
-A melhoria persiste com RCS anisotrópica e orientação aleatória? &
-\textbf{Sim, com receptor de dupla polarização alinhado.} Contraste $+1,8$ a
-$+2,7\dB$ em $90$ a $98\,\%$ das orientações a $90^\circ$. Com receptor TM
-co-polar, o canal biestático perde cerca de $20\dB$ e o ganho é marginal.
-Capítulo~\ref{cap:alvos}. \\
-O pseudo-Brewster reduz o retorno da superfície de forma robusta? &
-\textbf{Apenas parcialmente, e só onde não interessa.} Num solo com perdas o
-mínimo é largo, mas raso ($-34,5\dB$), e só atua sobre a especular, que só chega
-ao receptor na configuração diametral; nas demais geometrias o clutter é difuso e
-o SCR não depende de Brewster. O mecanismo útil é o nulo biestático VV
-($\Delta\phi^\ast\approx140^\circ$), que eleva de $8$ a $20\dB$ o SCR de alvos reais.
-Capítulo~\ref{cap:superficie}. \\
-Qual é o custo de impor o pseudo-Brewster à trajetória? &
-\textbf{Pequeno, mas sem benefício}: $\delta_x$ $-11\,\%$, $\delta_z$ $+12,5\,\%$,
-ISLR $+1,2$ a $+1,8\dB$, contraste $-0,5$ a $-1,2\dB$ e SCR $-0,6$ a $-2,2\dB$; a
-órbita de incidência constante é pior que a hélice em 54 de 60 comparações de SCR.
-Capítulo~\ref{cap:superficie}. \\
-\bottomrule
-\end{longtable}
+\subsection{O Critério de Potência}
+
+A potência recebida não determina a melhor posição do receptor. A transmitância de
+Brewster acrescenta cerca de $1\dB$ ao enlace e é dominada pela perda geométrica;
+para alvos centrados, a potência é invariante à separação azimutal; e, promediada
+sobre a orientação desconhecida do alvo, é a mesma em qualquer geometria, com
+diferenças de $-0,37$ a $+0,21\dB$ (Capítulo~\ref{cap:potencia}). O ângulo de
+Brewster deixa, assim, de ser critério de posicionamento, e a geometria do receptor
+passa a ser avaliada pelo seu efeito sobre a imagem.
+
+\subsection{Limites de Resolução}
+
+As larguras $\delta_x$, $\delta_y$ e $\delta_z$ de um SAR com refração dependem de
+dois fatores de abertura vistos do alvo, e as expressões fechadas reproduzem a
+imagem com erro inferior a $1,6\,\%$ (Capítulo~\ref{cap:resolucao}). Delas decorre
+que um receptor à mesma altura do transmissor nunca melhora a resolução a $-3\dB$ e
+que o ganho vertical de qualquer geometria biestática está limitado a $4,6\,\%$
+pela refração. Num solo estratificado, a resolução horizontal independe das
+camadas, a vertical depende apenas do índice da camada que contém o alvo, e o uso
+de um modelo homogêneo na focalização desloca e escala a imagem em profundidade da
+mesma forma nos dois canais, sem desfocalizá-la (Capítulo~\ref{cap:multicamadas}).
+
+\subsection{Complementaridade Geométrica e Fusão (H1)}
+
+À mesma altura e no mesmo raio, o canal biestático ocupa no espaço de números de
+onda um anel horizontal de raio $|\cos(\Delta\phi/2)|$ vezes o monoestático, com a
+mesma extensão vertical. A melhor imagem biestática isolada é a de menor separação
+viável, mas a maior complementaridade ocorre para
+$\Delta\phi\approx90^\circ$--$120^\circ$: o posto efetivo da matriz de aquisição
+passa de $28,4$ para $33,8$, e a área ocupada no plano $(k_x,k_y)$, de $294$ para
+$475\,$rad$^2$/m$^2$ (Capítulo~\ref{cap:geometria}). A fusão coerente a orçamento
+constante melhora os lóbulos e o contraste, e não a resolução: com o alvo pontual, o
+ISLR cai até $7,7\dB$, o PSLR até $5,2\dB$ e o contraste sobe até $5,5\dB$, enquanto o
+lóbulo principal se alarga de $16$ a $30\,\%$ e a separabilidade de alvos próximos
+diminui. A localização não muda, e todo o ganho é geométrico.
+
+Com alvos anisotrópicos em orientação aleatória, a melhoria de contraste
+($+1,8$ a $+2,7\dB$ em $90$ a $98\,\%$ das orientações a $90^\circ$) só se mantém com um
+receptor de dupla polarização alinhado ao campo do transmissor; um receptor TM
+co-polar perde cerca de $20\dB$ por descasamento geométrico de polarização, e o
+ganho torna-se marginal (Capítulo~\ref{cap:alvos}). A trajetória selecionada sob
+restrições de voo --- separação varrida de $60^\circ$ a $150^\circ$ --- combina anéis de
+raios distintos e reduz o ISLR em $7,7\dB$ e eleva o contraste em $5,5\dB$, com custo
+de voo quase nulo (Capítulo~\ref{cap:trajetoria}). Esses resultados sustentam H1 em
+simulação, com a ressalva de que a trajetória foi selecionada com o alvo pontual.
+
+\subsection{Supressão do Retorno da Superfície (H2)}
+
+Num solo com perdas, o pseudo-Brewster é um mínimo largo, porém raso
+($-34,5\dB$), que só atua sobre a reflexão especular, e esta só alcança o receptor
+na configuração diametral. Impor o pseudo-Brewster à trajetória tem custo pequeno
+($\delta_z$ $+12,5\,\%$, ISLR $+1,2$ a $+1,8\dB$, SCR $-0,6$ a $-2,2\dB$), mas nenhum
+benefício, e a órbita de incidência constante é pior que a hélice em 54 de 60
+comparações de SCR (Capítulo~\ref{cap:superficie}). O mecanismo útil é o nulo
+biestático VV do espalhamento difuso, localizado em forma fechada próximo de
+$140^\circ$, que eleva de $8$ a $20\dB$ o SCR de alvos reais quando o canal biestático
+é usado isoladamente. Por derivar de um modelo de primeira ordem, esse ganho é uma
+cota otimista de H2.
+
+\subsection{Coerência entre os Canais (H3)}
+
+A fusão coerente exige que os canais compartilhem uma referência de fase. Uma fase
+constante entre canais deve ser calibrada com erro inferior a $30^\circ$ --- um desvio
+de relógio de $1\,$ns equivale a $153^\circ$ e anula a fusão ---, a deriva de relógio
+deve permanecer muito abaixo de $1\,$ns na abertura e a deriva de posição, abaixo de
+$5\,$cm; os ruídos brancos de fase e de posição são tolerados, porque se promediam na
+abertura (Capítulo~\ref{cap:trajetoria}). Sem calibração, a fusão incoerente é a
+alternativa, com $2,0\dB$ menos de ISLR e $4,4\dB$ menos de contraste. Esses
+requisitos foram obtidos com erros idealizados; o orçamento de erro completo,
+incluindo a resposta relativa das cadeias de recepção, permanece por estabelecer.
 
 \section{Contribuições}
 \label{sec:concl_contrib}
@@ -3592,11 +3953,18 @@ Capítulo~\ref{cap:superficie}. \\
   nulo; quantificam-se as tolerâncias de fase ($<30^\circ$), de deriva de relógio
   ($\ll1\,$ns) e de deriva de posição ($<5\,$cm).
 
+  \item \textbf{Extensão a solos estratificados.} A
+  Proposição~\ref{prop:k_multi} mostra que, numa pilha de camadas planas, a
+  resolução horizontal independe das camadas e a vertical depende apenas do índice
+  da camada do alvo, e que um modelo homogêneo de focalização produz um
+  deslocamento e uma escala em profundidade comuns aos dois canais, previsíveis em
+  primeira ordem.
+
   \item \textbf{Correções ao formalismo de base.} A constante da largura de
   Bessel a $-3\dB$ é $1,1264$, e não $1,20$ ($6,5\,\%$ de superestimação); as
   contribuições de banda e de abertura à resolução vertical somam-se em quadratura;
-  o coeficiente de transmissão da formulação ABCD com impedâncias assimétricas foi
-  corrigido e verificado pela conservação de energia.
+  e a transmissão através de uma pilha com meios de entrada e de saída distintos
+  foi formulada para TE e TM com perdas e verificada pela conservação de energia.
 \end{enumerate}
 
 \section{Resultados Negativos}
@@ -3638,8 +4006,11 @@ negativos fazem parte dessa delimitação:
   ($k_0s\le0,36$) mais especular coerente; os termos de segunda ordem preenchem os
   nulos, de modo que o ganho do nulo VV é uma cota otimista. Facetas limitadas a
   $\pm12\,$m.
-  \item \textbf{Modelo do solo.} Homogêneo, com permissividade constante na banda,
-  sem clutter volumétrico; o estudo multicamada limitou-se à transmitância.
+  \item \textbf{Modelo do solo.} Homogêneo nas simulações de imagem dos
+  Capítulos~\ref{cap:geometria} a~\ref{cap:trajetoria}, com permissividade constante
+  na banda e sem clutter volumétrico. O Capítulo~\ref{cap:multicamadas} mostra que a
+  estratificação não altera as conclusões geométricas, mas não incluiu o retorno das
+  interfaces internas.
   \item \textbf{Abertura.} Todos os resultados usam duas voltas completas da hélice;
   com aberturas parciais, o suporte em $k$ deixa de ser anular e a separação ótima
   pode mudar.
@@ -3649,8 +4020,9 @@ negativos fazem parte dessa delimitação:
   intermediárias não.
   \item \textbf{Seleção da trajetória.} A trajetória do modo de imageamento foi
   selecionada com o alvo pontual.
-  \item \textbf{Validação experimental.} Os resultados são de simulação; o
-  Capítulo~\ref{cap:dados_reais} define o protocolo de validação com dados reais.
+  \item \textbf{Validação experimental.} Os resultados desta tese são analíticos e
+  de simulação; sua validação com dados reais é o objeto do
+  Capítulo~\ref{cap:dados_reais}.
 \end{itemize}
 
 \section{Perspectivas}
@@ -3677,8 +4049,9 @@ negativos fazem parte dessa delimitação:
   \item \textbf{Domínio de validade em solos úmidos.} Calcular a profundidade máxima
   com SCR positivo para cada solo e sua dependência com a frequência, já que a
   atenuação cresce aproximadamente com $f$.
-  \item \textbf{Validação experimental} segundo o protocolo do
-  Capítulo~\ref{cap:dados_reais}.
+  \item \textbf{Retorno das interfaces internas.} Incluir no simulador as
+  reflexões nas interfaces de um solo estratificado e avaliar se o nulo VV e a
+  supressão geométrica do clutter se estendem a elas.
 \end{enumerate}
 
 %%═══════════════════════════════════════════════════════════════════════════════
@@ -3749,22 +4122,33 @@ passa a $1,443$. A soma linear das contribuições corresponderia a supor
 correlação perfeita entre $\delta f$ e $\delta q$, o que não ocorre, pois a
 frequência e a posição na abertura são varridas independentemente.
 
-\section{Derivação das Matrizes ABCD a partir das Equações de Maxwell}
+\section{Derivação da Matriz Característica}
 \label{app:abcd_deriv}
 
-Na camada $i$, em polarização TM, $H_y(z) = C_i^+e^{\jj k_{z,i}z} + C_i^-e^{-\jj k_{z,i}z}$.
-As condições de contorno TM (continuidade de $H_y$ e de
-$(1/n_i^2)\partial_z H_y\propto E_x$) nas faces da camada equivalem à propagação
-do vetor de estado $[H_y,\,E_x]^T$ ao longo da espessura $d_i$:
-\begin{align*}
-  H_y(z+d_i) &= H_y(z)\cos(k_{z,i}d_i) + \jj Z_i E_x(z)\sin(k_{z,i}d_i), \\
-  E_x(z+d_i) &= \frac{\jj}{Z_i}H_y(z)\sin(k_{z,i}d_i) + E_x(z)\cos(k_{z,i}d_i),
-\end{align*}
-que é a matriz $\mathbf{M}_i$ de~\eqref{eq:ABCD_matrix}. Impondo, na saída, apenas
-a onda transmitida no meio semi-infinito ($E_x=H_y/Z_{\text{out}}$) e, na entrada,
-a superposição das ondas incidente e refletida, obtêm-se $\Gamma_{\text{TM}}$ e
-$\tau_{\text{TM}}$ de~\eqref{eq:Gamma_TM}, com o denominador comum
-$AZ_{\text{out}}+B+Z_{\text{in}}(CZ_{\text{out}}+D)$.
+Numa camada homogênea $i$ e para o parâmetro de raio $p$, os campos dependem de
+$x$ por $e^{-\jj k_0px}$ e, em $z$, são superposições de ondas descendente e
+ascendente com número de onda vertical $k_{z,i}=k_0n_i\cos\theta_i$. Sejam $U$ e
+$V$ as componentes tangenciais dos campos elétrico e magnético, normalizadas de
+modo que, para uma onda descendente isolada, $V=Y_iU$, com a admitância $Y_i$
+de~\eqref{eq:admitancia}; em TM, os papéis dos campos elétrico e magnético são
+permutados~\citar{bornwolf1999}. Escrevendo
+$U(z)=a\,e^{-\jj k_{z,i}z}+b\,e^{\jj k_{z,i}z}$ e
+$V(z)=Y_i\big(a\,e^{-\jj k_{z,i}z}-b\,e^{\jj k_{z,i}z}\big)$ e eliminando $a$ e $b$
+entre as faces da camada, separadas pela espessura $d_i$, obtém-se
+\[
+  \begin{pmatrix}U_{\text{topo}}\\V_{\text{topo}}\end{pmatrix}=
+  \begin{pmatrix}\cos\beta_i & \dfrac{\jj}{Y_i}\sin\beta_i\\[6pt] \jj\,Y_i\sin\beta_i & \cos\beta_i\end{pmatrix}
+  \begin{pmatrix}U_{\text{base}}\\V_{\text{base}}\end{pmatrix},\qquad \beta_i=k_{z,i}d_i ,
+\]
+que é~\eqref{eq:ABCD_matrix}. A continuidade de $U$ e $V$ nas interfaces permite
+encadear as camadas por produto de matrizes. Na entrada, a superposição das ondas
+incidente e refletida dá $U_0=1+\Gamma$ e $V_0=Y_0(1-\Gamma)$; na saída existe
+apenas a onda transmitida, $U_L=t$ e $V_L=Y_Lt$. Da relação
+$(U_0,V_0)^T=\mathbf M\,(U_L,V_L)^T$ resultam as equações
+$1+\Gamma=(m_{11}+m_{12}Y_L)\,t$ e $Y_0(1-\Gamma)=(m_{21}+m_{22}Y_L)\,t$, cuja
+solução é~\eqref{eq:Gamma_TM}. A transmitância~\eqref{eq:T_TM_multi} é a razão
+entre os fluxos médios normais à interface, proporcionais a
+$\tfrac12\mathrm{Re}(UV^\ast)$, transmitido e incidente.
 
 \chapter{Parâmetros das Simulações}
 \label{app:parametros}

@@ -1,0 +1,17 @@
+exp2: generacion + sincronismo 11.4 s, 6251 ventanas
+asociacion: true (k_hat 161, margen 2098)
+eps: verdadero 6.3574e-07  estimado 6.3630e-07  (error 5.69e-10)
+CRB: sigma_t 300 ps, sigma_phi 0.0239 rad
+
+estrategia    e_t(ps)      e_phi   pos(m) perd(dB)    PSLR    ISLR    rho  veredicto
+E0 offset  11501186.8     1.8102    2.669   -63.03    -0.1    12.8  0.187  NO
+E1 modelo        79.4     0.2124    0.017    -0.20    -8.8     3.4  0.982  SI
+E2 tiempo       298.4     0.7968    0.005    -2.76    -8.5     6.0  0.997  NO
+E3 fase         298.4     0.0242    0.000    -0.00    -7.7     7.8  1.000  SI
+Ideal             0.0     0.0000    0.000     0.00    -7.7     7.8  1.000  SI
+
+Coherencia mono-bi en los picos (fase bi - fase mono, grados):
+  E1 modelo  dphi = [0 0 0 0 0]   ganancia fusion/max = 1.000
+  E2 tiempo  dphi = [0 0 0 0 0]   ganancia fusion/max = 1.000
+  E3 fase    dphi = [0 0 0 0 0]   ganancia fusion/max = 1.000
+  Ideal      dphi = [0 0 0 0 0]   ganancia fusion/max = 1.000

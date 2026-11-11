@@ -1,0 +1,177 @@
+
+================ exp1_tolerancias ================
+exp1: 95 imagenes en 61 s
+
+=== Tolerancias (blanco central / media de blancos) ===
+Imagen ideal: PSLR -32.7 dB, ISLR -31.9 dB
+(a) offset de tiempo para desplazamiento 0.25 m : 1.17 ns
+(b) error de frecuencia para desplazamiento 0.25 m: 5.28e-11 (= 0.0224 Hz en fc)
+(c) QPE para perdida de 1.0 dB: 3.17 rad (pi/1.0)
+(d) sigma_phi para perdida de 1.0 dB: 0.468 rad
+(e) sigma_t para perdida de 1.0 dB: 177 ps
+exp1_tolerancias: 69 s
+
+================ exp2_cadena_completa ================
+exp2: generacion + sincronismo 1.3 s, 1222 ventanas
+asociacion: true (k_hat 161, margen 9995)
+eps: verdadero -6.0284e-07  estimado -6.0269e-07  (error 1.43e-10)
+CRB: sigma_t 300 ps, sigma_phi 0.0239 rad
+
+estrategia    e_t(ps)      e_phi   pos(m) perd(dB)    PSLR    ISLR    rho  veredicto
+E0 offset   2103796.6     1.7922    9.192   -62.61    -1.0     4.0  0.048  NO
+E1 modelo        50.3     0.1307    0.121    -0.08   -23.9   -19.5  0.994  SI
+E2 tiempo       305.3     0.8144    0.101    -2.95   -21.8   -16.0  0.991  NO
+E3 fase         305.3     0.0231    0.004    -0.00   -25.7   -20.2  1.000  SI
+Ideal             0.0     0.0000    0.000     0.00   -25.8   -20.3  1.000  SI
+
+Coherencia mono-bi en los picos (fase bi - fase mono, grados):
+  E1 modelo  dphi = [2 1 1 1 1]   ganancia fusion/max = 1.000
+  E2 tiempo  dphi = [1 1 1 1 0]   ganancia fusion/max = 1.000
+  E3 fase    dphi = [1 0 0 0 0]   ganancia fusion/max = 1.000
+  Ideal      dphi = [1 0 0 0 0]   ganancia fusion/max = 1.000
+exp2_cadena_completa: 14 s
+
+================ exp3_snr_oscilador ================
+exp3 caso 1/12 (TCXO, 5 dB): 27 s
+exp3 caso 2/12 (TCXO, 10 dB): 53 s
+exp3 caso 3/12 (TCXO, 15 dB): 79 s
+exp3 caso 4/12 (TCXO, 20 dB): 105 s
+exp3 caso 5/12 (TCXO, 25 dB): 131 s
+exp3 caso 6/12 (TCXO, 30 dB): 157 s
+exp3 caso 7/12 (TCXO, 40 dB): 183 s
+exp3 caso 8/12 (TCXO, 50 dB): 209 s
+exp3 caso 9/12 (OCXO, 30 dB): 236 s
+exp3 caso 10/12 (TCXO, 30 dB): 262 s
+exp3 caso 11/12 (XO, 30 dB): 298 s
+exp3 caso 12/12 (XO_BARATO, 30 dB): 345 s
+
+(A) TCXO, barrido de SNR del camino directo (medianas)
+  SNR    det  asoc   et2(ps)    CRB_t     ep2     ep3 |   perd1   perd2   perd3 | cumple E1/E2/E3 (fraccion)
+    5  1.000  1.00    401842     5337   1.786   1.769 |  -41.73  -43.66  -42.60 | 0.00 0.00 0.00
+   10  1.000  1.00    396280     3001   1.797   1.740 |  -42.28  -40.35  -33.76 | 0.00 0.00 0.00
+   15  1.000  1.00    146791     1688   1.797   0.655 |  -10.32  -29.29   -1.22 | 0.00 0.00 0.00
+   20  1.000  1.00       952      949   1.759   0.076 |   -0.08  -25.23   -0.04 | 0.00 0.00 1.00
+   25  1.000  1.00       540      534   1.372   0.043 |   -0.10   -9.06   -0.01 | 0.00 0.00 1.00
+   30  1.000  1.00       300      300   0.788   0.024 |   -0.08   -2.75   -0.01 | 0.00 0.00 1.00
+   40  1.000  1.00        95       95   0.253   0.008 |   -0.09   -0.28   -0.00 | 0.00 0.50 1.00
+   50  1.000  1.00        30       30   0.079   0.002 |   -0.10   -0.03   -0.00 | 0.00 1.00 1.00
+
+(B) SNR_d = 30 dB, clase de oscilador (medianas)
+     clase   et1(ps)     deps     ep1     ep3 |   perd1   perd2   perd3 | cumple E1/E2/E3
+      OCXO        11  1.4e-12   0.023   0.024 |   -0.00   -2.82   -0.00 | 1.00 0.00 1.00
+      TCXO        53  2.4e-10   0.141   0.024 |   -0.09   -2.70   -0.00 | 0.00 0.00 1.00
+        XO       513  2.7e-09   1.319   0.024 |   -5.65   -2.81   -0.01 | 0.00 0.00 1.00
+ XO_BARATO      4535  2.0e-08   1.777   0.024 |  -23.09   -2.86   -0.00 | 0.00 0.00 1.00
+exp3_snr_oscilador: 347 s
+
+================ exp4_pulsos_perdidos ================
+exp4(A) realizacion 1/3: 15 s
+exp4(A) realizacion 2/3: 31 s
+exp4(A) realizacion 3/3: 46 s
+
+(A) Patrones de escucha (medianas de 3 realizaciones; TCXO, SNR_d = 30 dB)
+           patron            J      asoc_ok     perd_E1     perd_E2     perd_E3      ok_E3    muestreo_dPSLR    muestreo_dISLR    muestreo_rho
+    ____________________    ____    _______    _________    _______    __________    _____    ______________    ______________    ____________
+
+    {'continuo'        }    2400       1       -0.086009    -2.7927     -0.004657      1                0                0                1   
+    {'periodico 2'     }    1200       1       -0.088711    -2.8533    -0.0040805      1         0.021972           2.0283          0.99978   
+    {'periodico 4'     }     600       1       -0.098004    -2.9026    -0.0061549      1           0.7108           3.8525          0.99927   
+    {'periodico 8'     }     300       1       -0.096103    -3.0065      -0.01179      1           2.0303           5.8949          0.99857   
+    {'periodico 16'    }     150       1        -0.10115    -2.9673    -0.0096673      1           3.3685           8.8706          0.99678   
+    {'periodico 32'    }      75       1       -0.096859    -2.9529     -0.006962      1            5.778           11.925          0.99346   
+    {'periodico 64'    }      38       1       -0.097279    -3.0858     -0.022759      1           16.315           16.232          0.97473   
+    {'periodico 128'   }      19       1        -0.18174     -2.915     -0.017085      1           22.594           18.838          0.70927   
+    {'aleatorio 0.5'   }    1184       1       -0.093267    -2.8232    -0.0054486      1           5.6084           9.0162          0.99565   
+    {'aleatorio 0.2'   }     469       1       -0.082464    -2.8194    -0.0099493      1           13.396           15.991          0.97523   
+    {'aleatorio 0.05'  }     119       1       -0.087051    -2.4186     -0.005793      1           19.803           21.798          0.86986   
+    {'aleatorio 0.01'  }      27       1        -0.15255    -3.6287     -0.037029      1           24.953           23.891          0.59642   
+    {'rafagas [20 180]'}     240       1       -0.097857    -2.9992    -0.0064941      1           29.363           26.561          0.59501   
+    {'rafagas [5 495]' }      25       1       -0.043544    -4.5185     -0.016784      1           32.375           22.878          0.31728   
+
+exp4(B) OCXO: 50 s
+exp4(B) TCXO: 55 s
+exp4(B) XO: 67 s
+exp4(B) XO_BARATO: 88 s
+
+(B) Hueco maximo con sigma_phi <= 0.47 rad (perdida <= 1 dB):
+  OCXO       simulado: > 1.28 s (limite del ensayo) teoria: 1.85e+03 s
+  TCXO       simulado: > 1.28 s (limite del ensayo) teoria: 18.5 s
+  XO         simulado: 0.08 s (32 PRT)      teoria: 0.185 s
+  XO_BARATO  simulado: < 2 PRT              teoria: 0.00185 s
+exp4_pulsos_perdidos: 89 s
+
+================ exp5_asociacion ================
+exp5 TCXO S = 0: 3 s
+exp5 TCXO S = 1e-09: 5 s
+exp5 TCXO S = 1e-08: 8 s
+exp5 TCXO S = 1e-07: 10 s
+exp5 TCXO S = 1e-06: 13 s
+exp5 TCXO S = 5e-06: 15 s
+exp5 XO_BARATO S = 0: 18 s
+exp5 XO_BARATO S = 1e-09: 21 s
+exp5 XO_BARATO S = 1e-08: 23 s
+exp5 XO_BARATO S = 1e-07: 26 s
+exp5 XO_BARATO S = 1e-06: 28 s
+exp5 XO_BARATO S = 5e-06: 31 s
+
+P(asociacion correcta), TCXO (filas: stagger; columnas: J = [3 4 5 8 16 64 256])
+  S =    0e+00 s:   0.00  0.00  0.00  0.01  0.00  0.00  0.00
+  S =    1e-09 s:   0.01  0.02  0.08  0.42  0.98  1.00  1.00
+  S =    1e-08 s:   0.02  0.45  0.94  1.00  1.00  1.00  1.00
+  S =    1e-07 s:   0.24  1.00  1.00  1.00  1.00  1.00  1.00
+  S =    1e-06 s:   0.80  1.00  1.00  1.00  1.00  1.00  1.00
+  S =    5e-06 s:   0.93  1.00  1.00  1.00  1.00  1.00  1.00
+
+P(asociacion correcta), XO_BARATO (filas: stagger; columnas: J = [3 4 5 8 16 64 256])
+  S =    0e+00 s:   0.00  0.00  0.00  0.00  0.00  0.00  0.00
+  S =    1e-09 s:   0.00  0.01  0.01  0.00  0.00  0.01  0.04
+  S =    1e-08 s:   0.01  0.00  0.03  0.04  0.22  0.78  0.99
+  S =    1e-07 s:   0.00  0.15  0.47  0.98  1.00  1.00  1.00
+  S =    1e-06 s:   0.14  0.90  0.99  1.00  1.00  1.00  1.00
+  S =    5e-06 s:   0.38  1.00  1.00  1.00  1.00  1.00  1.00
+exp5_asociacion: 32 s
+
+================ exp6_navegacion ================
+exp6 realizacion 1/3: 66 s
+exp6 realizacion 2/3: 132 s
+exp6 realizacion 3/3: 197 s
+
+Perdida de pico (peor blanco, dB) frente a navegacion perfecta (lambda = 0.71 m)
+ sigma(m)       E2       E3  reloj id.     mono
+    0.000    -2.71    -0.01       0.00     0.00
+    0.005    -2.71    -0.01      -0.01    -0.02
+    0.010    -2.73    -0.02      -0.03    -0.09
+    0.020    -2.78    -0.05      -0.10    -0.36
+    0.050    -3.03    -0.27      -0.54    -2.05
+    0.100    -3.61    -1.05      -1.95    -6.24
+exp6_navegacion: 198 s
+exp3 caso 1/12 (TCXO, 5 dB): 27 s
+exp3 caso 2/12 (TCXO, 10 dB): 53 s
+exp3 caso 3/12 (TCXO, 15 dB): 79 s
+exp3 caso 4/12 (TCXO, 20 dB): 104 s
+exp3 caso 5/12 (TCXO, 25 dB): 130 s
+exp3 caso 6/12 (TCXO, 30 dB): 156 s
+exp3 caso 7/12 (TCXO, 40 dB): 182 s
+exp3 caso 8/12 (TCXO, 50 dB): 208 s
+exp3 caso 9/12 (OCXO, 30 dB): 235 s
+exp3 caso 10/12 (TCXO, 30 dB): 262 s
+exp3 caso 11/12 (XO, 30 dB): 297 s
+exp3 caso 12/12 (XO_BARATO, 30 dB): 344 s
+
+(A) TCXO, barrido de SNR del camino directo (medianas)
+  SNR    det  asoc   et2(ps)    CRB_t     ep2     ep3 |   perd1   perd2   perd3 | cumple E1/E2/E3 (fraccion)
+    5  1.000  1.00    401842     5337   1.786   1.769 |  -41.73  -43.66  -42.60 | 0.00 0.00 0.00
+   10  1.000  1.00    396280     3001   1.797   1.740 |  -42.28  -40.35  -33.76 | 0.00 0.00 0.00
+   15  1.000  1.00    146791     1688   1.797   0.655 |  -10.32  -29.29   -1.22 | 0.00 0.00 0.00
+   20  1.000  1.00       952      949   1.759   0.076 |   -0.08  -25.23   -0.04 | 0.00 0.00 1.00
+   25  1.000  1.00       540      534   1.372   0.043 |   -0.10   -9.06   -0.01 | 0.00 0.00 1.00
+   30  1.000  1.00       300      300   0.788   0.024 |   -0.08   -2.75   -0.01 | 0.00 0.00 1.00
+   40  1.000  1.00        95       95   0.253   0.008 |   -0.09   -0.28   -0.00 | 0.00 0.50 1.00
+   50  1.000  1.00        30       30   0.079   0.002 |   -0.10   -0.03   -0.00 | 0.00 1.00 1.00
+
+(B) SNR_d = 30 dB, clase de oscilador (medianas)
+     clase   et1(ps)     deps     ep1     ep3 |   perd1   perd2   perd3 | cumple E1/E2/E3
+      OCXO        11  1.4e-12   0.023   0.024 |   -0.00   -2.82   -0.00 | 1.00 0.00 1.00
+      TCXO        53  2.4e-10   0.141   0.024 |   -0.09   -2.70   -0.00 | 0.00 0.00 1.00
+        XO       513  2.7e-09   1.319   0.024 |   -5.65   -2.81   -0.01 | 0.00 0.00 1.00
+ XO_BARATO      4535  2.0e-08   1.777   0.024 |  -23.09   -2.86   -0.00 | 0.00 0.00 1.00
